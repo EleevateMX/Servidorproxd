@@ -1,9 +1,9 @@
 <#
   Próxima RP — instalación del entorno de pruebas en Windows.
   Uso (PowerShell, desde la raíz del repo):
-    .\scripts\setup-windows.ps1 -ArtifactUrl "<enlace del build recomendado de Windows>"
-  El enlace se copia de la página oficial "Server Download" (docs.fivem.net/docs/server-download/).
-  Sin -ArtifactUrl, prepara todo lo demás y te dice dónde poner los binarios.
+    .\scripts\setup-windows.ps1
+  Busca solo el build RECOMENDADO de FXServer en la API oficial de versiones
+  (la misma que usa txAdmin). Para forzar otro build: -ArtifactUrl "<enlace>".
 #>
 param([string]$ArtifactUrl = "")
 $ErrorActionPreference = "Stop"
@@ -24,15 +24,25 @@ New-Item -ItemType Directory -Force -Path $Server | Out-Null
 $Exe = @("FXServer.exe", "cfx-server.exe") | ForEach-Object { Join-Path $Server $_ } | Where-Object { Test-Path $_ } | Select-Object -First 1
 if ($Exe) {
   Write-Host "  Ya existen: $Exe"
-} elseif ($ArtifactUrl) {
-  $Archive = Join-Path $Server "artifact.7z"
-  Invoke-WebRequest -Uri $ArtifactUrl -OutFile $Archive
-  try { tar -xf $Archive -C $Server } catch { throw "No se pudo descomprimir con tar. Abre $Archive con 7-Zip y extrae su contenido en $Server" }
-  Remove-Item $Archive
-  Write-Host "  Extraídos en $Server"
 } else {
-  Write-Host "  Descarga el build RECOMENDADO para Windows desde https://docs.fivem.net/docs/server-download/" -ForegroundColor Yellow
-  Write-Host "  y extrae el .7z dentro de $Server (o vuelve a ejecutar con -ArtifactUrl)." -ForegroundColor Yellow
+  if (-not $ArtifactUrl) {
+    try {
+      $Info = Invoke-RestMethod "https://changelogs-live.fivem.net/api/changelog/versions/win32/server"
+      $ArtifactUrl = $Info.recommended_download
+      Write-Host "  Build recomendado: $($Info.recommended)"
+    } catch { Write-Host "  No se pudo consultar la API de versiones: $($_.Exception.Message)" -ForegroundColor Yellow }
+  }
+  if ($ArtifactUrl) {
+    $Archive = Join-Path $Server "artifact.7z"
+    Invoke-WebRequest -Uri $ArtifactUrl -OutFile $Archive
+    tar -xf $Archive -C $Server
+    if ($LASTEXITCODE -ne 0) { throw "No se pudo descomprimir con tar. Abre $Archive con 7-Zip y extrae su contenido en $Server" }
+    Remove-Item $Archive
+    Write-Host "  Extraídos en $Server"
+  } else {
+    Write-Host "  Descarga el build RECOMENDADO para Windows desde https://docs.fivem.net/docs/server-download/" -ForegroundColor Yellow
+    Write-Host "  y extrae el .7z dentro de $Server (o vuelve a ejecutar con -ArtifactUrl)." -ForegroundColor Yellow
+  }
 }
 
 Step "Recursos base (cfx-server-data)"

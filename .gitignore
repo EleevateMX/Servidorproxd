@@ -21,3 +21,4 @@ server-data/resources/[proxima]/pxd_loadscreen/html/assets/*.mp4
 # Pruebas
 tests/web/out/
 node_modules/
+deploy/.env

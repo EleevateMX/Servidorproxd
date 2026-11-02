@@ -15,12 +15,18 @@
 ## Empezar
 
 ```powershell
-.\scripts\setup-windows.ps1 -ArtifactUrl "<build recomendado de docs.fivem.net/docs/server-download>"
+.\scripts\setup-windows.ps1
 ```
 ```powershell
 .\scripts\run-windows.ps1
 ```
 En FiveM: F8 → `connect localhost:30120`. Guía completa: [docs/02-entorno-de-pruebas.md](docs/02-entorno-de-pruebas.md).
+
+**En la nube (VPS Linux con Docker):**
+```bash
+docker compose -f deploy/docker-compose.yml up -d --build
+```
+Antes rellena `deploy/.env` (ver [docs/06-servidor-en-la-nube.md](docs/06-servidor-en-la-nube.md)).
 
 ## Documentación
 
@@ -29,6 +35,7 @@ En FiveM: F8 → `connect localhost:30120`. Guía completa: [docs/02-entorno-de-
 3. [Modos de juego](docs/03-modos-de-juego.md)
 4. [Editor de props, dashboard y blueprints](docs/04-editor-de-props.md)
 5. [Login, pantalla de carga e identidad](docs/05-login-carga-y-marca.md)
+6. [Servidor en la nube](docs/06-servidor-en-la-nube.md)
 
 ## Pruebas
 

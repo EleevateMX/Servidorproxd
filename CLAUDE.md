@@ -18,6 +18,7 @@ node scripts/pxd.mjs …   # anchors | list | get | compile | apply | activate |
 | `server-data/resources/[proxima]/pxd_*` | Recursos propios |
 | `tools/blueprint.mjs` | Compilador de blueprints (formas → layout) |
 | `blueprints/` | Diseños listos para inyectar |
+| `deploy/` | Imagen Docker y compose para VPS Linux (secretos por variables de entorno) |
 | `tests/lua/fx_stub.lua` | Simulador mínimo de FXServer para probar `server/*.lua` |
 
 Patrón de los recursos: la lógica va en `shared/*.lua` **pura** (sin natives, recibe `now`) y se prueba con Lua; `server/` y `client/` son pegamento delgado.

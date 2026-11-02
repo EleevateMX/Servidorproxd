@@ -1,0 +1,13 @@
+# En .dockerignore los corchetes son patrones: "?cfx?" equivale a la carpeta "[cfx]".
+.git
+server
+txData
+node_modules
+tests
+.env
+deploy/.env
+server-data/secrets.cfg
+server-data/cache
+server-data/resources/?cfx?
+server-data/resources/?proxima?/pxd_props/data/*.json
+server-data/resources/?proxima?/pxd_login/data/*.json

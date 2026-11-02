@@ -6,11 +6,11 @@ Objetivo: un servidor FiveM en tu PC, privado, para crear y probar modos de jueg
 
 1. Instala [Git](https://git-scm.com/download/win) y, opcional, [Node.js 20+](https://nodejs.org).
 2. Clona este repo y entra en la carpeta.
-3. Copia el enlace del build **recomendado** de Windows desde [Server Download](https://docs.fivem.net/docs/server-download/) y ejecuta en PowerShell:
+3. Ejecuta en PowerShell:
    ```powershell
-   .\scripts\setup-windows.ps1 -ArtifactUrl "<enlace copiado>"
+   .\scripts\setup-windows.ps1
    ```
-   Esto descarga FXServer en `server/`, clona `cfx-server-data` en `server-data/resources/[cfx]/`, crea `server-data/secrets.cfg` con un token aleatorio (también en `.env`) y descarga el arte de la marca.
+   Busca solo el build **recomendado** de FXServer (API oficial de versiones; para otro build: `-ArtifactUrl "<enlace>"`), lo descarga en `server/`, clona `cfx-server-data` en `server-data/resources/[cfx]/`, crea `server-data/secrets.cfg` con un token aleatorio (también en `.env`) y descarga el arte de la marca.
    Si `tar` no puede abrir el `.7z`, extráelo con 7-Zip dentro de `server/`.
 4. Edita `server-data/permissions.cfg` y añade tu identificador al grupo `group.admin` (lo ves en la consola del servidor cuando te conectas).
 5. Arranca:
@@ -22,7 +22,7 @@ Objetivo: un servidor FiveM en tu PC, privado, para crear y probar modos de jueg
 ## Linux
 
 ```bash
-bash scripts/setup-linux.sh "<enlace del build recomendado de Linux>"
+bash scripts/setup-linux.sh
 ```
 ```bash
 bash scripts/run-linux.sh
@@ -34,6 +34,10 @@ bash scripts/run-linux.sh
 - `sv_lan true` en `secrets.cfg`: sin licencia y sin aparecer en la lista pública. Para que entren amigos por internet: pon tu clave de [portal.cfx.re](https://portal.cfx.re) en `sv_licenseKey`, quita `sv_lan` y abre el puerto 30120 TCP/UDP.
 - Recursos base de `cfx-server-data` (mapmanager, chat, spawnmanager, basic-gamemode, baseevents, un mapa con spawns).
 - Recursos de Próxima: `pxd_loadscreen`, `pxd_login`, `pxd_props`, `pxd_gamemodes`.
+
+## En la nube
+
+Para tenerlo 24/7 con más jugadores: [docs/06-servidor-en-la-nube.md](06-servidor-en-la-nube.md).
 
 ## Alternativa: txAdmin
 

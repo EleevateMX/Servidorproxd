@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Próxima RP — instalación del entorno de pruebas en Linux.
-# Uso: bash scripts/setup-linux.sh "<enlace del build recomendado de Linux (fx.tar.xz)>"
-# El enlace se copia de https://docs.fivem.net/docs/server-download/
+# Uso: bash scripts/setup-linux.sh            (busca solo el build RECOMENDADO)
+#      bash scripts/setup-linux.sh "<enlace>"   (fuerza otro build)
+# La API de versiones es la misma que usa txAdmin para avisar de actualizaciones.
 # Nota oficial: el servidor de Linux es un "port de cortesía"; Windows recibe antes los arreglos.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -14,10 +15,16 @@ command -v xz >/dev/null || { echo "Falta xz (Debian/Ubuntu: apt install xz-util
 
 step "Binarios de FXServer"
 mkdir -p "$SERVER"
+URL="${1:-}"
+if [ ! -f "$SERVER/run.sh" ] && [ -z "$URL" ]; then
+  URL="$(curl -fsS https://changelogs-live.fivem.net/api/changelog/versions/linux/server \
+    | grep -o '"recommended_download":"[^"]*"' | cut -d'"' -f4 || true)"
+  [ -n "$URL" ] && echo "  Build recomendado: $URL"
+fi
 if [ -f "$SERVER/run.sh" ]; then
   echo "  Ya existen en $SERVER"
-elif [ -n "${1:-}" ]; then
-  curl -fL "$1" -o "$SERVER/fx.tar.xz"
+elif [ -n "$URL" ]; then
+  curl -fL "$URL" -o "$SERVER/fx.tar.xz"
   tar -xf "$SERVER/fx.tar.xz" -C "$SERVER" && rm "$SERVER/fx.tar.xz"
 else
   echo "  Descarga el build RECOMENDADO de Linux desde https://docs.fivem.net/docs/server-download/"
