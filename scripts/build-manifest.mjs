@@ -57,7 +57,14 @@ export function buildManifest() {
     patches: raw.patches.filter((p) => exists(p.requires)),
     external: externalFromRecipe(),
   };
-  return { format: 1, files, assets, plan };
+  // Overlays: archivos de un recurso pxd_* que se copian a un recurso de terceros.
+  const overlays = (raw.overlays || []).filter((o) => existsSync(join(res, o.from))).map((o) => {
+    const buf = readFileSync(join(res, o.from));
+    const [fromResource, ...rest] = o.from.split('/');
+    return { resource: o.resource, path: o.path, requiresVersion: o.requiresVersion,
+      from: { resource: fromResource, path: rest.join('/') }, size: buf.length, sha256: createHash('sha256').update(buf).digest('hex') };
+  });
+  return { format: 1, files, assets, plan, overlays };
 }
 
 const out = join(root, 'update-manifest.json');

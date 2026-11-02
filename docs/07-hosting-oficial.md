@@ -119,6 +119,7 @@ En txAdmin → **Live Console**:
 - **Recursos nuevos.** FXServer tampoco deja crear carpetas de recursos desde un script, así que los recursos nuevos (de Próxima o de terceros, como los trabajos de Qbox) se suben **una vez** con el paquete de instalación: `scripts/build-package.sh` genera un zip con `resources/[proxima]/…` y `resources/[qbx]/…`; súbelo a la carpeta del servidor y descomprímelo (no toca las carpetas `data/`). Después, `pxd_update` los mantiene al día.
 - Los recursos del plan (`scripts/update-plan.json`) los arranca el actualizador en cada encendido, así que no hace falta añadir `ensure` al `server.cfg`. Si uno sustituye a otro (p. ej. `pxd_hud` a `qbx_hud`), para el antiguo.
 - Ajustes en recursos de terceros (p. ej. `useExternalCharacters` de qbx_core para la pantalla de personajes): los hace y pide **reiniciar el servidor**.
+- **Capas sobre recursos de terceros (overlays).** Por ejemplo, el inventario: `pxd.css` y `pxd.js` de `pxd_inventory` se copian a `ox_inventory/web/build/assets/`. Se aplican solo si la versión del recurso coincide con `requiresVersion` (`scripts/update-plan.json`) y piden reiniciar el servidor. Ver docs/20.
 - Si algo tiene varios pasos (el propio actualizador, recursos nuevos, terceros, arte), ve ejecutando `pxd_update` hasta que diga «Todo está al día».
 - Necesita en el `server.cfg` (ya viene en las recetas nuevas):
   ```

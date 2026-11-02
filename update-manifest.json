@@ -288,6 +288,43 @@
    "sha256": "59816da5de4fd7f446dc51fed85985a0718239aabc7a1074bead5876bbd418f9"
   },
   {
+   "resource": "pxd_inventory",
+   "path": "client/main.lua",
+   "size": 5946,
+   "sha256": "87f923ba8524abc2f8f275abb69b5c19e33d2b13a7164665fff36e69e54697a8"
+  },
+  {
+   "resource": "pxd_inventory",
+   "path": "config.lua",
+   "size": 2928,
+   "sha256": "b12e8dfd4af453e861d4cd21d065a85baabb134aa05d00bb8f6cd76cad819899",
+   "config": true
+  },
+  {
+   "resource": "pxd_inventory",
+   "path": "fxmanifest.lua",
+   "size": 464,
+   "sha256": "1d987cc39148eacc3822ae14af005e735076be53983a5597966dda0fd62990f4"
+  },
+  {
+   "resource": "pxd_inventory",
+   "path": "overlay/ox_inventory/pxd.css",
+   "size": 15810,
+   "sha256": "6aada7c5a5644e6c4be06c1056082253f4a513a597e4f7b5e38e6e5749efa3fe"
+  },
+  {
+   "resource": "pxd_inventory",
+   "path": "overlay/ox_inventory/pxd.js",
+   "size": 10584,
+   "sha256": "8c44ddf578230df85fcbfed2f3eb707b41e80ce9fbc8577503de7826a303d04b"
+  },
+  {
+   "resource": "pxd_inventory",
+   "path": "shared/inventory.lua",
+   "size": 4640,
+   "sha256": "3670a67b75ad58360f1aa4b140ee0a7affc649ffe95c9c8feb489da27e288cbc"
+  },
+  {
    "resource": "pxd_jobs",
    "path": "client/main.lua",
    "size": 10154,
@@ -689,8 +726,8 @@
   {
    "resource": "pxd_updater",
    "path": "server/main.lua",
-   "size": 12811,
-   "sha256": "679e152c8b2d0d91d15ea02a014937e64377259b180714efdf327e7d82bb4033"
+   "size": 15633,
+   "sha256": "9e0ed5fa5727e030c0fd3b04318082501d1b7ccdb5268beb6f8453b8a65f60db"
   },
   {
    "resource": "pxd_updater",
@@ -802,7 +839,8 @@
    "pxd_multichar",
    "pxd_hud",
    "pxd_voice",
-   "pxd_admin"
+   "pxd_admin",
+   "pxd_inventory"
   ],
   "replaces": {
    "pxd_hud": [
@@ -833,6 +871,14 @@
     "replace": "\"toggleKey\": \"UP\"",
     "requires": "pxd_hud",
     "why": "el teléfono se abre con la flecha arriba"
+   },
+   {
+    "resource": "ox_inventory",
+    "path": "web/build/index.html",
+    "find": "</head>",
+    "replace": "<link rel=\"stylesheet\" href=\"./assets/pxd.css\"><script src=\"./assets/pxd.js\"></script></head>",
+    "requires": "pxd_inventory",
+    "why": "inventario con el estilo de Próxima"
    }
   ],
   "external": [
@@ -915,5 +961,29 @@
     "ref": "main"
    }
   ]
- }
+ },
+ "overlays": [
+  {
+   "resource": "ox_inventory",
+   "path": "web/build/assets/pxd.css",
+   "requiresVersion": "2.48.1",
+   "from": {
+    "resource": "pxd_inventory",
+    "path": "overlay/ox_inventory/pxd.css"
+   },
+   "size": 15810,
+   "sha256": "6aada7c5a5644e6c4be06c1056082253f4a513a597e4f7b5e38e6e5749efa3fe"
+  },
+  {
+   "resource": "ox_inventory",
+   "path": "web/build/assets/pxd.js",
+   "requiresVersion": "2.48.1",
+   "from": {
+    "resource": "pxd_inventory",
+    "path": "overlay/ox_inventory/pxd.js"
+   },
+   "size": 10584,
+   "sha256": "8c44ddf578230df85fcbfed2f3eb707b41e80ce9fbc8577503de7826a303d04b"
+  }
+ ]
 }

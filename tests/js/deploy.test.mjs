@@ -15,7 +15,7 @@ const own = readdirSync(res).filter((d) => statSync(join(res, d)).isDirectory())
 const EXTERNAL = new Set(['chat', 'mapmanager', 'spawnmanager', 'basic-gamemode', 'baseevents', 'fivem-map-hipster']);
 
 // Lo que trae la receta de Qbox (categorías y recursos que descarga).
-const QBOX_ONLY = new Set(['pxd_multichar', 'pxd_hud', 'pxd_panel', 'pxd_jobs', 'pxd_interact', 'pxd_voice', 'pxd_admin']);
+const QBOX_ONLY = new Set(['pxd_multichar', 'pxd_hud', 'pxd_panel', 'pxd_jobs', 'pxd_interact', 'pxd_voice', 'pxd_admin', 'pxd_inventory']);
 const QBOX = new Set(['ox_lib', 'qbx_core', 'ox_target', '[ox]', '[qbx]', '[standalone]', '[voice]', '[assets]', '[npwd-apps]', 'qbx_npwd', 'npwd']);
 
 for (const cfg of ['server-data/server.cfg', 'server-data/server.hosting.cfg', 'server-data/server.qbox.cfg']) {

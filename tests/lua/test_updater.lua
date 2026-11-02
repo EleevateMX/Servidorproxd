@@ -172,4 +172,33 @@ T.describe('pxd_updater', function()
         T.truthy(logged('Reinicia el servidor'))
     end)
 
+
+    T.it('overlays: copia la capa a ox_inventory solo con la versión correcta', function()
+        local css = 'body{}'
+        local overlay = { resource = 'ox_inventory', path = 'web/build/assets/pxd.css', requiresVersion = '2.48.1',
+            from = { resource = 'pxd_inventory', path = 'overlay/ox_inventory/pxd.css' }, size = #css }
+        local files = { ['pxd_inventory/overlay/ox_inventory/pxd.css'] = css,
+            ['ox_inventory/fxmanifest.lua'] = "fx_version 'cerulean'\nname 'ox_inventory'\nversion '2.48.1'\n" }
+        local states = { pxd_updater = 'started', ox_inventory = 'started', pxd_inventory = 'started' }
+        boot({}, files, states, { overlays = { overlay } })
+        overlay.sha256 = sha(css)
+        Fx.http[BASE .. 'update-manifest.json'] = { 200, Fx.json.encode({ format = 1, files = {}, overlays = { overlay } }) }
+        run()
+        T.eq(Fx.files['ox_inventory/web/build/assets/pxd.css'], css)
+        T.truthy(logged('Capa visual aplicada %(1'))
+        -- otra versión de ox_inventory: no se toca
+        files['ox_inventory/fxmanifest.lua'] = "fx_version 'cerulean'\nversion '2.49.0'\n"
+        boot({}, files, states)
+        Fx.http[BASE .. 'update-manifest.json'] = { 200, Fx.json.encode({ format = 1, files = {}, overlays = { overlay } }) }
+        run()
+        T.falsy(Fx.files['ox_inventory/web/build/assets/pxd.css'])
+        T.truthy(logged('versión 2.49.0'))
+        -- sin permiso de escritura: dice qué línea falta
+        files['ox_inventory/fxmanifest.lua'] = "fx_version 'cerulean'\nversion '2.48.1'\n"
+        boot({}, files, states)
+        Fx.readOnly = { ['ox_inventory/web/build/assets/pxd.css'] = true }
+        Fx.http[BASE .. 'update-manifest.json'] = { 200, Fx.json.encode({ format = 1, files = {}, overlays = { overlay } }) }
+        run()
+        T.truthy(logged('add_filesystem_permission pxd_updater write ox_inventory'))
+    end)
 end)

@@ -1,0 +1,99 @@
+<!doctype html>
+<!-- Vista previa de la capa de Próxima sobre ox_inventory (solo navegador).
+     Reproduce el marcado de ox_inventory v2.48.1 (web/src/components) y su CSS base
+     (web/src/index.scss, compilado a mano) para poder revisar pxd.css/pxd.js sin el juego.
+     Uso: index.html?img=RUTA_A_LAS_IMAGENES_DE_OX&bg=FONDO.jpg -->
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Inventario — vista previa</title>
+<style>
+/* ── Base de ox_inventory (index.scss v2.48.1, variables sustituidas) ── */
+body { margin: 0; font-family: 'Segoe UI', Roboto, sans-serif; height: 100vh; overflow: hidden; user-select: none; background: #333 center/cover no-repeat; }
+#root { height: 100%; }
+p { margin: 0; padding: 0; font-family: Roboto; }
+.app-wrapper { height: 100%; width: 100%; color: white; }
+.inventory-wrapper { display: flex; flex-direction: row; justify-content: center; align-items: center; height: 100%; gap: 20px; }
+.inventory-control { display: flex; }
+.inventory-control .inventory-control-wrapper { display: flex; flex-direction: column; gap: 20px; justify-content: center; align-items: center; }
+.inventory-control .inventory-control-input { padding: 16px 8px; border-radius: 2.5%; font-size: 16px; text-align: center; outline: none; border: none; color: #fff; background-color: rgba(12,12,12,.4); }
+.inventory-control .inventory-control-button { font-size: 14px; color: #fff; background-color: rgba(12,12,12,.4); padding: 12px 8px; border-radius: 2.5%; border: none; text-transform: uppercase; width: 100%; font-weight: 500; }
+.useful-controls-button { position: absolute !important; bottom: 25px; right: 25px; border: none; width: 52px; height: 52px; display: flex; justify-content: center; align-items: center; fill: white; border-radius: 5% !important; background-color: rgba(12,12,12,.4) !important; }
+.inventory-grid-wrapper { display: flex; flex-direction: column; gap: 4px; }
+.inventory-grid-header-wrapper { display: flex; flex-direction: row; justify-content: space-between; }
+.inventory-grid-header-wrapper p { font-size: 16px; }
+.inventory-grid-container { display: grid; height: calc(5 * 10.42vh + 5 * 2px); grid-template-columns: repeat(5, 10.2vh); grid-auto-rows: 10.42vh; gap: 2px; overflow-y: scroll; }
+.inventory-grid-container::-webkit-scrollbar { display: none; }
+.inventory-slot { background-color: rgba(12,12,12,.4); background-repeat: no-repeat; background-position: center; border-radius: 2.5%; position: relative; background-size: 7vh; color: #c1c2c5; border: 1px inset rgba(0,0,0,.2); }
+.inventory-slot-label-box { background-color: #22232c; color: #c1c2c5; text-align: center; }
+.inventory-slot-label-text { text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 2px 3px; font-size: 12px; }
+.inventory-slot-number { background-color: white; color: black; height: 12px; padding: 3px; font-size: 12px; }
+.item-slot-wrapper { display: flex; flex-direction: column; justify-content: space-between; height: 100%; }
+.item-slot-header-wrapper, .item-hotslot-header-wrapper { display: flex; flex-direction: row; justify-content: flex-end; }
+.item-hotslot-header-wrapper { justify-content: space-between; }
+.item-slot-info-wrapper { display: flex; flex-direction: row; align-self: flex-end; padding: 3px; gap: 3px; }
+.item-slot-info-wrapper p { font-size: 12px; }
+.weight-bar { background: rgba(0,0,0,.4); border: 1px inset rgba(0,0,0,.1); height: .8vh; border-radius: 5%; overflow: hidden; }
+.hotbar-container { display: flex; align-items: center; gap: 2px; justify-content: center; width: 100%; position: absolute; bottom: 2vh; }
+</style>
+<link rel="stylesheet" href="../../../server-data/resources/[proxima]/pxd_inventory/overlay/ox_inventory/pxd.css">
+</head>
+<body>
+<div id="root"><div class="app-wrapper"></div></div>
+<script>
+  // Datos de ejemplo con la forma de los inventarios de ox_inventory.
+  const q = new URLSearchParams(location.search);
+  const IMG = q.get('img') || '';
+  if (q.get('bg')) document.body.style.backgroundImage = `url(${q.get('bg')})`;
+  const player = { label: 'Valeria Ríos', weight: 4.2, max: 30, items: [
+    ['money', 'Dinero', '500x', ''], ['phone', 'Teléfono', '1x', '190g'], ['water', 'Agua', '3x', '1.50kg'], ['burger', 'Hamburguesa', '2x', '700g'],
+    ['bandage', 'Venda', '4x', '460g'], ['radio', 'Radio', '1x', '200g'], ['lockpick', 'Ganzúa', '2x', '320g'], ['sprunk', 'Sprunk', '1x', '350g'],
+  ] };
+  const ground = { label: 'Suelo', weight: 0, max: 0, items: [] };
+
+  function slot(item, i, hot) {
+    const s = document.createElement('div'); s.className = 'inventory-slot';
+    if (item) {
+      if (IMG) s.style.backgroundImage = `url(${IMG}/${item[0]}.png)`;
+      s.innerHTML = `<div class="item-slot-wrapper"><div class="${hot ? 'item-hotslot-header-wrapper' : 'item-slot-header-wrapper'}">${hot ? `<div class="inventory-slot-number">${i + 1}</div>` : ''}<div class="item-slot-info-wrapper"><p>${item[3]}</p><p>${item[2]}</p></div></div><div><div class="inventory-slot-label-box"><div class="inventory-slot-label-text">${item[1]}</div></div></div></div>`;
+    }
+    return s;
+  }
+  function grid(inv, slots, isPlayer) {
+    const w = document.createElement('div'); w.className = 'inventory-grid-wrapper';
+    const head = inv.max ? `<p>${inv.weight}/${inv.max}kg</p>` : '';
+    w.innerHTML = `<div><div class="inventory-grid-header-wrapper"><p>${inv.label}</p>${head}</div><div class="weight-bar"><div style="height:100%;width:${inv.max ? inv.weight / inv.max * 100 : 0}%"></div></div></div>`;
+    const c = document.createElement('div'); c.className = 'inventory-grid-container';
+    for (let i = 0; i < slots; i++) c.appendChild(slot(inv.items[i], i, isPlayer && i < 5));
+    w.appendChild(c); return w;
+  }
+  const wrap = document.createElement('div'); wrap.className = 'inventory-wrapper';
+  wrap.appendChild(grid(player, 20, true));
+  const ctl = document.createElement('div'); ctl.className = 'inventory-control';
+  ctl.innerHTML = '<div class="inventory-control-wrapper"><input class="inventory-control-input" value="0"><button class="inventory-control-button">Usar</button><button class="inventory-control-button">Dar</button><button class="inventory-control-button">Cerrar</button></div>';
+  wrap.appendChild(ctl);
+  wrap.appendChild(grid(ground, 20, false));
+  document.querySelector('.app-wrapper').appendChild(wrap);
+</script>
+<script src="../../../server-data/resources/[proxima]/pxd_inventory/overlay/ox_inventory/pxd.js"></script>
+<script>
+  // Sin pxd_inventory: datos de ejemplo directamente (pxd.js arranca en DOMContentLoaded).
+  addEventListener('DOMContentLoaded', () => { PXDInventory.render({ name: 'Valeria Ríos', id: 'PROX-7KQ2', cash: 95846, bank: 778358, canChange: true,
+    vitals: { hunger: 92, thirst: 88, health: 100, armour: 47, stress: 12 },
+    clothing: [
+      { id: 'hat', label: 'Sombrero', icon: 'hat', side: 'left', on: false }, { id: 'mask', label: 'Máscara', icon: 'mask', side: 'left', on: false },
+      { id: 'top', label: 'Torso', icon: 'top', side: 'left', on: true }, { id: 'pants', label: 'Pantalón', icon: 'pants', side: 'left', on: true },
+      { id: 'shoes', label: 'Zapatos', icon: 'shoes', side: 'left', on: true }, { id: 'ears', label: 'Pendientes', icon: 'ears', side: 'right', on: false },
+      { id: 'glasses', label: 'Gafas', icon: 'glasses', side: 'right', on: true }, { id: 'neck', label: 'Collar', icon: 'neck', side: 'right', on: false },
+      { id: 'watch', label: 'Reloj', icon: 'watch', side: 'right', on: true }, { id: 'bracelet', label: 'Pulsera', icon: 'bracelet', side: 'right', on: false },
+      { id: 'under', label: 'Camiseta interior', icon: 'under', side: 'bottom', on: true }, { id: 'vest', label: 'Chaleco', icon: 'vest', side: 'bottom', on: false },
+      { id: 'bag', label: 'Mochila', icon: 'bag', side: 'bottom', on: false }, { id: 'decal', label: 'Insignia', icon: 'decal', side: 'bottom', on: false },
+    ], now: 1000, notices: [
+      { title: 'Aviso de incendio', text: 'Sandy Shores (descarrilamiento de tren)', kind: 'warning', at: 940 },
+      { title: 'Recompensa lista', text: 'Has completado la misión del día.', kind: 'success', at: 700 },
+      { title: 'Rescate arriesgado', text: 'Actividad disponible de 08:00 a 09:00.', kind: 'inform', at: 200 },
+    ] });
+  PXDInventory.setOpen(true); });
+</script>
+</body>
+</html>
