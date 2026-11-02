@@ -41,6 +41,7 @@ Antes rellena `deploy/.env` (ver [docs/06-servidor-en-la-nube.md](docs/06-servid
 6. [Servidor en la nube](docs/06-servidor-en-la-nube.md)
 7. [Hosting oficial paso a paso](docs/07-hosting-oficial.md)
 8. [Kit de lanzamiento (portal, hosting, comandos)](docs/08-kit-lanzamiento.md)
+9. [Hoja de ruta: de servidor base a rol completo](docs/09-hoja-de-ruta.md)
 
 ## Pruebas
 
