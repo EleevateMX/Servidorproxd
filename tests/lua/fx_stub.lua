@@ -106,6 +106,18 @@ function Fx.reset(opts)
         return vec3(e.x, e.y, e.z)
     end
     G.GetEntityHeading = function(ent) local e = Fx.entities[ent] return e and e.h or 0.0 end
+    G.GetEntityHealth = function(ent) local e = Fx.entities[ent] return e and (e.health or 200) or 0 end
+    -- State bags de jugador: Player(src).state.x
+    Fx.playerStates = {}
+    G.Player = function(src)
+        src = tonumber(src)
+        Fx.playerStates[src] = Fx.playerStates[src] or {}
+        local st = Fx.playerStates[src]
+        return { state = setmetatable({}, {
+            __index = function(_, k) if k == 'set' then return function(_, key, v) st[key] = v end end return st[k] end,
+            __newindex = function(_, k, v) st[k] = v end,
+        }) }
+    end
     G.CreateVehicle = function(model, x, y, z, h)
         Fx.nextEntity = Fx.nextEntity + 1
         Fx.entities[Fx.nextEntity] = { type = 'vehicle', model = model, x = x, y = y, z = z, h = h, bucket = 0 }

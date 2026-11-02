@@ -6,7 +6,6 @@ local menuOpen = false
 local nextCheckpoint = 1
 local cpBlip = nil
 local waitingCheckpoint = false
-local spawnSeed = 0
 
 local function nui(type, data)
     SendNUIMessage({ type = type, data = data })
@@ -101,6 +100,7 @@ RegisterNetEvent('pxd_gm:client:joined', function(info)
         exports.pxd_props:ShowLayout(info.arena.layout)
     end
     info.me = GetPlayerServerId(PlayerId())
+    QboxBridge.enter()
     nui('joined', info)
 end)
 
@@ -112,6 +112,7 @@ end)
 RegisterNetEvent('pxd_gm:client:spawn', function(spawn, _team)
     if not current or not spawn then return end
     teleport(spawn, IsEntityDead(PlayerPedId()))
+    QboxBridge.reapply()
     giveLoadout()
     if current.kind == 'race' then showCheckpoint(nextCheckpoint) end
 end)
@@ -156,6 +157,7 @@ RegisterNetEvent('pxd_gm:client:left', function(info)
         exports.pxd_props:HideLayout(layout)
     end
     RemoveAllPedWeapons(PlayerPedId(), true)
+    QboxBridge.leave()
     if info then teleport(info, IsEntityDead(PlayerPedId())) end
     setAutoSpawn(true)
     nui('left', {})
@@ -163,31 +165,23 @@ end)
 
 -- ── Bucles ─────────────────────────────────────────────────────────────────
 
--- Respawn propio dentro de la partida.
+-- Reaparición: tras el tiempo de espera se pide al servidor, que decide dónde
+-- (y, con Qbox, revive al jugador antes de moverlo).
+local function isDown()
+    return IsEntityDead(PlayerPedId()) or QboxBridge.downed
+end
+
 CreateThread(function()
     while true do
         Wait(250)
-        if current and snapshot and snapshot.state == 'running' and IsEntityDead(PlayerPedId()) then
+        if current and snapshot and snapshot.state == 'running' and isDown() then
             nui('respawn', { seconds = current.respawnDelaySec })
             Wait((current.respawnDelaySec or 5) * 1000)
-            if current then
-                spawnSeed = spawnSeed + 1
-                local spawn
-                if current.kind == 'race' then
-                    local cps = current.arena.checkpoints
-                    spawn = nextCheckpoint > 1 and cps[nextCheckpoint - 1] or current.arena.grid[1]
-                else
-                    local me = nil
-                    for _, p in ipairs(snapshot.playersList or {}) do
-                        if p.id == GetPlayerServerId(PlayerId()) then me = p end
-                    end
-                    spawn = PXD.Arena.pickSpawn(current.arena, me and me.team, math.random(1, 64) + spawnSeed)
-                end
-                if spawn then
-                    teleport(spawn, true)
-                    giveLoadout()
-                    if current.kind == 'race' then TriggerServerEvent('pxd_gm:server:raceRespawn') end
-                end
+            local tries = 0
+            while current and isDown() and tries < 3 do
+                TriggerServerEvent('pxd_gm:server:respawnMe')
+                Wait(3000)
+                tries = tries + 1
             end
         end
     end

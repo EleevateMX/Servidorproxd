@@ -22,10 +22,12 @@ shared_scripts {
 }
 
 server_scripts {
+    'server/bridge.lua',
     'server/main.lua',
 }
 
 client_scripts {
+    'client/bridge.lua',
     'client/main.lua',
 }
 

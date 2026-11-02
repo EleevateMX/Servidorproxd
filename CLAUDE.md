@@ -18,7 +18,9 @@ node scripts/pxd.mjs …   # anchors | list | get | compile | apply | activate |
 | `server-data/resources/[proxima]/pxd_*` | Recursos propios |
 | `tools/blueprint.mjs` | Compilador de blueprints (formas → layout) |
 | `blueprints/` | Diseños listos para inyectar |
-| `recipe.yaml` + `server-data/server.hosting.cfg` | Instalación en hostings con txAdmin («Remote URL Template») |
+| `recipe.yaml` + `server-data/server.hosting.cfg` | Instalación base en hostings con txAdmin («Remote URL Template») |
+| `recipe-qbox.yaml` + `server-data/server.qbox.cfg` | Fase 1: Próxima RP + Qbox (derivada de la receta oficial Qbox Lean; ver cabecera) |
+| `pxd_gamemodes/*/bridge.lua` | Puente con Qbox (buckets, revivir, inventario); sin Qbox no hace nada |
 | `deploy/` | Imagen Docker y compose para VPS Linux (secretos por variables de entorno) |
 | `tests/lua/fx_stub.lua` | Simulador mínimo de FXServer para probar `server/*.lua` |
 

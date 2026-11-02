@@ -14,13 +14,17 @@ const own = readdirSync(res).filter((d) => statSync(join(res, d)).isDirectory())
 // el resto, de citizenfx/cfx-server-data.
 const EXTERNAL = new Set(['chat', 'mapmanager', 'spawnmanager', 'basic-gamemode', 'baseevents', 'fivem-map-hipster']);
 
-for (const cfg of ['server-data/server.cfg', 'server-data/server.hosting.cfg']) {
+// Lo que trae la receta de Qbox (categorías y recursos que descarga).
+const QBOX = new Set(['ox_lib', 'qbx_core', 'ox_target', '[ox]', '[qbx]', '[standalone]', '[voice]', '[assets]', '[npwd-apps]', 'qbx_npwd', 'npwd']);
+
+for (const cfg of ['server-data/server.cfg', 'server-data/server.hosting.cfg', 'server-data/server.qbox.cfg']) {
   test(`${cfg}: cada ensure apunta a un recurso existente`, () => {
     const text = readFileSync(join(root, cfg), 'utf8');
     const ensures = [...text.matchAll(/^ensure (\S+)/gm)].map((m) => m[1]);
     assert.ok(ensures.length > 0);
     for (const name of ensures) {
-      assert.ok(EXTERNAL.has(name) || own.includes(name), `${cfg}: «ensure ${name}» no existe`);
+      const qboxOk = cfg.endsWith('qbox.cfg') && QBOX.has(name);
+      assert.ok(EXTERNAL.has(name) || own.includes(name) || qboxOk, `${cfg}: «ensure ${name}» no existe`);
     }
     for (const name of own) assert.ok(ensures.includes(name), `${cfg}: falta «ensure ${name}»`);
     assert.match(text, /^set onesync on$/m, 'los modos de juego necesitan OneSync');
@@ -28,11 +32,16 @@ for (const cfg of ['server-data/server.cfg', 'server-data/server.hosting.cfg']) 
   });
 }
 
-test('el cfg del hosting solo usa variables que rellena txAdmin', () => {
-  const text = readFileSync(join(root, 'server-data/server.hosting.cfg'), 'utf8');
-  const known = new Set(['serverEndpoints', 'svLicense', 'maxClients', 'serverName', 'addPrincipalsMaster']);
-  for (const [, v] of text.matchAll(/\{\{(\w+)\}\}/g)) assert.ok(known.has(v), `variable desconocida {{${v}}}`);
-});
+for (const cfg of ['server-data/server.hosting.cfg', 'server-data/server.qbox.cfg']) {
+  test(`${cfg}: solo variables que rellena txAdmin y nada obsoleto`, () => {
+    const text = readFileSync(join(root, cfg), 'utf8');
+    const known = new Set(['serverEndpoints', 'svLicense', 'maxClients', 'serverName', 'addPrincipalsMaster', 'dbConnectionString']);
+    for (const [, v] of text.matchAll(/\{\{(\w+)\}\}/g)) assert.ok(known.has(v), `variable desconocida {{${v}}}`);
+    // Cfx.re: se configuran en el portal (docs server-commands: «deprecated»).
+    assert.doesNotMatch(text, /^(sv_hostname|sets sv_projectName|sets sv_projectDesc)/m);
+    assert.ok(!cfg.endsWith('qbox.cfg') || text.includes('{{dbConnectionString}}'), 'Qbox necesita la base de datos');
+  });
+}
 
 for (const name of own) {
   test(`${name}: fxmanifest válido y archivos declarados presentes`, () => {
@@ -51,12 +60,14 @@ for (const name of own) {
   });
 }
 
-test('recipe.yaml: rutas del repo y acciones conocidas de txAdmin', () => {
-  const text = readFileSync(join(root, 'recipe.yaml'), 'utf8');
+for (const recipe of ['recipe.yaml', 'recipe-qbox.yaml']) test(`${recipe}: rutas del repo y acciones conocidas de txAdmin`, () => {
+  const text = readFileSync(join(root, recipe), 'utf8');
   assert.match(text, /^\$engine: 3$/m);
   assert.match(text, /^\$onesync: on$/m);
   const actions = [...text.matchAll(/- action: (\w+)/g)].map((m) => m[1]);
-  const allowed = new Set(['download_github', 'download_file', 'move_path', 'remove_path', 'replace_string', 'copy_path', 'ensure_dir', 'unzip', 'write_file']);
+  const allowed = new Set(['download_github', 'download_file', 'move_path', 'remove_path', 'replace_string', 'copy_path', 'ensure_dir', 'unzip', 'write_file', 'connect_database', 'query_database', 'waste_time']);
+  assert.match(text, /src: https:\/\/github.com\/EleevateMX\/Servidorproxd/);
+  for (const slide of ['policia', 'emergencias', 'taller', 'barrio']) assert.match(text, new RegExp(`assets/slide-${slide}.png`));
   for (const a of actions) assert.ok(allowed.has(a), `acción desconocida ${a}`);
   for (const [, src] of text.matchAll(/src: \.\/tmp\/proxima\/(.+)$/gm)) {
     assert.ok(existsSync(join(root, src)), `la receta mueve «${src}», que no existe en el repo`);

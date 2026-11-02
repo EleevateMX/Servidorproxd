@@ -3,7 +3,9 @@
 local Lobby = PXD.Lobby.new({ bucketBase = Config.bucketBase, maxMatches = Config.maxMatches })
 local returnInfo = {}   -- [src] = { x, y, z, h, bucket } para devolver al jugador a su sitio
 local vehicles = {}     -- [src] = vehículo de carrera
-local lastVehicleAt = {}
+local lastRespawnAt = {}
+local lastDeathAt = {}  -- evita contar dos veces la misma muerte (baseevents + Qbox)
+local awaitingRespawn = {} -- [src] = true mientras está muerto/caído en una partida
 
 local function now()
     return GetGameTimer() / 1000.0
@@ -119,11 +121,34 @@ local function sendSpawn(src, match)
     end
 end
 
+--- Reaparición decidida por el servidor (con o sin Qbox).
+local function respawnPlayer(src, match)
+    local p = match.players[src]
+    if not p then return end
+    local spawn
+    if match.mode.kind == 'race' then
+        local cps = match.arena.checkpoints
+        local last = p.checkpoint > 1 and cps[p.checkpoint - 1] or match.arena.grid[1]
+        spawn = { x = last.x, y = last.y, z = last.z + 1.0, h = last.h or 0.0 }
+    else
+        spawn = PXD.Arena.pickSpawn(match.arena, p.team, math.random(1, 64))
+    end
+    awaitingRespawn[src] = nil
+    local revived = Bridge.isDowned(src) and Bridge.revive(src)
+    CreateThread(function()
+        if revived then Wait(500) end -- deja que Qbox termine de revivir antes de mover al jugador
+        TriggerClientEvent('pxd_gm:client:spawn', src, spawn, p.team)
+        if match.mode.kind == 'race' then spawnRaceVehicle(src, match, spawn) end
+    end)
+end
+
 local function restorePlayer(src)
     local info = returnInfo[src]
     returnInfo[src] = nil
     deleteVehicle(src)
-    SetPlayerRoutingBucket(src, info and info.bucket or 0)
+    awaitingRespawn[src] = nil
+    if Bridge.isDowned(src) then Bridge.revive(src) end
+    Bridge.setBucket(src, info and info.bucket or 0)
     TriggerClientEvent('pxd_gm:client:left', src, info)
 end
 
@@ -152,6 +177,11 @@ local function leavePlayer(src, dropped)
 end
 
 local function joinPlayer(src, match)
+    local allowed, why = Bridge.canJoin(src)
+    if not allowed then
+        notify(src, why, 'error')
+        return false
+    end
     local ok, res, previous = Lobby:join(match.id, src, GetPlayerName(src), now())
     if not ok then
         notify(src, res, 'error')
@@ -171,7 +201,7 @@ local function joinPlayer(src, match)
         returnInfo[src] = { x = c.x, y = c.y, z = c.z, h = GetEntityHeading(ped),
             bucket = GetPlayerRoutingBucket(src) }
     end
-    SetPlayerRoutingBucket(src, match.bucket)
+    Bridge.setBucket(src, match.bucket)
     TriggerClientEvent('pxd_gm:client:joined', src, clientMatchInfo(match))
     if match.state == PXD.Match.STATE.RUNNING then sendSpawn(src, match) end
     pushMatch(match)
@@ -268,23 +298,31 @@ RegisterNetEvent('pxd_gm:server:checkpoint', function(idx)
     handleEvents(match, events, t)
 end)
 
-RegisterNetEvent('pxd_gm:server:raceRespawn', function()
+-- El cliente pide reaparecer tras su tiempo de espera; el servidor decide dónde.
+RegisterNetEvent('pxd_gm:server:respawnMe', function()
     local src = source
     local match = Lobby:findByPlayer(src)
-    if not match or match.mode.kind ~= 'race' or match.state ~= PXD.Match.STATE.RUNNING then return end
+    if not match or match.state ~= PXD.Match.STATE.RUNNING then return end
+    -- Solo quien está muerto/caído: muerte registrada, estado de Qbox o vida 0 según el servidor.
+    local dead = awaitingRespawn[src] or Bridge.isDowned(src) or GetEntityHealth(GetPlayerPed(src)) <= 0
+    if not dead then return end
     local t = now()
-    if lastVehicleAt[src] and t - lastVehicleAt[src] < 5 then return end
-    lastVehicleAt[src] = t
-    local p = match.players[src]
-    local cps = match.arena.checkpoints
-    local last = p.checkpoint > 1 and cps[p.checkpoint - 1] or match.arena.grid[1]
-    spawnRaceVehicle(src, match, { x = last.x, y = last.y, z = last.z + 1.0, h = last.h or 0.0 })
+    local wait = math.max(1, (match.mode.respawnDelaySec or 3) - 1)
+    if lastDeathAt[src] and t - lastDeathAt[src] < wait then return end
+    if lastRespawnAt[src] and t - lastRespawnAt[src] < 2 then return end
+    lastRespawnAt[src] = t
+    respawnPlayer(src, match)
 end)
 
 -- Muertes: baseevents (cfx-server-data) las envía desde el cliente de la víctima.
 local function onDeath(victim, killerId)
     local match = Lobby:findByPlayer(victim)
     if not match then return end
+    -- La misma muerte puede llegar dos veces (baseevents y Qbox): se cuenta una.
+    local t0 = now()
+    if lastDeathAt[victim] and t0 - lastDeathAt[victim] < 3 then return end
+    lastDeathAt[victim] = t0
+    if match.state == PXD.Match.STATE.RUNNING then awaitingRespawn[victim] = true end
     local killer = (type(killerId) == 'number' and killerId > 0) and killerId or nil
     if killer and match.players[killer] then
         -- Comprobación básica contra eventos falsos: ambos cerca y en la misma partida.
@@ -312,10 +350,16 @@ AddEventHandler('baseevents:onPlayerDied', function()
     onDeath(source, nil)
 end)
 
+-- Con Qbox el jugador queda «caído» en vez de muerto; el cliente lo avisa aquí.
+RegisterNetEvent('pxd_gm:server:died', function(killerId)
+    if killerId ~= nil and type(killerId) ~= 'number' then return end
+    onDeath(source, killerId)
+end)
+
 AddEventHandler('playerDropped', function()
     local src = source
     leavePlayer(src, true)
-    lastVehicleAt[src] = nil
+    lastRespawnAt[src], lastDeathAt[src], awaitingRespawn[src] = nil, nil, nil
 end)
 
 -- ── Bucle principal (1 Hz) ─────────────────────────────────────────────────

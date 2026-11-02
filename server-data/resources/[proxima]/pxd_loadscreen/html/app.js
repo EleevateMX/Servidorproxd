@@ -14,6 +14,35 @@
   image.addEventListener('load', () => { if (video.classList.contains('hidden')) image.classList.remove('hidden'); });
   image.addEventListener('error', () => image.remove());
 
+  // Carrusel: las diapositivas que existan se alternan con el fondo principal.
+  const SLIDES = [
+    { file: 'slide-policia.png', caption: 'Noches en la ciudad' },
+    { file: 'slide-emergencias.png', caption: 'Siempre alerta' },
+    { file: 'slide-taller.png', caption: 'Motores y neón' },
+    { file: 'slide-barrio.png', caption: 'Tu barrio' },
+  ];
+  const ready = [];
+  for (const sl of SLIDES) {
+    const img = new Image();
+    img.alt = '';
+    img.addEventListener('load', () => { $('slides').append(img); ready.push({ img, caption: sl.caption }); });
+    img.src = `assets/${sl.file}`;
+  }
+  let slideIndex = -1; // -1 = fondo principal (vídeo o key art)
+  setInterval(() => {
+    if (!ready.length) return;
+    for (const r of ready) r.img.classList.remove('is-on');
+    slideIndex = slideIndex + 1 >= ready.length ? -1 : slideIndex + 1;
+    const cap = $('slide-caption');
+    if (slideIndex >= 0) {
+      ready[slideIndex].img.classList.add('is-on');
+      cap.textContent = ready[slideIndex].caption;
+      cap.classList.add('is-on');
+    } else {
+      cap.classList.remove('is-on');
+    }
+  }, 8000);
+
   if (handover.name) $('welcome').textContent = `Bienvenido/a, ${handover.name}`;
   if (handover.firstTime) $('status').textContent = 'Preparando tu primera llegada…';
 

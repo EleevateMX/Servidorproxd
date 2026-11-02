@@ -16,7 +16,7 @@ Idea: crecer poco a poco. Primero lo que ya existe y funciona (Qbox y sus recurs
   - `pxd_login`: desactivar la bienvenida (`Config.welcomeScreen = false`), porque Qbox trae selección de personaje; mantener normas y código de acceso.
   - `pxd_gamemodes`: dentro de las partidas, no usar la muerte de Qbox (`qbx_medical`) ni tocar el inventario RP (las armas del modo no son objetos de ox_inventory). **Hay que programarlo y probarlo.**
   - `pxd_props`: sin cambios.
-- Entregable: `recipe-qbox.yaml` (receta Lean de Qbox + Próxima RP) y guía de migración.
+- Entregable: `recipe-qbox.yaml` (receta Lean de Qbox + Próxima RP). **Hecho** — ver `docs/10-fase-1-qbox.md`.
 
 ## Fase 2 — Trabajos legales
 

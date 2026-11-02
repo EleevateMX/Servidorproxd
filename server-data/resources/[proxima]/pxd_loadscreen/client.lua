@@ -26,9 +26,12 @@ end)
 CreateThread(function()
     while not NetworkIsPlayerActive(PlayerId()) do Wait(250) end
     SendLoadingScreenMessage(json.encode({ eventName = 'pxd:status', text = 'Entrando en la ciudad…' }))
+    local qbox = GetResourceState('qbx_core') == 'started'
     Wait(2500)
-    if GetResourceState('pxd_login') ~= 'started' then close() end
-    -- Red de seguridad: nunca dejar a nadie atrapado en la carga.
-    Wait(20000)
+    -- Sin pxd_login ni Qbox nadie más la cierra: lo hacemos aquí.
+    if GetResourceState('pxd_login') ~= 'started' and not qbox then close() end
+    -- Red de seguridad: nunca dejar a nadie atrapado en la carga
+    -- (más margen con Qbox, que la cierra al abrir la selección de personaje).
+    Wait(qbox and 60000 or 20000)
     close()
 end)

@@ -4,7 +4,9 @@ Config = {}
 
 -- Cada partida vive en su propio routing bucket (mundo aislado). Rango reservado:
 -- bucketBase .. bucketBase + maxMatches - 1. El 0 es el mundo RP normal.
-Config.bucketBase = 1000
+-- Alto a propósito: otros recursos (viviendas, instancias de Qbox) suelen usar
+-- buckets bajos o el id del jugador.
+Config.bucketBase = 60000
 Config.maxMatches = 8
 
 -- Modo de bloqueo de entidades del bucket de cada partida:

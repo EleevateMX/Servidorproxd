@@ -8,14 +8,24 @@ local function setOpen(state)
     SendNUIMessage({ type = state and 'open' or 'close' })
 end
 
+local function qbox()
+    return GetResourceState('qbx_core') == 'started'
+end
+
+local function welcomeEnabled()
+    if Config.welcomeScreen == 'auto' then return not qbox() end
+    return Config.welcomeScreen == true
+end
+
 CreateThread(function()
     while not NetworkIsPlayerActive(PlayerId()) do Wait(200) end
     while not DoesEntityExist(PlayerPedId()) do Wait(200) end
-    if Config.welcomeScreen then
+    if welcomeEnabled() then
         TriggerServerEvent('pxd_login:server:ready')
-    else
+    elseif not qbox() then
         TriggerEvent('pxd_loadscreen:close')
     end
+    -- Con Qbox, qbx_core cierra la pantalla de carga al abrir la selección de personaje.
 end)
 
 RegisterNetEvent('pxd_login:client:profile', function(profile)
@@ -41,7 +51,7 @@ RegisterNUICallback('props', function(_, cb) choose('props') cb({ ok = true }) e
 
 -- /bienvenida vuelve a abrir el panel.
 RegisterCommand('bienvenida', function()
-    if not open then TriggerServerEvent('pxd_login:server:ready') end
+    if not open and welcomeEnabled() then TriggerServerEvent('pxd_login:server:ready') end
 end, false)
 
 AddEventHandler('onResourceStop', function(name)

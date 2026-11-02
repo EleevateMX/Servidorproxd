@@ -21,7 +21,8 @@ Config.rules = {
 }
 
 -- Pantalla de bienvenida en el juego (elegir ciudad o modos de juego).
--- Desactívala si tu framework ya trae selección de personaje (p. ej. Qbox).
-Config.welcomeScreen = true
+-- 'auto': se muestra sin framework y se desactiva sola con Qbox (que trae su propia
+-- selección de personaje y cierra la pantalla de carga). true / false para forzarlo.
+Config.welcomeScreen = 'auto'
 
 Config.dataFile = 'data/players.json'

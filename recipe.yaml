@@ -41,6 +41,22 @@ tasks:
     url: https://d2ol7oe51mr4n9.cloudfront.net/user_37Ov13C5FiPPOO8dlkIS8XYZnE7/936ef4bd-4152-48c8-9d3c-52109244e823.mp4
     path: ./resources/[proxima]/pxd_loadscreen/html/assets/background.mp4
 
+  - action: download_file
+    url: https://d2ol7oe51mr4n9.cloudfront.net/user_37Ov13C5FiPPOO8dlkIS8XYZnE7/85c60a88-43d4-47b8-a6b8-a9dd25f7823f.png
+    path: ./resources/[proxima]/pxd_loadscreen/html/assets/slide-policia.png
+
+  - action: download_file
+    url: https://d2ol7oe51mr4n9.cloudfront.net/user_37Ov13C5FiPPOO8dlkIS8XYZnE7/bc7b1756-2c8a-43b5-93d5-d8c1642024e3.png
+    path: ./resources/[proxima]/pxd_loadscreen/html/assets/slide-emergencias.png
+
+  - action: download_file
+    url: https://d2ol7oe51mr4n9.cloudfront.net/user_37Ov13C5FiPPOO8dlkIS8XYZnE7/0dd6413f-3e43-4003-a7b2-e6abd6fffb20.png
+    path: ./resources/[proxima]/pxd_loadscreen/html/assets/slide-taller.png
+
+  - action: download_file
+    url: https://d2ol7oe51mr4n9.cloudfront.net/user_37Ov13C5FiPPOO8dlkIS8XYZnE7/6f1fbcc9-9efc-49a7-b005-383c9bb4f30b.png
+    path: ./resources/[proxima]/pxd_loadscreen/html/assets/slide-barrio.png
+
   - action: remove_path
     path: ./tmp
 
