@@ -15,7 +15,7 @@
   };
 
   // Fecha real del jugador (la hora es la del juego, sincronizada por el servidor).
-  const dateFmt = new Intl.DateTimeFormat('es-MX', { weekday: 'short', day: 'numeric', month: 'short' });
+  const dateFmt = new Intl.DateTimeFormat('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' });
   const setDate = () => { $('date').textContent = dateFmt.format(new Date()).replace('.', ''); };
   setDate(); setInterval(setDate, 60000);
 

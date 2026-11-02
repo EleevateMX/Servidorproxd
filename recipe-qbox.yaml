@@ -167,6 +167,37 @@ tasks:  #  Download Base Files
     dest: ./resources/[standalone]
     src: ./tmp/illenium-appearance.zip
 
+  # Próxima: editor de ropa con nuestro tema y, al crear personaje, solo modelos freemode.
+  - action: replace_string
+    file: ./resources/[standalone]/illenium-appearance/shared/theme.lua
+    search: 'currentTheme = "qb-core",'
+    replace: 'currentTheme = "proxima",'
+
+  - action: replace_string
+    file: ./resources/[standalone]/illenium-appearance/shared/theme.lua
+    search: '    themes = {'
+    replace: |-
+          themes = {
+              {
+                  id = "proxima",
+                  borderRadius = "1vh",
+                  fontColor = "242, 245, 255",
+                  fontColorHover = "255, 255, 255",
+                  fontColorSelected = "5, 7, 15",
+                  fontFamily = "Inter",
+                  primaryBackground = "214, 59, 240",
+                  primaryBackgroundSelected = "92, 225, 255",
+                  secondaryBackground = "11, 15, 29",
+                  scaleOnHover = false,
+                  sectionFontWeight = "bold",
+                  smoothBackgroundTransition = true
+              },
+
+  - action: replace_string
+    file: ./resources/[standalone]/illenium-appearance/shared/config.lua
+    search: '    Ped = true,'
+    replace: '    Ped = false, -- Próxima: solo personajes freemode (se pueden vestir)'
+
   - action: download_github
     dest: ./resources/[standalone]/MugShotBase64
     ref: main

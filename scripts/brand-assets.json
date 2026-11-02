@@ -60,6 +60,36 @@
       "url": "https://d2ol7oe51mr4n9.cloudfront.net/user_37Ov13C5FiPPOO8dlkIS8XYZnE7/8897b50d-9f3e-4317-9d61-a6fdc8d47896.png",
       "dest": "ciudad-4.png",
       "source": "Kling kling-image-v3_0_omni, ciudad épica: atardecer, tiendas ISYCONTA y ELEEVATE (B)"
+    },
+    {
+      "resource": "pxd_multichar",
+      "url": "https://raw.githubusercontent.com/EleevateMX/Servidorproxd/HEAD/server-data/resources/%5Bproxima%5D/pxd_multichar/html/assets/spawn-centro.jpg",
+      "dest": "spawn-centro.jpg",
+      "source": "Kling kling-image-v3_0_omni 1K, miniatura de la pantalla de aparición (en el repo)"
+    },
+    {
+      "resource": "pxd_multichar",
+      "url": "https://raw.githubusercontent.com/EleevateMX/Servidorproxd/HEAD/server-data/resources/%5Bproxima%5D/pxd_multichar/html/assets/spawn-paleto.jpg",
+      "dest": "spawn-paleto.jpg",
+      "source": "Kling kling-image-v3_0_omni 1K, miniatura de la pantalla de aparición (en el repo)"
+    },
+    {
+      "resource": "pxd_multichar",
+      "url": "https://raw.githubusercontent.com/EleevateMX/Servidorproxd/HEAD/server-data/resources/%5Bproxima%5D/pxd_multichar/html/assets/spawn-motel.jpg",
+      "dest": "spawn-motel.jpg",
+      "source": "Kling kling-image-v3_0_omni 1K, miniatura de la pantalla de aparición (en el repo)"
+    },
+    {
+      "resource": "pxd_multichar",
+      "url": "https://raw.githubusercontent.com/EleevateMX/Servidorproxd/HEAD/server-data/resources/%5Bproxima%5D/pxd_multichar/html/assets/spawn-ultima.jpg",
+      "dest": "spawn-ultima.jpg",
+      "source": "Kling kling-image-v3_0_omni 1K, miniatura de la pantalla de aparición (en el repo)"
+    },
+    {
+      "resource": "pxd_multichar",
+      "url": "https://raw.githubusercontent.com/EleevateMX/Servidorproxd/HEAD/server-data/resources/%5Bproxima%5D/pxd_multichar/html/assets/spawn-casa.jpg",
+      "dest": "spawn-casa.jpg",
+      "source": "Kling kling-image-v3_0_omni 1K, miniatura de la pantalla de aparición (en el repo)"
     }
   ]
 }

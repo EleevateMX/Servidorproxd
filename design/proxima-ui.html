@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="es" class="px">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Próxima UI</title>
+  <!-- Página de muestra del sistema de diseño. Ábrela en el navegador desde el repo. -->
+  <link rel="stylesheet" href="../server-data/resources/[proxima]/pxd_panel/html/ui/proxima-fonts.css">
+  <link rel="stylesheet" href="ui/proxima-ui.css">
+  <link rel="stylesheet" href="../server-data/resources/[proxima]/pxd_chat/html/chat.css">
+  <style>
+    body { margin: 0; background: var(--px-bg); color: var(--px-text); font-family: var(--px-font); }
+    .wrap { max-width: 1180px; margin: 0 auto; padding: 48px 32px 80px; }
+    header.top { display: flex; align-items: center; gap: 16px; margin-bottom: 36px; }
+    header.top img { height: 40px; }
+    section { margin-top: 44px; }
+    section > h2 { margin: 0 0 6px; font-family: var(--px-display); font-size: 1.4rem; }
+    section > p { margin: 0 0 18px; color: var(--px-text-2); max-width: 760px; line-height: 1.55; }
+    .row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+    .swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
+    .sw { border-radius: var(--px-r-m); overflow: hidden; border: 1px solid var(--px-line); background: var(--px-s1); }
+    .sw i { display: block; height: 64px; }
+    .sw span { display: block; padding: 8px 10px; font-size: .78rem; color: var(--px-text-2); }
+    .grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+    .demo-card { padding: 18px 20px; }
+    .shots { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+    .shots figure { margin: 0; }
+    .shots img { width: 100%; border-radius: var(--px-r-l); border: 1px solid var(--px-line-2); display: block; }
+    .shots figcaption { margin-top: 8px; color: var(--px-text-2); font-size: .85rem; }
+    .chatbox { position: relative; height: 260px; border-radius: var(--px-r-l); overflow: hidden; background: #2b3340 url('../brand/feed/03-tu-proxima-vida.jpg') center/cover; }
+    .chatbox .chat-window { position: absolute; }
+    @media (max-width: 760px) { .grid2, .shots { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <img src="../brand/logo.svg" alt="Próxima RP">
+    <span class="px-badge">Próxima UI</span>
+  </header>
+  <p class="px-eyebrow">Sistema de diseño</p>
+  <h1 class="px-title px-title--l" style="margin-top:8px">Una sola forma de verse en toda la ciudad</h1>
+  <p class="px-muted" style="max-width:760px;line-height:1.6">Superficies oscuras y sólidas, texto grande y con contraste, un acento claro por pantalla. Cian para información y foco, magenta para la acción principal y oro para lo premium. Nada de cristal translúcido en el juego: el desenfoque lo pone el juego.</p>
+
+  <section>
+    <h2>Colores</h2>
+    <div class="swatches" id="swatches"></div>
+  </section>
+
+  <section>
+    <h2>Tipografía</h2>
+    <p>Sora para títulos y cifras grandes; Inter para todo lo demás. Ambas con licencia OFL, empaquetadas en cada recurso.</p>
+    <div class="px-card demo-card">
+      <p class="px-eyebrow">Tu personaje</p>
+      <p class="px-title px-title--xl" style="margin:6px 0 4px">Valeria Ríos</p>
+      <p class="px-title px-title--m" style="margin:0 0 8px">Recompensas de la temporada</p>
+      <p style="margin:0;line-height:1.55">Texto normal en Inter: claro y legible sobre el juego, con números tabulares <span class="px-num">$12,850 · 29 d 16 h</span>.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Botones, insignias y teclas</h2>
+    <div class="row">
+      <button class="px-btn px-btn--primary">Reclamar</button>
+      <button class="px-btn px-btn--secondary">Cambiar personaje</button>
+      <button class="px-btn px-btn--ghost">Cancelar</button>
+      <button class="px-btn px-btn--gold">Tienda</button>
+      <button class="px-btn px-btn--danger">Eliminar</button>
+      <button class="px-btn px-btn--primary px-btn--xl">Jugar</button>
+    </div>
+    <div class="row" style="margin-top:14px">
+      <span class="px-badge">Ciudad</span><span class="px-badge px-badge--nova">Nuevo</span><span class="px-badge px-badge--gold">Plus</span>
+      <span class="px-badge px-badge--ok">De servicio</span><span class="px-badge px-badge--muted">Bloqueado</span>
+      <span class="px-tag">PROX-4821</span>
+      <span><span class="px-kbd">E</span> Recoger</span><span><span class="px-kbd">TAB</span> Panel</span>
+    </div>
+  </section>
+
+  <section class="grid2">
+    <div>
+      <h2>Tarjetas y barras</h2>
+      <div class="px-card demo-card" style="display:grid;gap:12px">
+        <div><small class="px-muted">Misión del día</small><b style="display:block;margin:4px 0 10px">Juega 60 minutos en la ciudad</b><div class="px-bar" style="--v:70%"><i></i></div></div>
+        <div class="px-bar" style="--v:82%;--c:var(--px-health)"><i></i></div>
+        <div class="px-bar" style="--v:40%;--c:var(--px-food)"><i></i></div>
+        <div class="px-bar" style="--v:64%;--c:var(--px-water)"><i></i></div>
+      </div>
+    </div>
+    <div>
+      <h2>Campos y avisos</h2>
+      <div class="px-card demo-card" style="display:grid;gap:12px">
+        <label class="px-field"><span class="px-label">Nombre</span><input class="px-input" placeholder="Valentina"></label>
+        <label class="px-field"><span class="px-label">Apellido</span><input class="px-input is-invalid" value="R"></label>
+        <div class="px-toast px-toast--ok" style="animation:none"><span class="px-toast__ico">✓</span><div><b>Recompensa reclamada</b><span class="px-muted">+$1,500 al banco</span></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Chat de rol</h2>
+    <p>Escribir sin comando es hablar: solo lo leen quienes estén cerca. Si no te conocen, ven «Desconocido · PROX-XXXX».</p>
+    <div class="chatbox">
+      <div class="chat-window" style="top:16px;left:16px;height:auto">
+        <div class="chat-messages">
+          <div class="msg"><span><span><div class="pm pm--system"><span class="pm__text">Bienvenido/a a Próxima RP. Escribe para hablar con quien tengas cerca.</span></div></span></span></div>
+          <div class="msg"><span><span><div class="pm pm--say"><b class="pm__who">Desconocido · PROX-4821</b><span class="pm__text">¿Sabes dónde queda el taller?</span></div></span></span></div>
+          <div class="msg"><span><span><div class="pm pm--me"><span class="pm__text"><b>Bruno Salgado</b> señala la calle de enfrente.</span></div></span></span></div>
+          <div class="msg"><span><span><div class="pm pm--do"><span class="pm__text">El letrero del taller parpadea en neón.</span><b class="pm__who">Bruno Salgado</b></div></span></span></div>
+          <div class="msg"><span><span><div class="pm pm--whisper"><b class="pm__who">Bruno Salgado susurra</b><span class="pm__text">no le digas a nadie</span></div></span></span></div>
+          <div class="msg"><span><span><div class="pm pm--announce"><b class="pm__who">Anuncio de la ciudad</b><span class="pm__text">Esta noche: carrera en el puerto a las 22:00.</span></div></span></span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Pantallas</h2>
+    <p>Capturas de los modos de demostración de cada recurso (<code>html/index.html?demo=1</code>).</p>
+    <div class="shots" id="shots"></div>
+  </section>
+</div>
+<script>
+  const SW = [['--px-bg','Noche'],['--px-s1','Panel'],['--px-s2','Tarjeta'],['--px-s3','Elevada'],['--px-star','Estrella · info'],['--px-nova','Nova · acción'],['--px-gold','Oro · premium'],['--px-ok','Correcto'],['--px-warn','Aviso'],['--px-danger','Peligro']];
+  const box = document.getElementById('swatches');
+  for (const [v, n] of SW) {
+    const d = document.createElement('div'); d.className = 'sw';
+    const i = document.createElement('i'); i.style.background = `var(${v})`;
+    const s = document.createElement('span'); s.textContent = `${n} · ${getComputedStyle(document.documentElement).getPropertyValue(v).trim()}`;
+    d.append(i, s); box.appendChild(d);
+  }
+  const SHOTS = [['shots/panel.jpg','Panel (TAB)'],['shots/hud.jpg','HUD'],['shots/personajes.jpg','Selección de personaje'],['shots/aparicion.jpg','Dónde aparecer'],['shots/apartamento.jpg','Apartamento inicial'],['shots/reinicio.jpg','Reinicio']];
+  const sh = document.getElementById('shots');
+  for (const [src, cap] of SHOTS) {
+    const f = document.createElement('figure');
+    const img = document.createElement('img'); img.src = src; img.alt = cap; img.onerror = () => f.remove();
+    const c = document.createElement('figcaption'); c.textContent = cap;
+    f.append(img, c); sh.appendChild(f);
+  }
+</script>
+</body>
+</html>

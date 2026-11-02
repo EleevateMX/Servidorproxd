@@ -26,13 +26,13 @@ Config.spawnPicker = true
 
 -- Puntos de la ciudad. Coordenadas de qbx_spawn (config/client.lua).
 Config.spawnPoints = {
-    { label = 'Plaza Legion', detail = 'Centro de la ciudad', coords = vec4(195.17, -933.77, 29.7, 144.5), image = 'img/spawn-centro.jpg' },
-    { label = 'Paleto Bay', detail = 'Pueblo del norte, junto al mar', coords = vec4(80.35, 6424.12, 31.67, 45.5), image = 'img/spawn-paleto.jpg' },
-    { label = 'Motel', detail = 'Habitaciones baratas para empezar', coords = vec4(327.56, -205.08, 53.08, 163.5), image = 'img/spawn-motel.jpg' },
+    { label = 'Plaza Legion', detail = 'Centro de la ciudad', coords = vec4(195.17, -933.77, 29.7, 144.5), image = 'assets/spawn-centro.jpg' },
+    { label = 'Paleto Bay', detail = 'Pueblo del norte, junto al mar', coords = vec4(80.35, 6424.12, 31.67, 45.5), image = 'assets/spawn-paleto.jpg' },
+    { label = 'Motel', detail = 'Habitaciones baratas para empezar', coords = vec4(327.56, -205.08, 53.08, 163.5), image = 'assets/spawn-motel.jpg' },
 }
 
 -- Imágenes para la última ubicación y las casas propias.
-Config.spawnImages = { last = 'img/spawn-ultima.jpg', property = 'img/spawn-casa.jpg', apartment = 'img/spawn-casa.jpg' }
+Config.spawnImages = { last = 'assets/spawn-ultima.jpg', property = 'assets/spawn-casa.jpg', apartment = 'assets/spawn-casa.jpg' }
 
 -- Textos en español de los apartamentos iniciales (por «interior» de
 -- qbx_properties/config/shared.lua → apartmentOptions). Los que falten usan el suyo.

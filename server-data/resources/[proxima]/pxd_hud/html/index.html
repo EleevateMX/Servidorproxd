@@ -46,22 +46,26 @@
       <span class="wallet__delta" id="delta"></span>
     </div>
 
-    <!-- A la derecha del minimapa: hora y constantes -->
+    <!-- Necesidades en una fila, entre el dinero y el minimapa -->
     <div class="vitals" id="vitals">
-      <!-- Voz y radio (pma-voice) -->
-      <div class="voice" id="voice">
-        <span class="voice__mic"><svg class="ic"><use href="#i-mic"/></svg></span>
-        <span class="voice__range"><i></i><i></i><i></i></span>
-        <span class="voice__label" id="voice-label">Normal</span>
-        <span class="voice__radio" id="radio"><svg class="ic"><use href="#i-radio"/></svg><b id="radio-ch"></b></span>
-      </div>
-      <div class="clock"><svg class="ic ic--star"><use href="#i-star"/></svg><span id="date"></span><b id="clock">--:--</b></div>
       <div class="stat" data-k="health"><svg class="ic"><use href="#i-heart"/></svg><i><span></span></i></div>
       <div class="stat" data-k="armor"><svg class="ic"><use href="#i-shield"/></svg><i><span></span></i></div>
       <div class="stat" data-k="hunger"><svg class="ic"><use href="#i-food"/></svg><i><span></span></i></div>
       <div class="stat" data-k="thirst"><svg class="ic"><use href="#i-drop"/></svg><i><span></span></i></div>
       <div class="stat" data-k="stress"><svg class="ic"><use href="#i-brain"/></svg><i><span></span></i></div>
       <div class="stat" data-k="oxygen"><svg class="ic"><use href="#i-bubble"/></svg><i><span></span></i></div>
+    </div>
+
+    <!-- Fecha y hora: abajo, a la derecha del minimapa -->
+    <div class="clock"><svg class="ic ic--star"><use href="#i-star"/></svg><span id="date"></span><b id="clock">--:--</b></div>
+
+    <!-- Micrófono (pma-voice): abajo al centro, a la izquierda de la barra rápida -->
+    <div class="voice" id="voice">
+      <span class="voice__mic"><svg class="ic"><use href="#i-mic"/></svg></span>
+      <span class="voice__range"><i></i><i></i><i></i></span>
+      <span class="voice__label" id="voice-label">Normal</span>
+      <span class="px-kbd voice__key">N</span>
+      <span class="voice__radio" id="radio"><svg class="ic"><use href="#i-radio"/></svg><b id="radio-ch"></b></span>
     </div>
 
     <!-- Vehículo -->

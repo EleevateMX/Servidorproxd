@@ -1,0 +1,66 @@
+/* Tema «proxima» del chat del sistema de FiveM (lo carga el recurso chat desde
+   nui://pxd_chat/html/chat.css). Clases del chat: ext/system-resources/resources/chat/html. */
+@import url('ui/proxima-fonts.css');
+@import url('ui/proxima-ui.css');
+
+* { font-family: var(--px-font) !important; }
+
+/* Ventana de mensajes: sin caja de fondo; cada mensaje es su propia «burbuja». */
+.chat-window {
+  top: 3.2vh !important; left: 1.4vw !important;
+  width: min(36vw, 640px) !important; height: 30vh !important;
+  background: transparent !important;
+  -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 12%);
+}
+.chat-messages { margin: 0 !important; height: 100% !important; font-size: 1.62vh !important; display: flex; flex-direction: column; justify-content: flex-end; }
+.msg { margin: 0 0 .5vh !important; animation: px-drop .25s ease; }
+.multiline { margin-left: 0 !important; text-indent: 0 !important; }
+.msg > span { display: block; }
+
+/* Mensaje genérico (sistema, otros recursos) */
+.msg > span > span { display: inline-block; max-width: 100%; padding: .55vh .8vw; border-radius: 9px; background: rgba(11, 15, 29, .86); border: 1px solid rgba(150, 172, 255, .14); color: #f2f5ff; line-height: 1.4; text-shadow: none; }
+.msg > span > span:has(.pm) { padding: 0; background: none; border: 0; }
+.msg b { font-weight: 750; }
+
+/* Mensajes de rol de pxd_chat */
+.pm { display: inline-flex; flex-wrap: wrap; align-items: baseline; gap: .25vh .55vw; max-width: 100%; padding: .6vh .85vw; border-radius: 10px;
+  background: rgba(11, 15, 29, .88); border: 1px solid rgba(150, 172, 255, .14); border-left: 3px solid var(--px-star); line-height: 1.42; }
+.pm__who { color: var(--px-star); font-weight: 750; white-space: nowrap; }
+.pm__text { color: var(--px-text); word-break: break-word; }
+.pm--whisper { border-left-color: var(--px-text-3); }
+.pm--whisper .pm__who { color: var(--px-text-2); }
+.pm--whisper .pm__text { color: var(--px-text-2); font-style: italic; }
+.pm--shout { border-left-color: var(--px-warn); }
+.pm--shout .pm__who { color: var(--px-warn); }
+.pm--shout .pm__text { font-weight: 700; }
+.pm--me { border-left-color: var(--px-nova); background: rgba(40, 14, 44, .86); }
+.pm--me .pm__text { color: #ffc4f1; font-style: italic; }
+.pm--me .pm__text b { color: var(--px-nova); font-style: normal; }
+.pm--do { border-left-color: var(--px-gold); background: rgba(38, 30, 12, .86); }
+.pm--do .pm__text { color: #ffe3a3; }
+.pm--do .pm__who { color: var(--px-gold); font-weight: 600; opacity: .85; }
+.pm--do .pm__who::before { content: '('; } .pm--do .pm__who::after { content: ')'; }
+.pm--ooc { border-left-color: var(--px-text-3); background: rgba(11, 15, 29, .7); }
+.pm--ooc .pm__who { color: var(--px-text-3); font-weight: 600; }
+.pm--ooc .pm__text { color: var(--px-text-2); }
+.pm--ooc .pm__text::before { content: '(( '; } .pm--ooc .pm__text::after { content: ' ))'; }
+.pm--announce { display: flex; flex-direction: column; gap: .3vh; border: 1px solid rgba(255, 200, 87, .45); border-left: 3px solid var(--px-gold); background: linear-gradient(120deg, rgba(60, 44, 10, .92), rgba(11, 15, 29, .92)); }
+.pm--announce .pm__who { color: var(--px-gold); text-transform: uppercase; letter-spacing: .14em; font-size: .85em; }
+.pm--system { border-left-color: var(--px-text-3); background: rgba(11, 15, 29, .8); }
+.pm--system .pm__text { color: var(--px-text-2); }
+
+/* Entrada de texto */
+.chat-input { top: calc(3.2vh + 30vh + 1vh) !important; left: 1.4vw !important; width: min(36vw, 640px) !important; font-size: 1.6vh !important; }
+.chat-input > div.input { border-radius: 12px; background: rgba(11, 15, 29, .96) !important; border: 1px solid var(--px-line-2); box-shadow: 0 0 0 3px rgba(92, 225, 255, .14), var(--px-shadow-s); overflow: hidden; }
+.prefix { color: var(--px-star) !important; padding-left: .9vw !important; font-size: 1.5vh !important; letter-spacing: .08em; }
+.prefix.any { opacity: .85; }
+textarea { color: var(--px-text) !important; font-size: 1.7vh !important; padding: 1.1vh .7vw !important; }
+textarea::placeholder { color: var(--px-text-3); }
+.chat-hide-state { color: var(--px-text-3); font-size: 1.3vh !important; letter-spacing: .12em; }
+
+/* Sugerencias de comandos */
+.suggestions { margin-top: .6vh; border-radius: 12px; background: rgba(11, 15, 29, .96) !important; border: 1px solid var(--px-line-2); padding: .8vh .9vw !important; box-shadow: var(--px-shadow-s); }
+.suggestion { margin-bottom: .5vh; color: var(--px-text); }
+.suggestion .help, .help { color: var(--px-text-2) !important; }
+.param { color: var(--px-star); }
+.disabled { color: var(--px-text-3) !important; }

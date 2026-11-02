@@ -33,6 +33,7 @@ ui_page 'html/index.html'
 
 files {
     'html/ui/*.css',
+    'html/assets/*.jpg',
     'html/index.html',
     'html/style.css',
     'html/app.js',

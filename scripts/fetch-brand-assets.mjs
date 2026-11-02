@@ -12,6 +12,7 @@ mkdirSync(dest, { recursive: true });
 
 let failed = 0;
 for (const f of files) {
+  if (f.resource && f.resource !== 'pxd_loadscreen') continue; // ya está en el repo
   try {
     const res = await fetch(f.url);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);

@@ -480,17 +480,17 @@
     });
     const view = params.get('view');
     if (view === 'spawn') openSpawn({ mode: 'spawn', kicker: '¿Dónde apareces?', title: 'Elige dónde empezar', text: 'Vuelve donde lo dejaste, a tu casa o a un punto de la ciudad.', confirm: 'Aparecer', options: [
-      { id: 'last', kind: 'last', label: 'Última ubicación', detail: 'Donde lo dejaste', image: 'img/spawn-ultima.jpg' },
-      { id: 'property:1', kind: 'property', label: 'Del Perro Heights 12', detail: 'Tu casa', image: 'img/spawn-casa.jpg' },
-      { id: 'point:1', kind: 'point', label: 'Plaza Legion', detail: 'Centro de la ciudad', image: 'img/spawn-centro.jpg' },
-      { id: 'point:2', kind: 'point', label: 'Paleto Bay', detail: 'Pueblo del norte, junto al mar', image: 'img/spawn-paleto.jpg' },
-      { id: 'point:3', kind: 'point', label: 'Motel', detail: 'Habitaciones baratas para empezar', image: 'img/spawn-motel.jpg' },
+      { id: 'last', kind: 'last', label: 'Última ubicación', detail: 'Donde lo dejaste', image: 'assets/spawn-ultima.jpg' },
+      { id: 'property:1', kind: 'property', label: 'Del Perro Heights 12', detail: 'Tu casa', image: 'assets/spawn-casa.jpg' },
+      { id: 'point:1', kind: 'point', label: 'Plaza Legion', detail: 'Centro de la ciudad', image: 'assets/spawn-centro.jpg' },
+      { id: 'point:2', kind: 'point', label: 'Paleto Bay', detail: 'Pueblo del norte, junto al mar', image: 'assets/spawn-paleto.jpg' },
+      { id: 'point:3', kind: 'point', label: 'Motel', detail: 'Habitaciones baratas para empezar', image: 'assets/spawn-motel.jpg' },
     ] });
     else if (view === 'apartment') openSpawn({ mode: 'apartment', kicker: 'Tu primer hogar', title: 'Elige tu apartamento', text: 'Es gratis y será tu casa en la ciudad: ahí guardas tus cosas y te cambias de ropa.', confirm: 'Mudarme aquí', options: [
-      { id: 'apt:1', kind: 'apartment', label: 'Del Perro Heights', detail: 'Vistas al mar, lejos del ruido de la playa.', image: 'img/spawn-casa.jpg' },
-      { id: 'apt:3', kind: 'apartment', label: '4 Integrity Way', detail: 'En pleno centro, rodeado de rascacielos.', image: 'img/spawn-casa.jpg' },
-      { id: 'apt:5', kind: 'apartment', label: 'Richard Majestic', detail: 'Condominio de lujo junto a los estudios de música.', image: 'img/spawn-casa.jpg' },
-      { id: 'apt:6', kind: 'apartment', label: 'Tinsel Towers', detail: 'Torre residencial en Rockford Hills.', image: 'img/spawn-casa.jpg' },
+      { id: 'apt:1', kind: 'apartment', label: 'Del Perro Heights', detail: 'Vistas al mar, lejos del ruido de la playa.', image: 'assets/spawn-casa.jpg' },
+      { id: 'apt:3', kind: 'apartment', label: '4 Integrity Way', detail: 'En pleno centro, rodeado de rascacielos.', image: 'assets/spawn-casa.jpg' },
+      { id: 'apt:5', kind: 'apartment', label: 'Richard Majestic', detail: 'Condominio de lujo junto a los estudios de música.', image: 'assets/spawn-casa.jpg' },
+      { id: 'apt:6', kind: 'apartment', label: 'Tinsel Towers', detail: 'Torre residencial en Rockford Hills.', image: 'assets/spawn-casa.jpg' },
     ] });
     else if (view === 'create') select(2);
     else if (view === 'locked') select(3);

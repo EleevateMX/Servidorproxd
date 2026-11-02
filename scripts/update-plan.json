@@ -4,6 +4,7 @@
   "pxd_progress",
   "pxd_restart",
   "pxd_interact",
+  "pxd_chat",
   "pxd_jobs",
   "pxd_panel",
   "pxd_multichar",
@@ -38,6 +39,30 @@
    "replace": "\"toggleKey\": \"UP\"",
    "requires": "pxd_hud",
    "why": "el teléfono se abre con la flecha arriba"
+  },
+  {
+   "resource": "illenium-appearance",
+   "path": "shared/theme.lua",
+   "find": "currentTheme = \"qb-core\",",
+   "replace": "currentTheme = \"proxima\",",
+   "requires": "pxd_multichar",
+   "why": "editor de ropa con el tema de Próxima"
+  },
+  {
+   "resource": "illenium-appearance",
+   "path": "shared/theme.lua",
+   "find": "    themes = {",
+   "replace": "    themes = {\n        {\n            id = \"proxima\",\n            borderRadius = \"1vh\",\n            fontColor = \"242, 245, 255\",\n            fontColorHover = \"255, 255, 255\",\n            fontColorSelected = \"5, 7, 15\",\n            fontFamily = \"Inter\",\n            primaryBackground = \"214, 59, 240\",\n            primaryBackgroundSelected = \"92, 225, 255\",\n            secondaryBackground = \"11, 15, 29\",\n            scaleOnHover = false,\n            sectionFontWeight = \"bold\",\n            smoothBackgroundTransition = true\n        },",
+   "requires": "pxd_multichar",
+   "why": "tema «proxima» del editor de ropa"
+  },
+  {
+   "resource": "illenium-appearance",
+   "path": "shared/config.lua",
+   "find": "    Ped = true,",
+   "replace": "    Ped = false, -- Próxima: solo personajes freemode (se pueden vestir)",
+   "requires": "pxd_multichar",
+   "why": "al crear personaje solo modelos freemode"
   }
  ]
 }
