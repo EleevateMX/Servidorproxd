@@ -99,4 +99,67 @@ PXDFines.MESSAGES = {
     espera = 'Espera un momento.',
 }
 
+-- ── Auditoría común (pxd_audit) ──────────────────────────
+
+--- Entrada para exports.pxd_audit:Log. Mismo formato que la migración de pxd_fine_events
+--- (PXDAuditLib.fineEntry): target 'fine:<id>', actor = citizenid del autor o 'system'.
+function PXDFines.auditEntry(fineId, action, actorCid, actorName, amount, detail, citizenid, extra)
+    local data = { fine_id = tonumber(fineId), actor_name = actorName, amount = tonumber(amount),
+        detail = detail, citizenid = citizenid }
+    if type(extra) == 'table' then for k, v in pairs(extra) do if data[k] == nil then data[k] = v end end end
+    return { category = 'fines', action = action, actor = actorCid or 'system', target = 'fine:' .. tostring(fineId),
+        data = data, source = 'pxd_justice' }
+end
+
+--- Origen de una multa del sistema ('radar', 'peaje'…): letras, números, _ y -; 'system' si no se indica.
+function PXDFines.systemOrigin(v)
+    if v == nil then return 'system' end
+    if type(v) ~= 'string' or #v > 32 or not v:find('^[%w_%-]+$') then return nil end
+    return v
+end
+
+--- Fila de pxd_audit → evento con la forma de pxd_fine_events (lo que devolvía GetFineEvents).
+function PXDFines.eventFromAudit(r)
+    local d = type(r.data) == 'table' and r.data or {}
+    return {
+        audit_id = tonumber(r.id), legacy_ref = r.legacy_ref,
+        fine_id = tonumber(d.fine_id) or tonumber(tostring(r.target or ''):match('^fine:(%d+)$')),
+        action = r.action,
+        actor_citizenid = (r.actor ~= 'system') and r.actor or nil,
+        actor_name = d.actor_name, amount = tonumber(d.amount), detail = d.detail,
+        created_at = tonumber(r.created_at),
+    }
+end
+
+--- Une los eventos antiguos (pxd_fine_events) con los de pxd_audit sin duplicados: si una fila
+--- antigua ya se migró (legacy_ref 'fine_event:<id>'), cuenta una sola vez y conserva su id.
+--- Orden cronológico; a igual fecha, primero los antiguos (por id) y luego los nuevos (por id).
+function PXDFines.mergeEvents(legacy, audits)
+    local out, migrated = {}, {}
+    for _, r in ipairs(audits or {}) do
+        local e = PXDFines.eventFromAudit(r)
+        local lid = math.tointeger(tonumber(tostring(r.legacy_ref or ''):match('^fine_event:(%d+)$')))
+        if lid then migrated[lid] = true; e.id = lid; e._k = { 0, lid }
+        else e._k = { 1, e.audit_id or 0 } end
+        out[#out + 1] = e
+    end
+    for _, r in ipairs(legacy or {}) do
+        local id = math.tointeger(tonumber(r.id))
+        if not (id and migrated[id]) then
+            local e = {}
+            for k, v in pairs(r) do e[k] = v end
+            e._k = { 0, id or 0 }
+            out[#out + 1] = e
+        end
+    end
+    table.sort(out, function(a, b)
+        local ta, tb = tonumber(a.created_at) or 0, tonumber(b.created_at) or 0
+        if ta ~= tb then return ta < tb end
+        if a._k[1] ~= b._k[1] then return a._k[1] < b._k[1] end
+        return a._k[2] < b._k[2]
+    end)
+    for _, e in ipairs(out) do e._k = nil end
+    return out
+end
+
 return PXDFines

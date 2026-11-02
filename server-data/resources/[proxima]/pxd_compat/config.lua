@@ -10,11 +10,12 @@ Config.wear = {
     tickSec = 15,
 }
 
--- Registro de auditoría común (server/audit.lua). Otros módulos lo usan con
--- exports.pxd_compat:Audit({ category, action, ... }). Ver docs/29-hospital.md.
+-- Auditoría (server/audit.lua). Otros módulos lo usan con exports.pxd_compat:Audit({ category, action, ... }).
+-- Con pxd_audit en marcha delega en él (docs/34-auditoria-comun.md); si no, usa este archivo.
 Config.audit = {
+    delegate = true,        -- false: no usar pxd_audit aunque esté en marcha
     file = 'data/audit.json',
-    maxEntries = 5000,      -- se conservan las más recientes
+    maxEntries = 5000,      -- se conservan las más recientes (solo en el archivo de respaldo)
 }
 
 -- Hospital (docs/29-hospital.md). Requiere en qbx_ambulancejob

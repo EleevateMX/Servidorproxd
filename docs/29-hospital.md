@@ -48,9 +48,15 @@ Hay que desactivar el borrado completo, porque si sigue activo qbx_ambulancejob 
 
 Si pxd_compat arranca y la opción sigue en `true`, lo avisa en la consola.
 
-## Auditoría común (`pxd_compat`)
+## Auditoría (`pxd_compat` → `pxd_audit`)
 
-Pensada para que la usen todos los sistemas: hospital, multas, economía, staff…
+La auditoría común vive ahora en **`pxd_audit`** (docs/34): tabla `pxd_audit` en MariaDB, consultas y migración. `pxd_compat` conserva su API (`Audit` y `GetAudit`) como fachada:
+- **Con `pxd_audit` en marcha,** delega en `exports.pxd_audit:Log` y `Query`. El hospital escribe allí con `source = 'pxd_compat'`. `GetAudit` devuelve la misma forma de siempre (`at`, `resource`…).
+- **Si `pxd_audit` no está o falla,** escribe como antes en `pxd_compat/data/audit.json`, con un aviso en la consola.
+- **Las entradas antiguas del JSON** se copian a `pxd_audit` con `legacy_ref = 'compat:<id>'` (al arrancar o con `pxd_audit_migrar`). El archivo no se borra ni se modifica.
+- **`Config.audit.delegate = false`** mantiene el JSON aunque `pxd_audit` esté en marcha.
+
+Para código nuevo, usa directamente `exports.pxd_audit:Log` (docs/34). La API de `pxd_compat` sigue funcionando:
 
 ```lua
 -- Registrar (servidor)
@@ -65,18 +71,22 @@ local id = exports.pxd_compat:Audit({
 local list = exports.pxd_compat:GetAudit({ category = 'medical', target = 'ABC12345', limit = 50 })
 ```
 
-- Cada entrada guarda `id` (creciente), `at` (hora del servidor), `resource` (quién llamó), `category`, `action`, `actor`, `target` y `data`.
-- Se guarda en `pxd_compat/data/audit.json` y solo conserva las `Config.audit.maxEntries` más recientes (5000). La carpeta `data/` no la toca el actualizador.
-- Pendiente (etapa A de economía): llevarla a una tabla de MariaDB para que haya consultas e informes sin límite.
+- Cada entrada devuelve:
+  - `id`: el de `pxd_audit` si delega, o el del JSON;
+  - `at`: hora del servidor;
+  - `resource`: quién llamó;
+  - además, `category`, `action`, `actor`, `target` y `data`.
+- **Solo en el respaldo JSON**, se conservan las `Config.audit.maxEntries` más recientes (5000). La carpeta `data/` no la toca el actualizador.
 
 ## Pruebas
 
-`tests/lua/test_compat.lua` (7 pruebas de hospital y auditoría):
+`tests/lua/test_compat.lua` (hospital, auditoría y 4 pruebas de delegación en `pxd_audit`; la integración real con `pxd_audit` está en `tests/lua/test_audit.lua`):
 - al reaparecer solo se retira lo confiscable;
 - el dinero queda intacto;
 - la reanimación no toca nada;
 - el evento repetido no retira dos veces;
 - la auditoría se escribe y se recorta;
+- con `pxd_audit` en marcha delega en él; si falla o no está, usa el JSON;
 - avisa si `wipeInvOnRespawn` sigue en `true`.
 
 Las pruebas usan versiones simuladas de ox_inventory y qbx_core. **Falta probarlo dentro de FiveM** (docs/26, sección 4).
