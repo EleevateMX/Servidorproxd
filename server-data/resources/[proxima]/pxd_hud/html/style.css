@@ -1,0 +1,132 @@
+:root {
+  --night-950: #05070f;
+  --glass: rgba(8, 11, 24, 0.66);
+  --glass-strong: rgba(8, 11, 24, 0.82);
+  --line: rgba(140, 170, 255, 0.16);
+  --text: #eef2ff;
+  --muted: #9aa6c7;
+  --star: #5ce1ff;
+  --nova: #ff4fd8;
+  --gold: #ffc857;
+  --ok: #4ade80;
+  --blue: #50a0ff;
+  --red: #ff5a5a;
+  --font: "Segoe UI", "Inter", Roboto, "Helvetica Neue", Arial, sans-serif;
+  /* Rectángulo del minimapa en % de pantalla (lo fija app.js) */
+  --map-left: 1.5vw; --map-bottom: 2vh; --map-w: 14vw; --map-h: 17.6vh;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; overflow: hidden; background: transparent; color: var(--text); font-family: var(--font); }
+.ic { width: 16px; height: 16px; fill: currentColor; flex: none; }
+
+.hud { position: fixed; inset: 0; pointer-events: none; transition: opacity .35s ease; }
+.hud.is-hidden { opacity: 0; }
+
+/* ── Minimapa enmarcado ──────────────────────────── */
+.map-frame {
+  position: fixed; left: var(--map-left); bottom: var(--map-bottom); width: var(--map-w); height: var(--map-h);
+  border-radius: 14px; border: 1px solid rgba(92, 225, 255, .35);
+  box-shadow: 0 0 0 1px rgba(5, 7, 15, .6), 0 0 22px rgba(92, 225, 255, .18), inset 0 0 18px rgba(5, 7, 15, .55);
+  transition: opacity .3s;
+}
+.map-frame__star { position: absolute; top: -9px; right: 14px; width: 18px; height: 18px; display: grid; place-items: center; border-radius: 50%; background: var(--night-950); }
+.map-frame__star svg { width: 12px; height: 12px; fill: var(--star); filter: drop-shadow(0 0 4px rgba(92, 225, 255, .9)); }
+.hud.no-map .map-frame { opacity: 0; }
+
+/* ── Dinero ──────────────────────────────────────── */
+.wallet {
+  position: fixed; left: var(--map-left); bottom: calc(var(--map-bottom) + var(--map-h) + 10px);
+  display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; padding: 8px 14px; border-radius: 12px;
+  max-width: max(var(--map-w), 150px);
+  background: linear-gradient(90deg, var(--glass-strong), var(--glass)); border: 1px solid var(--line); backdrop-filter: blur(6px);
+  font-variant-numeric: tabular-nums;
+}
+.hud.no-map .wallet { bottom: calc(var(--map-bottom) + 10px); }
+.wallet__item { display: flex; align-items: center; gap: 7px; font-size: 15px; }
+.wallet__item b { font-weight: 700; letter-spacing: .01em; }
+.ic--cash { color: var(--ok); }
+.ic--bank { color: var(--gold); }
+.wallet__sep { width: 1px; height: 18px; background: var(--line); }
+@media (max-width: 1500px) { .wallet__sep { display: none; } .wallet__item { width: 100%; } }
+.wallet__delta { position: absolute; left: 0; bottom: 100%; margin-bottom: 6px; padding: 3px 9px; border-radius: 8px; font-size: 13px; font-weight: 700; opacity: 0; transform: translateY(6px); background: var(--glass-strong); border: 1px solid var(--line); white-space: nowrap; }
+.wallet__delta.is-in { animation: delta 2.4s ease forwards; }
+.wallet__delta.plus { color: var(--ok); }
+.wallet__delta.minus { color: var(--red); }
+@keyframes delta { 12% { opacity: 1; transform: translateY(0); } 80% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-8px); } }
+
+/* ── Constantes a la derecha del minimapa ───────── */
+.vitals {
+  position: fixed; left: calc(var(--map-left) + var(--map-w) + 10px); bottom: var(--map-bottom);
+  display: flex; flex-direction: column; gap: 6px; width: 150px;
+}
+.hud.no-map .vitals { left: calc(var(--map-left) + 330px); }
+.clock { display: flex; align-items: center; gap: 6px; padding: 5px 9px; border-radius: 9px; background: var(--glass); border: 1px solid var(--line); font-size: 12px; color: var(--muted); }
+.clock b { margin-left: auto; color: var(--text); font-size: 13px; font-variant-numeric: tabular-nums; }
+.ic--star { width: 11px; height: 11px; color: var(--star); filter: drop-shadow(0 0 3px rgba(92, 225, 255, .8)); }
+.stat { display: flex; align-items: center; gap: 7px; padding: 4px 9px; border-radius: 9px; background: var(--glass); border: 1px solid transparent; transition: border-color .3s, opacity .3s; }
+.stat .ic { width: 13px; height: 13px; color: var(--c); }
+.stat i { flex: 1; height: 5px; border-radius: 4px; background: rgba(255, 255, 255, .09); overflow: hidden; }
+.stat i span { display: block; height: 100%; width: 0; border-radius: inherit; background: var(--c); box-shadow: 0 0 8px var(--c); transition: width .5s ease; }
+.stat[data-k="health"] { --c: var(--red); }
+.stat[data-k="armor"] { --c: var(--blue); }
+.stat[data-k="hunger"] { --c: var(--gold); }
+.stat[data-k="thirst"] { --c: var(--star); }
+.stat[data-k="stress"] { --c: var(--nova); }
+.stat[data-k="oxygen"] { --c: #b8f3ff; }
+.stat.is-off { display: none; }
+.stat.is-low { border-color: rgba(255, 200, 87, .45); }
+.stat.is-critical { border-color: rgba(255, 90, 90, .7); animation: pulse 1.2s ease-in-out infinite; }
+@keyframes pulse { 50% { background: rgba(255, 90, 90, .18); } }
+.hud.is-dead .stat { opacity: .45; }
+
+/* ── Voz (primera fila de la columna; así no choca con la barra rápida de ox_inventory) ── */
+.voice {
+  display: flex; align-self: flex-start; align-items: center; gap: 8px; padding: 7px 12px 7px 7px; border-radius: 999px;
+  background: var(--glass); border: 1px solid var(--line); font-size: 12px; color: var(--muted);
+}
+.voice__mic { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: rgba(255, 255, 255, .06); color: var(--muted); transition: all .2s; }
+.voice.is-talking .voice__mic { color: #031018; background: var(--star); box-shadow: 0 0 0 3px rgba(92, 225, 255, .25), 0 0 16px rgba(92, 225, 255, .7); }
+.voice__range { display: flex; gap: 3px; align-items: flex-end; }
+.voice__range i { width: 4px; border-radius: 2px; background: rgba(255, 255, 255, .15); }
+.voice__range i:nth-child(1) { height: 6px; } .voice__range i:nth-child(2) { height: 10px; } .voice__range i:nth-child(3) { height: 14px; }
+.voice[data-range="1"] .voice__range i:nth-child(-n+1),
+.voice[data-range="2"] .voice__range i:nth-child(-n+2),
+.voice[data-range="3"] .voice__range i:nth-child(-n+3) { background: var(--star); }
+.voice__label { color: var(--text); font-weight: 600; letter-spacing: .02em; }
+.voice__radio { display: none; align-items: center; gap: 4px; margin-left: 4px; padding: 2px 8px; border-radius: 999px; background: rgba(255, 79, 216, .14); color: var(--nova); font-weight: 700; }
+.voice__radio .ic { width: 13px; height: 13px; }
+.voice.has-radio .voice__radio { display: inline-flex; }
+
+/* ── Vehículo ────────────────────────────────────── */
+.car {
+  position: fixed; right: 2.2vw; bottom: 3vh; width: 230px; padding: 10px 16px 14px; border-radius: 18px;
+  background: linear-gradient(160deg, var(--glass-strong), var(--glass)); border: 1px solid var(--line); backdrop-filter: blur(6px);
+  opacity: 0; transform: translateY(12px); transition: opacity .3s, transform .3s;
+}
+.hud.in-vehicle .car { opacity: 1; transform: none; }
+.car__street { margin-bottom: 4px; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center; min-height: 1.2em; }
+.car__dial { position: relative; height: 112px; }
+.gauge { width: 100%; height: 100%; }
+.gauge path { fill: none; stroke-width: 10; stroke-linecap: round; }
+.gauge__track { stroke: rgba(255, 255, 255, .08); }
+.gauge__fill { stroke: url(#g-speed); stroke-dasharray: 251.3; stroke-dashoffset: 251.3; transition: stroke-dashoffset .25s linear; filter: drop-shadow(0 0 6px rgba(92, 225, 255, .55)); }
+.car__speed { position: absolute; left: 0; right: 0; bottom: 4px; text-align: center; line-height: 1; }
+.car__speed b { display: block; font-size: 44px; font-weight: 800; font-variant-numeric: tabular-nums; text-shadow: 0 0 18px rgba(92, 225, 255, .35); }
+.car__speed span { font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: var(--muted); }
+.car__row { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+.ic--fuel { color: var(--gold); }
+.car__fuel { flex: 1; height: 6px; border-radius: 4px; background: rgba(255, 255, 255, .09); overflow: hidden; }
+.car__fuel span { display: block; height: 100%; width: 0; background: var(--gold); transition: width .5s; }
+.car.fuel-low .car__fuel span { background: var(--red); }
+.car.fuel-low .ic--fuel { color: var(--red); animation: blink 1s steps(2) infinite; }
+.flag { color: rgba(255, 255, 255, .22); transition: color .2s; }
+#belt.is-on { color: var(--ok); }
+#belt.is-warn { color: var(--red); animation: blink .8s steps(2) infinite; }
+#cruise.is-on { color: var(--star); }
+#engine.is-warn { color: var(--gold); }
+#engine.is-critical { color: var(--red); animation: blink .8s steps(2) infinite; }
+@keyframes blink { 50% { opacity: .25; } }
+
+/* ── Modo demo (fuera del juego) ─────────────────── */
+body.demo { background: linear-gradient(180deg, #5d6b7a 0%, #8693a0 45%, #3f4650 46%, #2e333a 100%); }
+body.demo::before { content: ''; position: fixed; left: var(--map-left); bottom: var(--map-bottom); width: var(--map-w); height: var(--map-h); background: repeating-linear-gradient(35deg, #3d4a3c 0 14px, #45533f 14px 28px); }
