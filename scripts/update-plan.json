@@ -81,7 +81,7 @@
    "path": "config/server.lua",
    "find": "dontAllowMinus = { 'cash', 'crypto' }",
    "replace": "dontAllowMinus = { 'cash', 'crypto', 'bank' }",
-   "requires": "qbx_core",
+   "requires": "pxd_compat",
    "why": "el banco no puede quedar en negativo (evita comprar sin fondos)",
    "requiresVersion": "1.24.1"
   },
@@ -90,7 +90,7 @@
    "path": "server/property.lua",
    "find": "    MySQL.update('UPDATE properties SET owner = ? WHERE id = ?', {player.PlayerData.citizenid, propertyId})\n    startRentThread()",
    "replace": "    MySQL.update('UPDATE properties SET owner = ? WHERE id = ?', {player.PlayerData.citizenid, propertyId})\n    startRentThread(propertyId)",
-   "requires": "qbx_properties",
+   "requires": "pxd_compat",
    "why": "el alquiler empieza a cobrarse al alquilar, no tras el reinicio"
   },
   {
@@ -98,7 +98,7 @@
    "path": "server/main.lua",
    "find": "IsUsingXTPrison = GetResourceState('xt-prison'):find('start')",
    "replace": "IsUsingXTPrison = GetResourceState('xt-prison') ~= 'missing' -- Próxima: no depende del orden de arranque",
-   "requires": "qbx_police",
+   "requires": "pxd_compat",
    "why": "una sola cárcel (xt-prison) aunque arranque después"
   },
   {
@@ -106,7 +106,7 @@
    "path": "server/commands.lua",
    "find": "if not IsUsingXTPrison then",
    "replace": "if GetResourceState('xt-prison') == 'missing' then -- Próxima",
-   "requires": "qbx_police",
+   "requires": "pxd_compat",
    "why": "no registrar /jail y /unjail si existe xt-prison"
   },
   {
@@ -114,7 +114,7 @@
    "path": "client/main.lua",
    "find": "local isUsingXTPrison = GetResourceState('xt-prison'):find('start')",
    "replace": "local isUsingXTPrison = GetResourceState('xt-prison') ~= 'missing' -- Próxima",
-   "requires": "qbx_police",
+   "requires": "pxd_compat",
    "why": "coherente con el servidor"
   },
   {
@@ -122,7 +122,7 @@
    "path": "server/main.lua",
    "find": "AddEventHandler('onServerResourceStart', function(resource)\n    if resource ~= 'ox_inventory' then return end",
    "replace": "AddEventHandler('onServerResourceStart', function(resource)\n    if resource ~= 'ox_inventory' and resource ~= GetCurrentResourceName() then return end -- Próxima\n    if GetResourceState('ox_inventory') ~= 'started' then return end",
-   "requires": "qbx_police",
+   "requires": "pxd_compat",
    "why": "registrar las papeleras de policía aunque ox_inventory arranque antes"
   },
   {
@@ -130,7 +130,7 @@
    "path": "data/items.lua",
    "find": "        consume = 0,\n        client = {\n            event = 'mm_radio:client:use'\n        }\n",
    "replace": "",
-   "requires": "ox_inventory",
+   "requires": "pxd_compat",
    "why": "el ítem radio abre qbx_radio (mm_radio no está instalado)"
   },
   {
@@ -138,7 +138,7 @@
    "path": "data/items.lua",
    "find": "        allowArmed = true,\n        client = {\n            event = 'mm_radio:client:usejammer'\n        }\n",
    "replace": "        allowArmed = true,\n",
-   "requires": "ox_inventory",
+   "requires": "pxd_compat",
    "why": "quitar el uso de un recurso inexistente (mm_radio)"
   },
   {
@@ -146,7 +146,7 @@
    "path": "data/items.lua",
    "find": "        allowArmed = true,\n        client = {\n            event = 'mm_radio:client:recharge'\n        }\n",
    "replace": "        allowArmed = true,\n",
-   "requires": "ox_inventory",
+   "requires": "pxd_compat",
    "why": "quitar el uso de un recurso inexistente (mm_radio)"
   }
  ],
