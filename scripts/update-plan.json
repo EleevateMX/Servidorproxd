@@ -165,6 +165,14 @@
    "replace": "RegisterNetEvent('police:server:IssueFine', function(targetSrc, lawViolated, fineAmount, notes)\n    if GetResourceState('pxd_justice') == 'started' then return end -- Próxima: multas en pxd_justice\n    local src = source\n",
    "requires": "pxd_justice",
    "why": "las multas quedan registradas como pendientes en pxd_justice"
+  },
+  {
+   "resource": "qbx_smallresources",
+   "path": "qbx_crouch/client.lua",
+   "find": "  name = 'crouch',\n  description = 'Crouch',\n  defaultKey = 'K',",
+   "replace": "  name = 'crouch',\n  description = 'Crouch',\n  defaultKey = '', -- Próxima: agacharse con Ctrl izquierdo (pxd_interact)",
+   "requires": "pxd_interact",
+   "why": "K queda libre: agacharse va con Ctrl izquierdo"
   }
  ],
  "_comment_overlays": "Archivos de pxd_* que se copian a recursos de terceros (solo con la versión indicada). Requieren add_filesystem_permission pxd_updater write <recurso> y reiniciar el servidor.",

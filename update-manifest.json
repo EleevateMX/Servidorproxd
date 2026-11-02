@@ -362,14 +362,26 @@
   {
    "resource": "pxd_interact",
    "path": "client/builtin.lua",
-   "size": 3075,
-   "sha256": "76e689fcdddbe5e31ef0e6816cf88beecf566fcdaf840edf159a570adee78b8c"
+   "size": 1675,
+   "sha256": "c18c4a4baadf3e05f50f8a4370453f562bca6d4d5aee886f7dcdf13a6394b4d1"
+  },
+  {
+   "resource": "pxd_interact",
+   "path": "client/crouch.lua",
+   "size": 2749,
+   "sha256": "6c03290c5fd99b3b4adf38790810db147d52df05da67256a929589f5b7aaabcc"
   },
   {
    "resource": "pxd_interact",
    "path": "client/main.lua",
-   "size": 10949,
-   "sha256": "72b9c217c7aee31387dbf478b7b78029c726b7b8532cdfdee41bd93e1bc373e5"
+   "size": 13025,
+   "sha256": "cd08bec29749460f14b84c7e56f412264ea8428e2f7ed689b817daab9a53a38f"
+  },
+  {
+   "resource": "pxd_interact",
+   "path": "client/pickup.lua",
+   "size": 4657,
+   "sha256": "04bff69d84323914c437fb0d870c07c04c76336a5821a90121ecd5a58c7f3d0f"
   },
   {
    "resource": "pxd_interact",
@@ -379,34 +391,43 @@
   },
   {
    "resource": "pxd_interact",
+   "path": "client/trunk.lua",
+   "size": 4310,
+   "sha256": "3febca2ae29ad65a5d442256d3b48ab87d0e4d0efb63dc69b6e9ef8ae025fdc1"
+  },
+  {
+   "resource": "pxd_interact",
    "path": "config.lua",
-   "size": 1275,
-   "sha256": "8c11b88ff3301e15a02a7692b4bfa10b6f1eff0c4a3ace0c6e92ca8d4c1b797d",
-   "config": true
+   "size": 2736,
+   "sha256": "e06577e1c51b580f48030bf88cfe703a8e9e26b956f57fe83a08f94116c37291",
+   "config": true,
+   "known": [
+    "8c11b88ff3301e15a02a7692b4bfa10b6f1eff0c4a3ace0c6e92ca8d4c1b797d"
+   ]
   },
   {
    "resource": "pxd_interact",
    "path": "fxmanifest.lua",
-   "size": 492,
-   "sha256": "aa9e6e8baa2cdcdb1ebad711df8d14eb69b2b2f88902ffb533fb8fc6371f1f73"
+   "size": 636,
+   "sha256": "49a01a8cabf220fd9a1cff96281645fa82a6f0a9a0dae15c35c30cc3127c2853"
   },
   {
    "resource": "pxd_interact",
    "path": "html/app.js",
-   "size": 4405,
-   "sha256": "a36774cc4a9fcc5ad47b7c30554c9efd4ed19fe575beb2ec9af1c1371d1001f0"
+   "size": 4877,
+   "sha256": "2a043784c725e88e27f65c5740b23dd8312f54811fb082bc0197625bbc5c1407"
   },
   {
    "resource": "pxd_interact",
    "path": "html/index.html",
-   "size": 591,
-   "sha256": "3754b9ffecde95cd4aad478a457d034c2849aa45d95ecb5cf7d84e812daf6dca"
+   "size": 837,
+   "sha256": "fc2a63201b45671e10175374a47c235f5cb36b4e43377806ad194809d35ff33c"
   },
   {
    "resource": "pxd_interact",
    "path": "html/style.css",
-   "size": 2876,
-   "sha256": "8ca63f4c344253e94451967b339288078b72935f278d0df06c8260fbd58c325b"
+   "size": 3446,
+   "sha256": "8316b45ac5b905f2fddf0482b731a73a0fabde1525e622bfebfd6fd56a237fb1"
   },
   {
    "resource": "pxd_interact",
@@ -416,9 +437,15 @@
   },
   {
    "resource": "pxd_interact",
+   "path": "server/pickup.lua",
+   "size": 5237,
+   "sha256": "b7b1ccdee88a9a16472e8c3210a2b22f925448618759bbebecd1eb8e108e16ed"
+  },
+  {
+   "resource": "pxd_interact",
    "path": "shared/interact.lua",
-   "size": 4601,
-   "sha256": "59816da5de4fd7f446dc51fed85985a0718239aabc7a1074bead5876bbd418f9"
+   "size": 8863,
+   "sha256": "9d9d3fd4f337d5dc61e83bbcba47b3188bab4b42b9e2a0f2d4fa3f2d8995dc55"
   },
   {
    "resource": "pxd_inventory",
@@ -728,11 +755,12 @@
   {
    "resource": "pxd_panel",
    "path": "config.lua",
-   "size": 3208,
-   "sha256": "eebb1e370f4d54c1df73e9692d099765be83a62e78242b3e1858f296495bbb72",
+   "size": 3479,
+   "sha256": "f5753a05680f25a637644c97d64f8ec77da9f39a83fccdf653f59b147de3e810",
    "config": true,
    "known": [
-    "adc00b829c639f6244f09051e5fc2ad6d0efa02fa7bd407c5377b45a22c5c014"
+    "adc00b829c639f6244f09051e5fc2ad6d0efa02fa7bd407c5377b45a22c5c014",
+    "eebb1e370f4d54c1df73e9692d099765be83a62e78242b3e1858f296495bbb72"
    ]
   },
   {
@@ -1278,6 +1306,14 @@
     "replace": "RegisterNetEvent('police:server:IssueFine', function(targetSrc, lawViolated, fineAmount, notes)\n    if GetResourceState('pxd_justice') == 'started' then return end -- Próxima: multas en pxd_justice\n    local src = source\n",
     "requires": "pxd_justice",
     "why": "las multas quedan registradas como pendientes en pxd_justice"
+   },
+   {
+    "resource": "qbx_smallresources",
+    "path": "qbx_crouch/client.lua",
+    "find": "  name = 'crouch',\n  description = 'Crouch',\n  defaultKey = 'K',",
+    "replace": "  name = 'crouch',\n  description = 'Crouch',\n  defaultKey = '', -- Próxima: agacharse con Ctrl izquierdo (pxd_interact)",
+    "requires": "pxd_interact",
+    "why": "K queda libre: agacharse va con Ctrl izquierdo"
    }
   ],
   "external": []
