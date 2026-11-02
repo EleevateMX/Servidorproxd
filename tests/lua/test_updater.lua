@@ -10,12 +10,14 @@ local function boot(remote, localFiles, states, extra)
     Fx.reset({ resourceName = 'pxd_updater', resourceStates = states or { pxd_login = 'started', pxd_props = 'started', pxd_updater = 'started' } })
     PXDUpdater = nil
     Config = nil
-    Fx.load(DIR, { 'config.lua', 'shared/sha256.lua', 'shared/base64.lua', 'server/main.lua' })
+    Fx.load(DIR, { 'config.lua', 'shared/sha256.lua', 'shared/base64.lua', 'server/backup.lua', 'server/main.lua' })
     sha = PXDUpdater.sha256
     for k, v in pairs(localFiles or {}) do Fx.files[k] = v end
     local files = {}
     for _, f in ipairs(remote) do
-        files[#files + 1] = { resource = f[1], path = f[2], size = #f[3], sha256 = sha(f[3]), config = f[2] == 'config.lua' or nil }
+        local o = f[4] or {}
+        files[#files + 1] = { resource = f[1], path = f[2], size = #f[3], sha256 = sha(f[3]),
+            config = (f[2] == 'config.lua' or o.config) or nil, known = o.known }
         Fx.http[fileUrl(f[1], f[2])] = { 200, f[3] }
     end
     local manifest = { format = 1, files = files }
@@ -23,8 +25,9 @@ local function boot(remote, localFiles, states, extra)
     Fx.http[BASE .. 'update-manifest.json'] = { 200, Fx.json.encode(manifest) }
 end
 
-local function run(mode)
-    Fx.commands['pxd_update'](0, { mode })
+local function run(mode, ...)
+    Fx.readOnlyKeep = nil
+    Fx.commands['pxd_update'](0, { mode, ... })
     for _ = 1, 3 do Fx.advance(0) end
 end
 
@@ -200,5 +203,151 @@ T.describe('pxd_updater', function()
         Fx.http[BASE .. 'update-manifest.json'] = { 200, Fx.json.encode({ format = 1, files = {}, overlays = { overlay } }) }
         run()
         T.truthy(logged('add_filesystem_permission pxd_updater write ox_inventory'))
+    end)
+
+    -- ── Copias de seguridad, vuelta atrás y archivos protegidos ─────────────────
+
+    local function index(id) return Fx.json.decode(Fx.files['data/bk_' .. id .. '.json']) end
+    local function lastId()
+        local l = Fx.json.decode(Fx.files['data/backups.json'])
+        return l.ids[#l.ids], l.ids
+    end
+
+    T.it('guarda copia antes de escribir y «rollback» la restaura (y el estado instalado)', function()
+        boot({ { 'pxd_login', 'server/main.lua', 'nuevo' }, { 'pxd_login', 'shared/x.lua', 'creado' } },
+            { ['pxd_login/server/main.lua'] = 'viejo' })
+        Fx.readOnly = nil
+        run()
+        T.eq(Fx.files['pxd_login/server/main.lua'], 'nuevo')
+        local id = lastId()
+        local idx = index(id)
+        T.eq(idx.estado, 'aplicada'); T.eq(idx.motivo, 'update'); T.eq(#idx.archivos, 2)
+        local a = idx.archivos[1]
+        T.eq(a.resource, 'pxd_login'); T.eq(a.sha256Antes, sha('viejo')); T.eq(a.sha256Despues, sha('nuevo')); T.eq(a.existia, true)
+        T.eq(Fx.files['data/bk_' .. id .. '_' .. a.copia], 'viejo')
+        T.eq(idx.archivos[2].existia, false)
+        T.truthy(logged('Copia de seguridad: ' .. id:gsub('%-', '%%-')))
+        Fx.restarted = {}
+        run('rollback')
+        T.eq(Fx.files['pxd_login/server/main.lua'], 'viejo')
+        T.eq(Fx.files['pxd_login/shared/x.lua'], '', 'lo que no existía se vacía (no se puede borrar)')
+        T.truthy(logged('no existía antes'))
+        T.eq(index(id).estado, 'restaurada')
+        local state = Fx.json.decode(Fx.files['data/installed.json'])
+        T.eq(state['pxd_login/server/main.lua'], sha('viejo'))
+        T.eq(table.concat(Fx.restarted, ','), 'stop pxd_login,start pxd_login')
+        local newest, ids = lastId()
+        T.eq(index(newest).motivo, 'rollback', 'el rollback también deja copia (se puede deshacer)')
+        T.eq(#ids, 2)
+    end)
+
+    T.it('escritura transaccional: si falla una, deshace las anteriores y no toca installed.json', function()
+        boot({ { 'pxd_login', 'a.lua', 'A2' }, { 'pxd_login', 'b.lua', 'B2' } },
+            { ['pxd_login/a.lua'] = 'A1', ['pxd_login/b.lua'] = 'B1' })
+        Fx.readOnly = { ['pxd_login/b.lua'] = true }
+        run()
+        Fx.readOnly = nil
+        T.eq(Fx.files['pxd_login/a.lua'], 'A1', 'se restauró la que sí se escribió')
+        T.eq(Fx.files['pxd_login/b.lua'], 'B1')
+        T.falsy(Fx.files['data/installed.json'])
+        T.truthy(logged('Actualización cancelada: se han restaurado 1'))
+        T.falsy(Fx.files['data/backups.json'], 'una sesión deshecha no queda como copia aplicable')
+        T.eq(#Fx.executed, 0, 'no reinicia nada')
+    end)
+
+    T.it('si no se puede guardar la copia, no escribe nada', function()
+        boot({ { 'pxd_login', 'a.lua', 'A2' } }, { ['pxd_login/a.lua'] = 'A1' })
+        Fx.readOnly = setmetatable({}, { __index = function(_, k) return k:find('^data/bk_') ~= nil end })
+        run()
+        Fx.readOnly = nil
+        T.eq(Fx.files['pxd_login/a.lua'], 'A1')
+        T.truthy(logged('No se pudo guardar la copia de seguridad'))
+    end)
+
+    T.it('archivos editables sin versión instalada conocida: se respetan salvo versión publicada o force', function()
+        local remote = { { 'pxd_panel', 'shared/rules.lua', 'reglas v3', { config = true, known = { sha('reglas v1'), sha('reglas v2') } } } }
+        local st = { pxd_panel = 'started', pxd_login = 'started', pxd_updater = 'started' }
+        -- 1) editado por el dueño y sin installed.json (paquete/receta): se respeta
+        boot(remote, { ['pxd_panel/shared/rules.lua'] = 'mis reglas' }, st)
+        Fx.readOnly = nil
+        run()
+        T.eq(Fx.files['pxd_panel/shared/rules.lua'], 'mis reglas')
+        T.truthy(logged('Se respeta tu versión de pxd_panel/shared/rules.lua'))
+        run('check')
+        T.truthy(logged('Se respeta tu versión'))
+        -- 2) es una versión publicada antes (sin editar): se actualiza
+        boot(remote, { ['pxd_panel/shared/rules.lua'] = 'reglas v2' }, st)
+        run()
+        T.eq(Fx.files['pxd_panel/shared/rules.lua'], 'reglas v3')
+        -- 3) force con ruta: solo ese archivo, con copia
+        boot({ remote[1], { 'pxd_login', 'config.lua', 'cfg nuevo' } },
+            { ['pxd_panel/shared/rules.lua'] = 'mis reglas', ['pxd_login/config.lua'] = 'cfg mio' }, st)
+        run('force', 'pxd_panel/shared/rules.lua')
+        T.eq(Fx.files['pxd_panel/shared/rules.lua'], 'reglas v3')
+        T.eq(Fx.files['pxd_login/config.lua'], 'cfg mio', 'el otro editable sigue protegido')
+        local idx = index(lastId())
+        T.eq(Fx.files['data/bk_' .. idx.id .. '_' .. idx.archivos[1].copia], 'mis reglas')
+    end)
+
+    T.it('rollback omite archivos cambiados después (salvo force) y lista las copias', function()
+        boot({ { 'pxd_login', 'a.lua', 'A2' } }, { ['pxd_login/a.lua'] = 'A1' })
+        run()
+        Fx.files['pxd_login/a.lua'] = 'A3 editado a mano'
+        run('rollback')
+        T.eq(Fx.files['pxd_login/a.lua'], 'A3 editado a mano')
+        T.truthy(logged('Se omite pxd_login/a.lua'))
+        local id = lastId()
+        run('rollback', id, 'force')
+        T.eq(Fx.files['pxd_login/a.lua'], 'A1')
+        Fx.logs = {}
+        run('backups')
+        T.truthy(logged('Copias de seguridad: 2'))
+        T.truthy(logged('restaurada'))
+        run('rollback', 'no-existe')
+        T.truthy(logged('No existe la copia no%-existe'))
+    end)
+
+    T.it('poda: guarda solo las últimas copias (Config.backupKeep)', function()
+        boot({}, {})
+        Config.backupKeep = 2
+        for i = 1, 3 do
+            local s = PXDUpdater.Backup.new('ref' .. i, 'update')
+            T.truthy(s:write('pxd_login', 'f.lua', 'v' .. i))
+            s:commit(Config.backupKeep)
+        end
+        local _, ids = lastId()
+        T.eq(#ids, 2)
+        local first = ids[1]
+        T.truthy(first:find('ref2'), 'la más antigua se podó')
+    end)
+
+    T.it('parches: copia antes de ajustar, aviso si no encuentra el texto y requiresVersion', function()
+        local patch = { resource = 'qbx_core', path = 'config/server.lua', find = "dontAllowMinus = { 'cash', 'crypto' }",
+            replace = "dontAllowMinus = { 'cash', 'crypto', 'bank' }", requires = 'qbx_core', requiresVersion = '1.24.1', why = 'banco sin negativo' }
+        local cfg = "money = {\n  dontAllowMinus = { 'cash', 'crypto' },\n}"
+        local fx = "fx_version 'cerulean'\nversion '1.24.1'\n"
+        local states = { pxd_updater = 'started', qbx_core = 'started' }
+        boot({}, { ['qbx_core/config/server.lua'] = cfg, ['qbx_core/fxmanifest.lua'] = fx }, states, { plan = { patches = { patch } } })
+        Fx.readOnly = nil
+        run('check')
+        T.eq(Fx.files['qbx_core/config/server.lua'], cfg, 'check no toca')
+        T.truthy(logged('ajuste pendiente: qbx_core/config/server.lua'))
+        run()
+        T.truthy(Fx.files['qbx_core/config/server.lua']:find("'bank'"))
+        local id = lastId()
+        T.eq(index(id).motivo, 'terceros')
+        run('rollback')
+        T.eq(Fx.files['qbx_core/config/server.lua'], cfg, 'la vuelta atrás deshace el parche')
+        T.truthy(logged('reinicia el servidor'))
+        -- otra versión: no se aplica y avisa
+        boot({}, { ['qbx_core/config/server.lua'] = cfg, ['qbx_core/fxmanifest.lua'] = "fx_version 'cerulean'\nversion '1.25.0'\n" },
+            states, { plan = { patches = { patch } } })
+        run()
+        T.eq(Fx.files['qbx_core/config/server.lua'], cfg)
+        T.truthy(logged('versión 1.25.0'))
+        -- texto no encontrado: aviso claro
+        boot({}, { ['qbx_core/config/server.lua'] = 'otra cosa', ['qbx_core/fxmanifest.lua'] = fx }, states, { plan = { patches = { patch } } })
+        run()
+        T.truthy(logged('AVISO: en qbx_core/config/server.lua no está el texto esperado'))
     end)
 end)

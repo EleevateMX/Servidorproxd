@@ -12,3 +12,7 @@ Config.ace = 'pxd.update'
 -- Archivo donde se recuerda qué versión de cada archivo se instaló (para respetar
 -- los config.lua que edites a mano).
 Config.stateFile = 'data/installed.json'
+
+-- Copias de seguridad antes de cada escritura (data/bk_<id>…, lista en data/backups.json). Se guardan las últimas N;
+-- al podar, las antiguas se vacían (FXServer no deja borrar archivos de un recurso).
+Config.backupKeep = 10
