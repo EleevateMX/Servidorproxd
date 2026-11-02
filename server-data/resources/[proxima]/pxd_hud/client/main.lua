@@ -134,6 +134,8 @@ CreateThread(function()
                 voice = H.voiceLabel(proximity),
                 voiceIndex = type(proximity) == 'table' and proximity.index or 2,
                 radio = tonumber(state.radioChannel) or 0,
+                -- Deuda de multas pendientes (state bag replicado por pxd_justice; 0 si no está).
+                fines = math.max(0, math.floor(tonumber(state.pxdFines) or 0)),
                 clock = H.clock(GetClockHours(), GetClockMinutes()),
                 vehicle = inVehicle,
             }

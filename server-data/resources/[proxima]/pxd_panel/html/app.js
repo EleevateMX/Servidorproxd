@@ -95,6 +95,7 @@
     open: false, static: null, dyn: null, offset: 0,
     settings: { textScale: 3, sounds: true, reduceMotion: false },
     view: 'perfil', orgTab: 'government', helpTab: 'reglas', achId: null, query: '', settingsQuery: '',
+    fineQuery: '', fineSearch: null,
   };
   const serverNow = () => Math.floor((Date.now() + S.offset) / 1000);
 
@@ -103,6 +104,7 @@
     { id: 'recompensas', label: 'Recompensas', icon: 'gift', needs: 'progress' },
     { id: 'logros', label: 'Logros', icon: 'trophy', needs: 'progress' },
     { id: 'eventos', label: 'Eventos', icon: 'calendar' },
+    { id: 'multas', label: 'Multas', icon: 'shield', needs: 'fines' },
     { id: 'organizaciones', label: 'Organizaciones', icon: 'building', needs: 'orgs',
       sub: [['government', 'Gubernamentales'], ['companies', 'Empresas'], ['groups', 'Grupos']], key: 'orgTab' },
     { id: 'ayuda', label: 'Ayuda', icon: 'help', sub: [['soporte', 'Soporte'], ['reglas', 'Reglamento']], key: 'helpTab' },
@@ -111,7 +113,7 @@
   ];
   const TITLES = {
     perfil: ['Tu personaje', 'Perfil'], recompensas: ['Cada día cuenta', 'Recompensas'], logros: ['Tu historia en la ciudad', 'Logros'],
-    eventos: ['Comunidad', 'Eventos'], organizaciones: ['La ciudad', 'Organizaciones'], ayuda: ['Estamos para ayudarte', 'Ayuda'],
+    eventos: ['Comunidad', 'Eventos'], multas: ['Tus cuentas con la ciudad', 'Multas'], organizaciones: ['La ciudad', 'Organizaciones'], ayuda: ['Estamos para ayudarte', 'Ayuda'],
     novedades: ['Lo último', 'Novedades'], ajustes: ['Solo para ti', 'Configuración'],
   };
 
@@ -119,6 +121,7 @@
     if (!item.needs) return true;
     if (item.needs === 'progress') return !!(S.dyn && S.dyn.progress);
     if (item.needs === 'orgs') return !!(S.dyn && S.dyn.orgs);
+    if (item.needs === 'fines') return !!(S.dyn && S.dyn.fines);
     return true;
   }
 
@@ -133,6 +136,7 @@
       b.appendChild(icon(item.icon));
       b.appendChild(h('span', '', item.label));
       if (item.id === 'recompensas' && S.dyn && S.dyn.daily && S.dyn.daily.canClaim) b.appendChild(h('i', 'nav__badge', '1'));
+      if (item.id === 'multas' && S.dyn.fines && S.dyn.fines.pending && S.dyn.fines.pending.length) b.appendChild(h('i', 'nav__badge', S.dyn.fines.pending.length));
       if (item.id === 'logros') {
         const n = claimableAchievements();
         if (n > 0) b.appendChild(h('i', 'nav__badge', n));
@@ -174,7 +178,7 @@
     const v = $('view');
     v.replaceChildren();
     if (!S.dyn) { v.appendChild(h('div', 'empty', 'Cargando…')); return; }
-    const fn = { perfil: viewProfile, recompensas: viewRewards, logros: viewAchievements, eventos: viewEvents,
+    const fn = { perfil: viewProfile, recompensas: viewRewards, logros: viewAchievements, eventos: viewEvents, multas: viewFines,
       organizaciones: viewOrgs, ayuda: viewHelp, novedades: viewNews, ajustes: viewSettings }[S.view] || viewProfile;
     fn(v);
   }
@@ -399,6 +403,105 @@
     det.appendChild(items);
     wrap.appendChild(det);
     v.appendChild(wrap);
+  }
+
+  // ── Multas (pxd_justice decide; aquí solo se muestra y se pide) ──
+  const FINE_STATUS = { pending: ['Pendiente', 'chip--nova'], partial: ['Pago parcial', 'chip--gold'], paid: ['Pagada', 'chip--ok'], cancelled: ['Anulada', ''] };
+  function fmtShortDate(epoch) {
+    if (!epoch) return '';
+    const tz = S.static && S.static.timeZone;
+    const opts = { day: 'numeric', month: 'short', year: 'numeric' };
+    try { return new Intl.DateTimeFormat('es-MX', tz ? { ...opts, timeZone: tz } : opts).format(new Date(epoch * 1000)); }
+    catch (_) { return new Date(epoch * 1000).toLocaleDateString('es-MX'); }
+  }
+  function fineRow(f, payable, methods) {
+    const row = h('div', 'fine' + (payable ? '' : ' is-closed'));
+    const top = h('div', 'fine__top');
+    const l = h('div');
+    l.appendChild(h('h4', '', f.reason));
+    const meta = [`Multa #${f.id}`, fmtShortDate(f.issuedAt)];
+    if (f.officer) meta.push(`Agente: ${f.officer}`);
+    l.appendChild(h('div', 'small muted', meta.filter(Boolean).join(' · ')));
+    if (f.notes) l.appendChild(h('p', 'small fine__notes', f.notes));
+    top.appendChild(l);
+    const [label, cls] = FINE_STATUS[f.status] || [f.status, ''];
+    top.appendChild(h('span', 'chip ' + cls, label));
+    row.appendChild(top);
+    const nums = h('div', 'fine__nums');
+    for (const [k, v, c] of [['Importe', f.amount], ['Pagado', f.paid], ['Pendiente', f.outstanding, f.outstanding > 0 ? 'fine__due' : '']]) {
+      const n = h('div'); n.appendChild(h('small', '', k)); n.appendChild(h('b', c || '', fmtMoney(v))); nums.appendChild(n);
+    }
+    row.appendChild(nums);
+    if (payable && f.outstanding > 0) {
+      const pay = h('div', 'fine__pay');
+      const amount = h('input', 'fine__amount');
+      amount.type = 'number'; amount.min = '1'; amount.max = String(f.outstanding); amount.step = '1';
+      amount.value = String(f.outstanding);
+      amount.setAttribute('aria-label', 'Importe a pagar');
+      pay.appendChild(amount);
+      const order = [['bank', 'Pagar con banco', 'card'], ['cash', 'Pagar en efectivo', 'cash']];
+      for (const [m, text, ico] of order) {
+        if (methods && methods[m] === false) continue;
+        const b = h('button', m === 'bank' ? 'btn btn--primary' : 'btn btn--ghost'); b.type = 'button';
+        b.appendChild(icon(ico)); b.appendChild(h('span', '', text));
+        b.addEventListener('click', () => {
+          const n = Math.floor(Number(amount.value));
+          if (!(n >= 1)) { toast('No se pudo', 'Escribe un importe válido.', true); return; }
+          for (const x of pay.querySelectorAll('button')) x.disabled = true;
+          beep(880, .1);
+          post('payFine', { id: f.id, amount: Math.min(n, f.outstanding), method: m });
+        });
+        pay.appendChild(b);
+      }
+      row.appendChild(pay);
+    }
+    return row;
+  }
+  function fineList(v, view, payable, methods) {
+    const sum = h('div', 'grid grid--2');
+    sum.appendChild(stat('Deuda pendiente', fmtMoney(view.outstanding), 'shield', view.outstanding > 0 ? 'fine__due' : 'money'));
+    sum.appendChild(stat('Multas abiertas', String((view.pending || []).length), 'news'));
+    v.appendChild(sum);
+    v.appendChild(h('div', 'section-title', 'Pendientes'));
+    if (!(view.pending || []).length) v.appendChild(h('div', 'empty', 'No hay multas pendientes.'));
+    else { const g = h('div', 'grid'); for (const f of view.pending) g.appendChild(fineRow(f, payable, methods)); v.appendChild(g); }
+    v.appendChild(h('div', 'section-title', 'Historial'));
+    if (!(view.history || []).length) v.appendChild(h('div', 'empty', 'Sin multas pagadas ni anuladas.'));
+    else { const g = h('div', 'grid'); for (const f of view.history) g.appendChild(fineRow(f, false)); v.appendChild(g); }
+  }
+  function viewFines(v) {
+    const fines = S.dyn.fines || {};
+    const intro = h('p', 'muted');
+    intro.textContent = 'Las multas no se cobran solas: si no tienes fondos quedan como deuda. Puedes pagarlas completas o por partes, con banco o en efectivo.';
+    v.appendChild(intro);
+    fineList(v, fines, true, fines.methods);
+    if (!fines.canSearch) return;
+    v.appendChild(h('div', 'section-title', 'Consulta de autoridades'));
+    const form = h('form', 'fine__search');
+    const search = h('label', 'search');
+    search.appendChild(icon('search'));
+    const input = h('input'); input.placeholder = 'ID de servidor, PROX-XXXX o ID de ciudadano'; input.value = S.fineQuery; input.maxLength = 64;
+    search.appendChild(input);
+    const b = h('button', 'btn btn--ghost', 'Buscar'); b.type = 'submit';
+    form.append(search, b);
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      S.fineQuery = input.value.trim();
+      if (!S.fineQuery) return;
+      S.fineSearch = { loading: true };
+      beep(720); post('searchFines', { query: S.fineQuery }); render();
+    });
+    v.appendChild(form);
+    const r = S.fineSearch;
+    if (!r) return;
+    if (r.loading) { v.appendChild(h('div', 'empty', 'Buscando…')); return; }
+    if (!r.ok) { v.appendChild(h('div', 'empty', r.message || 'Sin resultados.')); return; }
+    const res = r.result || {};
+    const who = h('div', 'card fine__who');
+    who.appendChild(h('b', '', res.name || 'Ciudadano'));
+    if (res.citizenid) who.appendChild(h('span', 'chip chip--star', '#' + res.citizenid));
+    v.appendChild(who);
+    fineList(v, res, false);
   }
 
   function fmtDate(epoch) {
@@ -690,6 +793,9 @@
     } else if (msg.type === 'result') {
       const r = msg.data || {};
       if (r.message) toast(r.ok ? '¡Listo!' : 'No se pudo', r.message, !r.ok);
+    } else if (msg.type === 'fineSearch') {
+      S.fineSearch = msg.data || null;
+      if (S.open && S.view === 'multas') render();
     } else if (msg.type === 'notify') {
       const n = msg.data || {};
       toast(n.title || 'Próxima RP', n.text || '');
@@ -709,6 +815,21 @@
       for (const c of S.dyn.achievements) for (const it of c.items) if (it.id === data.id) it.claimed = true;
       window.postMessage({ type: 'result', data: { ok: true, message: '+50 XP' } }, '*');
       window.postMessage({ type: 'data', data: S.dyn }, '*');
+    }
+    if (name === 'payFine') {
+      const f = S.dyn.fines.pending.find((x) => x.id === data.id);
+      if (f) {
+        f.paid += data.amount; f.outstanding -= data.amount; f.status = f.outstanding > 0 ? 'partial' : 'paid';
+        if (f.status === 'paid') { S.dyn.fines.pending = S.dyn.fines.pending.filter((x) => x !== f); S.dyn.fines.history.unshift(f); }
+        S.dyn.fines.outstanding -= data.amount;
+        window.postMessage({ type: 'result', data: { ok: true, message: `Pagaste ${fmtMoney(data.amount)} de la multa #${f.id}.` } }, '*');
+        window.postMessage({ type: 'data', data: S.dyn }, '*');
+      }
+    }
+    if (name === 'searchFines') {
+      window.postMessage({ type: 'fineSearch', data: { ok: true, result: { name: 'Leo Martínez', citizenid: 'PXD1203', outstanding: 750,
+        pending: [{ id: 41, reason: 'Conducción temeraria', notes: 'Persecución por Vinewood', amount: 750, paid: 0, outstanding: 750, status: 'pending', officer: 'Ana Ortega', issuedAt: Math.floor(Date.now() / 1000) - 7200 }],
+        history: [] } } }, '*');
     }
     if (name === 'logout') toast('Demo', 'Aquí volverías a la selección de personaje.');
     return {};
@@ -742,6 +863,10 @@
         { id: 'propio', title: 'Crea tu propio evento', description: 'Propón el tuyo y el staff te ayuda a montarlo.', place: 'Discord', steps: ['Abre un ticket en Discord', 'Cuéntanos nombre, fecha y descripción', 'Diseñamos el escenario contigo', 'El staff lo revisa y lo anuncia'] },
         { id: 'boxeo', title: 'Velada de boxeo', description: 'Combates amistosos en el gimnasio.', startsAt: now - 1800, place: 'Gimnasio de Vespucci' },
       ],
+      fines: { outstanding: 1300, canSearch: true, methods: { cash: true, bank: true },
+        pending: [{ id: 12, reason: 'Exceso de velocidad', amount: 800, paid: 0, outstanding: 800, status: 'pending', officer: 'Ana Ortega', issuedAt: now - 3 * 3600 },
+          { id: 9, reason: 'Estacionar en zona prohibida', amount: 1000, paid: 500, outstanding: 500, status: 'partial', officer: 'Marco Díaz', issuedAt: now - 4 * 86400 }],
+        history: [{ id: 3, reason: 'No respetar un semáforo', amount: 300, paid: 300, outstanding: 0, status: 'paid', officer: 'Ana Ortega', issuedAt: now - 20 * 86400 }] },
       orgs: {
         government: [{ name: 'ambulance', label: 'Servicios Médicos', member: true, grade: 'Paramédica', primary: true, onduty: true, dutyCount: 3 },
           { name: 'police', label: 'Policía de Los Santos', member: false, dutyCount: 5 }, { name: 'sheriff', label: 'Sheriff del condado', member: false, dutyCount: 1 }],
