@@ -2,7 +2,7 @@
 
 **Versión:** `228b90f9dc334b62fcf69e2c83c7e752cf4256d4`.
 **Paquete:** `proxima-fase-0-1-228b90f.zip`, que contiene `resources/[proxima]/` (18 recursos), `permissions.pxd.cfg` y `PROXIMA_VERSION.txt`.
-**Estado:** preparada y **pendiente de autorización**. No se ha desplegado nada.
+**Estado:** **instalada en Nodecraft el 2026-11-02** (versión fijada `cd29c46`, que incluye la corrección de EMS/policía con ox_inventory). Arranque limpio verificado en la consola: 18 pxd_* iniciados, 15 parches aplicados (copia `20261102T163245Z-cd29c461a9`), sin SCRIPT ERROR. **Pendiente: pruebas dentro de FiveM.**
 
 ## 1. Estado de cada parte
 
@@ -15,15 +15,15 @@
 
 | Parte | 1 | 2 | 3 | 4 | 5 |
 |---|---|---|---|---|---|
-| Copias de seguridad, vuelta atrás y configs protegidas (pxd_updater 0.2.0) | ✔ | ✔ | ✖ | ✖ | ✖ |
+| Copias de seguridad, vuelta atrás y configs protegidas (pxd_updater 0.2.0) | ✔ | ✔ | ✔ (consola limpia) | ✖ | ✖ |
 | Versiones fijas (receta) | ✔ | ✔ | n/a (solo instalación nueva) | — | — |
 | Banco sin saldo negativo, alquiler, cárcel única, papeleras, radio | ✔ | ✔ (texto comprobado en las versiones fijas) | ✖ | ✖ | ✖ |
-| Desgaste de vehículos (pxd_compat) | ✔ | ✔ | ✖ | ✖ | ✖ |
-| Hospital: reanimar no quita nada; reaparecer retira solo armas e ilegales | ✔ | ✔ | ✖ | ✖ | ✖ |
-| Multas y deudas (pxd_justice, pestaña Multas, aviso en el HUD) | ✔ | ✔ | ✖ | ✖ | ✖ |
-| Controles: I, Ctrl, E (maletero) y B (recoger) | ✔ | ✔ | ✖ | ✖ | ✖ |
-| Arreglos P1 de pxd_* (comandos, estrés, topes, modos de juego, admin, progreso) | ✔ | ✔ | ✖ | ✖ | ✖ |
-| Interacción con E e ID PROX, voz, admin F9/F10, inventario I, chat, rediseños | ✔ | ✔ | ✖ | ✖ | ✖ |
+| Desgaste de vehículos (pxd_compat) | ✔ | ✔ | ✔ (consola limpia) | ✖ | ✖ |
+| Hospital: reanimar no quita nada; reaparecer retira solo armas e ilegales | ✔ | ✔ | ✔ (consola limpia) | ✖ | ✖ |
+| Multas y deudas (pxd_justice, pestaña Multas, aviso en el HUD) | ✔ | ✔ | ✔ (consola limpia) | ✖ | ✖ |
+| Controles: I, Ctrl, E (maletero) y B (recoger) | ✔ | ✔ | ✔ (consola limpia) | ✖ | ✖ |
+| Arreglos P1 de pxd_* (comandos, estrés, topes, modos de juego, admin, progreso) | ✔ | ✔ | ✔ (consola limpia) | ✖ | ✖ |
+| Interacción con E e ID PROX, voz, admin F9/F10, inventario I, chat, rediseños | ✔ | ✔ | ✔ (consola limpia) | ✖ | ✖ |
 
 **Pruebas automáticas:** 295 en Lua y 48 en Node, todas sobre un FXServer simulado. **Ninguna** cuenta como prueba en el juego.
 
