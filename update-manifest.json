@@ -113,8 +113,8 @@
   {
    "resource": "pxd_hud",
    "path": "client/main.lua",
-   "size": 9692,
-   "sha256": "d239d9cbad73836e2eb0ea1fe5522ecc2e45fec15f3c69f66a30f586b17b1e39"
+   "size": 9904,
+   "sha256": "401a2cc7cd46f88ceedb5c04d98b8d7f4e27827b30e93e43046d9bd5e09873f9"
   },
   {
    "resource": "pxd_hud",
@@ -648,6 +648,31 @@
    "path": "shared/sha256.lua",
    "size": 2564,
    "sha256": "0fea6c8f79ccbacbb89f1273e03cca1c5b7e51fb1b1419f12f7531583371178e"
+  },
+  {
+   "resource": "pxd_voice",
+   "path": "client/main.lua",
+   "size": 2654,
+   "sha256": "6429956685e44d2120134c8314c8104884586d7befb23ee91d86d629cc23e680"
+  },
+  {
+   "resource": "pxd_voice",
+   "path": "config.lua",
+   "size": 1348,
+   "sha256": "0ac44157ba3efa17603730eba9ec7e36f5d8a30b23634599d454b3cdb622ac40",
+   "config": true
+  },
+  {
+   "resource": "pxd_voice",
+   "path": "fxmanifest.lua",
+   "size": 285,
+   "sha256": "c6a5878b8039a443701699b6fbdee25e5506a3412205fa86a731817c9b850aca"
+  },
+  {
+   "resource": "pxd_voice",
+   "path": "shared/voice.lua",
+   "size": 1971,
+   "sha256": "b5aee0849caa2a979ae37efd1c99578062b86cdf8657c25ed07a7f62d5a78584"
   }
  ],
  "assets": [
@@ -720,7 +745,8 @@
    "pxd_jobs",
    "pxd_panel",
    "pxd_multichar",
-   "pxd_hud"
+   "pxd_hud",
+   "pxd_voice"
   ],
   "replaces": {
    "pxd_hud": [
