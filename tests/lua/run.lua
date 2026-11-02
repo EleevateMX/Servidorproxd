@@ -10,6 +10,7 @@ _G.T = T
 
 local suites = {
     'test_gamemodes', 'test_gamemodes_server', 'test_props', 'test_props_server', 'test_login', 'test_updater',
+    'test_progress', 'test_progress_server',
 }
 for _, s in ipairs(suites) do
     io.write('\n# ', s, '\n')
