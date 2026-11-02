@@ -52,3 +52,28 @@ Con cada trabajo: sus escenarios (comisaría, hospital, taller) con el editor de
 ## Nombres de recursos
 
 Sacados de las recetas oficiales de Qbox (`Qbox-project/txAdminRecipe`: `qbox.yaml` y `qbox-lean.yaml`). Hay que revisar en cada fase que sigan existiendo y su configuración actual.
+
+## Lista de referencia del propietario (estado)
+
+Regla general: **ninguna interfaz por defecto de FiveM/ox**. Todo con la UI propia de Próxima (pxd_*, y ox_lib/ox_target/ox_inventory/npwd recompilados con nuestro diseño).
+
+| Área | Punto | Estado |
+|---|---|---|
+| Base | Framework (Qbox, compatible con QBCore) | Hecho |
+| Base | Voz (pma-voice + pxd_voice: N, doble N grito, J susurro) | Hecho |
+| Base | Admin y logs (pxd_admin: F9/F10, /duty, registro de acciones) | Hecho |
+| Base | Pantalla de carga con música y normas | Hecho |
+| Trabajos | Taxi, basurero, minero, leñador, mecánico (grúa, tuneo, reparación) | Hecho (qbx_* + pxd_jobs) |
+| Negocios de jugadores | Concesionarios, bares/discotecas/restaurantes con stock, talleres, tiendas de ropa, gasolineras | Pendiente (sistema de negocios: caja, empleados, stock, precios) |
+| Necesidades | Hambre, sed, estrés; médico interactivo con EMS | Hecho (qbx_medical + EMS); heridas visibles para staff |
+| Facciones legales | Policía (multas, esposas, celdas, radio, vehículos) | Hecho (qbx_police, xt-prison, qbx_radio) |
+| Facciones legales | EMS (ambulancias, camillas, reanimación) | Hecho (qbx_ambulancejob/qbx_medical) |
+| Facciones legales | Justicia y Gobierno (jueces, abogados, alcalde, licencias) | Pendiente (licencias básicas en qbx_cityhall) |
+| Facciones legales | Bomberos | Pendiente (no hay recurso oficial de Qbox) |
+| Ilegal | Bandas/mafias: territorios, drogas, lavado, contrabando (regulado) | Pendiente (ver docs/22) |
+| Inmersión | NPCs de ambiente y eventos automáticos | Parcial (qbx_density; eventos en el panel) |
+| Inmersión | Red social de anuncios tipo «Lifeinvader» | Parcial (apps de npwd; rediseño en curso) |
+| Inmersión | Teléfono con mensajería, llamadas, cámara, banco, taxi | En curso (npwd rediseñado + apps propias) |
+| Inmersión | Ropa y coches importados optimizados | Pendiente (necesita los paquetes; catálogo del propietario en Pack6) |
+| Comunidad | Normativa clara (PG, MG, VDM, RDM, valorar la vida) | Hecho (Ayuda → Reglas del panel) |
+| Comunidad | Discord organizado, staff imparcial | Fuera del servidor (Discord del propietario) |
