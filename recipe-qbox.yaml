@@ -60,6 +60,10 @@ tasks:  #  Download Base Files
     url: https://d2ol7oe51mr4n9.cloudfront.net/user_37Ov13C5FiPPOO8dlkIS8XYZnE7/f9847beb-648f-4a2b-80f9-8439aacd7b49.png
     path: ./resources/[proxima]/pxd_loadscreen/html/assets/keyart.png
 
+  - action: download_file # vídeo de la gente de la ciudad (fondo principal)
+    url: https://raw.githubusercontent.com/EleevateMX/Servidorproxd/HEAD/brand/media/gente.mp4
+    path: ./resources/[proxima]/pxd_loadscreen/html/assets/gente.mp4
+
   - action: download_file
     url: https://d2ol7oe51mr4n9.cloudfront.net/user_37Ov13C5FiPPOO8dlkIS8XYZnE7/936ef4bd-4152-48c8-9d3c-52109244e823.mp4
     path: ./resources/[proxima]/pxd_loadscreen/html/assets/background.mp4

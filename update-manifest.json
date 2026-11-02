@@ -586,6 +586,11 @@
  "assets": [
   {
    "resource": "pxd_loadscreen",
+   "path": "html/assets/gente.mp4",
+   "url": "https://raw.githubusercontent.com/EleevateMX/Servidorproxd/HEAD/brand/media/gente.mp4"
+  },
+  {
+   "resource": "pxd_loadscreen",
    "path": "html/assets/keyart.png",
    "url": "https://d2ol7oe51mr4n9.cloudfront.net/user_37Ov13C5FiPPOO8dlkIS8XYZnE7/f9847beb-648f-4a2b-80f9-8439aacd7b49.png"
   },

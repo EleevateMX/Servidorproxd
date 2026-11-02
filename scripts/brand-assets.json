@@ -2,6 +2,11 @@
   "$comment": "Arte de Próxima RP generado con Kling (imagen y vídeo) y guardado en la biblioteca de Higgsfield para que los enlaces no caduquen. La voz (ElevenLabs) ya está en el repo.",
   "files": [
     {
+      "url": "https://raw.githubusercontent.com/EleevateMX/Servidorproxd/HEAD/brand/media/gente.mp4",
+      "dest": "gente.mp4",
+      "source": "Kling kling-video-v3_0_turbo, 10 s 1080p (gente de la ciudad); guardado en el repo (brand/media) porque los enlaces de Kling caducan"
+    },
+    {
       "url": "https://d2ol7oe51mr4n9.cloudfront.net/user_37Ov13C5FiPPOO8dlkIS8XYZnE7/f9847beb-648f-4a2b-80f9-8439aacd7b49.png",
       "dest": "keyart.png",
       "source": "Kling kling-image-v3_0_omni (variante A)"
