@@ -23,8 +23,8 @@
   {
    "resource": "pxd_admin",
    "path": "html/app.js",
-   "size": 27569,
-   "sha256": "017305b4996ab22c90ab8b3295c83e6f5523ca5305b15e0beea7900a8edfc5ff"
+   "size": 27568,
+   "sha256": "01e45d6ea757bc1b08a1cb70cb3ec99ef12270f72bf18ef4e56b98489bc73d5a"
   },
   {
    "resource": "pxd_admin",
@@ -47,14 +47,14 @@
   {
    "resource": "pxd_admin",
    "path": "server/main.lua",
-   "size": 21407,
-   "sha256": "6d156baa2bcf29e68750fb47ac056c396195548a8be5693a165498682613ef9d"
+   "size": 22872,
+   "sha256": "1a3804ddae9ac55e07b5a47a5b1a88fc34069f5281cb5a9d596cb7a48b14d708"
   },
   {
    "resource": "pxd_admin",
    "path": "shared/admin.lua",
-   "size": 14112,
-   "sha256": "6eef9e308ddc14929a3a18d6ba7ef33b96cc32f6fc4372741fb1006201f5706f"
+   "size": 14600,
+   "sha256": "c8038abb57f0fe6a90309cff5448da68f1f9ff5d41291503857ac2564c474a8c"
   },
   {
    "resource": "pxd_chat",
@@ -65,9 +65,12 @@
   {
    "resource": "pxd_chat",
    "path": "config.lua",
-   "size": 1063,
-   "sha256": "cfc9ac86d67a8ff0f070496a5425bdb90c2fd1b64504cf1015873e78fe332d2f",
-   "config": true
+   "size": 1144,
+   "sha256": "645dc5f4fc1a6203fc3ecbd8c2f40f5cbcfd5181ae3e28e045204e5b07945092",
+   "config": true,
+   "known": [
+    "cfc9ac86d67a8ff0f070496a5425bdb90c2fd1b64504cf1015873e78fe332d2f"
+   ]
   },
   {
    "resource": "pxd_chat",
@@ -96,8 +99,8 @@
   {
    "resource": "pxd_chat",
    "path": "server/main.lua",
-   "size": 5073,
-   "sha256": "c84eb91aaca96faa788927c2b766585e4e7030fac1e4de2982ae50d08e298e6e"
+   "size": 5102,
+   "sha256": "eaa9c1d4ec8d1f608642e4eebac57abcfe713bc52d2756a706f6f074a34ca25a"
   },
   {
    "resource": "pxd_chat",
@@ -139,17 +142,18 @@
   {
    "resource": "pxd_gamemodes",
    "path": "client/main.lua",
-   "size": 9138,
-   "sha256": "586304fdb04f091df9fcc8fc7ebdab7e57c5f4a1797c43cc4ce10318dfe1ae01"
+   "size": 9060,
+   "sha256": "5613c7817644459c651b09148c24029f014fa98e12ba5ee50e9db1d34d25ee78"
   },
   {
    "resource": "pxd_gamemodes",
    "path": "config.lua",
-   "size": 2450,
-   "sha256": "fe8596aa3fa95023b878c47694c4ded6dd496c6b2bb6d2e5483cb492e47891f0",
+   "size": 3093,
+   "sha256": "438b59d09edab3553ad7f2ed063e336056de2fc29e5a0b051cb1e63062b67a76",
    "config": true,
    "known": [
-    "4d00719275412fcd9ee73a128a39a434ad87429616ebc3b7df7c1872e46934f8"
+    "4d00719275412fcd9ee73a128a39a434ad87429616ebc3b7df7c1872e46934f8",
+    "fe8596aa3fa95023b878c47694c4ded6dd496c6b2bb6d2e5483cb492e47891f0"
    ]
   },
   {
@@ -197,8 +201,8 @@
   {
    "resource": "pxd_gamemodes",
    "path": "server/main.lua",
-   "size": 17851,
-   "sha256": "daa0e9eb95c323efecd4d0caa865aa76926eefb166212d3c906a3c67efd85898"
+   "size": 20809,
+   "sha256": "0a780f851c8cfc9091d09428ade66ee45ba1421ce753fdb25e0113b3430c05a0"
   },
   {
    "resource": "pxd_gamemodes",
@@ -263,9 +267,12 @@
   {
    "resource": "pxd_hud",
    "path": "config.lua",
-   "size": 1761,
-   "sha256": "2962b9fa96d1ea249b01798cb03b259803de46327e39aed71fb419c8fa3c3d16",
-   "config": true
+   "size": 2266,
+   "sha256": "1b7ae4f896adce28ebc7ef09453e1ed0ecb24983625909b7ec3fa23971fa76e6",
+   "config": true,
+   "known": [
+    "2962b9fa96d1ea249b01798cb03b259803de46327e39aed71fb419c8fa3c3d16"
+   ]
   },
   {
    "resource": "pxd_hud",
@@ -322,14 +329,14 @@
   {
    "resource": "pxd_hud",
    "path": "server/main.lua",
-   "size": 2041,
-   "sha256": "15ccbdbb47abcf7bdba9fb38673c1c21cd80def53c7adea27cdb42a12384ecf1"
+   "size": 2647,
+   "sha256": "3b292da64c3d8b1c8745dcc8e19b668825de44671f12e81b6e2b72573f063725"
   },
   {
    "resource": "pxd_hud",
    "path": "shared/hud.lua",
-   "size": 3915,
-   "sha256": "8d20bfedf9ecab363d9cd2b558a849e114a61142e99e353a6c8783b9713d364f"
+   "size": 4808,
+   "sha256": "f7251bdf4232cf1c285ea5ff6ec18c04013bc4e73da388633bca16b771f4addc"
   },
   {
    "resource": "pxd_interact",
@@ -451,14 +458,14 @@
   {
    "resource": "pxd_jobs",
    "path": "server/main.lua",
-   "size": 9001,
-   "sha256": "93e9f3fbc4f30bdab535f806e8e910e7663d70334a0dd95d7dd4615b1b1f3518"
+   "size": 9602,
+   "sha256": "7b90399f4f6ca700b9974ab3b402a6691f3d8a54386b6e519afdab81b0c455ec"
   },
   {
    "resource": "pxd_jobs",
    "path": "shared/jobs.lua",
-   "size": 9599,
-   "sha256": "9d4b49cd3bc0825aa8b2b1fca4005c581827798b95086c8b09ecc28cde459c99"
+   "size": 9823,
+   "sha256": "f01a46dfbca02b64ce3afd6c6e67e1437af1a8cd276d84d66aa754abbb9f97f8"
   },
   {
    "resource": "pxd_loadscreen",
@@ -669,9 +676,12 @@
   {
    "resource": "pxd_panel",
    "path": "config.lua",
-   "size": 3125,
-   "sha256": "adc00b829c639f6244f09051e5fc2ad6d0efa02fa7bd407c5377b45a22c5c014",
-   "config": true
+   "size": 3208,
+   "sha256": "eebb1e370f4d54c1df73e9692d099765be83a62e78242b3e1858f296495bbb72",
+   "config": true,
+   "known": [
+    "adc00b829c639f6244f09051e5fc2ad6d0efa02fa7bd407c5377b45a22c5c014"
+   ]
   },
   {
    "resource": "pxd_panel",
@@ -682,8 +692,8 @@
   {
    "resource": "pxd_panel",
    "path": "html/app.js",
-   "size": 43003,
-   "sha256": "783b8be639c807c750647fe9f6e2f9b4e6f63856e46445e33d962b4fbedb152a"
+   "size": 42998,
+   "sha256": "19c61371ca3d6702a88b646c0c01f7c146425165e311fd5785406b79884689d8"
   },
   {
    "resource": "pxd_panel",
@@ -730,16 +740,22 @@
   {
    "resource": "pxd_panel",
    "path": "shared/rules.lua",
-   "size": 8519,
-   "sha256": "db8cb58ed6fa91ebc94b4b201249f2e7082f17136ef3e43b41b320180f1b49c3",
-   "config": true
+   "size": 8528,
+   "sha256": "8b7d868dfa6aabbb54902e28e2e8b26c84e61e155bbf04b3b4783222b2883ad9",
+   "config": true,
+   "known": [
+    "db8cb58ed6fa91ebc94b4b201249f2e7082f17136ef3e43b41b320180f1b49c3"
+   ]
   },
   {
    "resource": "pxd_progress",
    "path": "config.lua",
-   "size": 9279,
-   "sha256": "1d317071ea67bd30dfc1accd66d17aeba56782f164d7a16d461eb31fdbd26c69",
-   "config": true
+   "size": 9649,
+   "sha256": "934bec43d5fb3b046098a2d204798c80769b4042f9c5b3ebfb523b839214cc47",
+   "config": true,
+   "known": [
+    "1d317071ea67bd30dfc1accd66d17aeba56782f164d7a16d461eb31fdbd26c69"
+   ]
   },
   {
    "resource": "pxd_progress",
@@ -756,8 +772,8 @@
   {
    "resource": "pxd_progress",
    "path": "shared/progress.lua",
-   "size": 15755,
-   "sha256": "67e454e41e11b4b8ab47477548f964571d1b4a727c75c026ac45ff3b47be61e6"
+   "size": 16216,
+   "sha256": "8372bdb1ea0209d19664f7faf13029ca02bc8aad844426011a07c8077eae6081"
   },
   {
    "resource": "pxd_props",
@@ -937,9 +953,12 @@
   {
    "resource": "pxd_voice",
    "path": "config.lua",
-   "size": 1348,
-   "sha256": "0ac44157ba3efa17603730eba9ec7e36f5d8a30b23634599d454b3cdb622ac40",
-   "config": true
+   "size": 1519,
+   "sha256": "b490eb1b4ef147bdebc16c46f36ade84005b97f9a3affb10fdbaa5b9ba0c4db2",
+   "config": true,
+   "known": [
+    "0ac44157ba3efa17603730eba9ec7e36f5d8a30b23634599d454b3cdb622ac40"
+   ]
   },
   {
    "resource": "pxd_voice",

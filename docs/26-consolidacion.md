@@ -17,13 +17,13 @@ Regla general: no se marca nada como funcional sin una prueba dentro de FiveM (s
 
 | # | Tarea | Estado | Dónde |
 |---|---|---|---|
-| P0-1 | Copia de seguridad de cada archivo antes de escribir (pxd_* y terceros) | 🚧 en curso | rama `wt/safety` |
-| P0-2 | Escritura transaccional: si falla a mitad, deshace lo escrito | 🚧 en curso | rama `wt/safety` |
-| P0-3 | `pxd_update rollback [id]` y `pxd_update backups` | 🚧 en curso | rama `wt/safety` |
-| P0-4 | No sobrescribir los configs editados ni la primera vez; lista de archivos editables | 🚧 en curso | rama `wt/safety` |
-| P0-5 | Avisar cuando un parche no encuentra su texto; `requiresVersion` en los parches | 🚧 en curso | rama `wt/safety` |
+| P0-1 | Copia de seguridad de cada archivo antes de escribir (pxd_* y terceros) | ✔ código · ⏳ juego | `pxd_updater` 0.2.0 |
+| P0-2 | Escritura transaccional: si falla a mitad, deshace lo escrito | ✔ código · ⏳ juego | `pxd_updater` 0.2.0 |
+| P0-3 | `pxd_update rollback [id]` y `pxd_update backups` | ✔ código · ⏳ juego | `pxd_updater` 0.2.0 |
+| P0-4 | No sobrescribir los configs editados ni la primera vez; lista de archivos editables | ✔ código · ⏳ juego | `pxd_updater` 0.2.0 |
+| P0-5 | Avisar cuando un parche no encuentra su texto; `requiresVersion` en los parches | ✔ código · ⏳ juego | `pxd_updater` 0.2.0 |
 | P0-6 | **Versiones fijas** en `recipe-qbox.yaml` | ✔ código | ver abajo |
-| P0-7 | Procedimiento de copia y restauración de archivos y MariaDB en Nodecraft | 🚧 en curso | `docs/27-respaldo-y-restauracion.md` (rama `wt/safety`) |
+| P0-7 | Procedimiento de copia y restauración de archivos y MariaDB en Nodecraft | ✔ doc · ⏳ revisar en Nodecraft | `docs/27-respaldo-y-restauracion.md` |
 | P0-8 | Fijar la versión que usa el servidor en producción (`set pxd_updater_ref "<commit>"`) | ⏸ decisión | sección 5 |
 
 **Detalle de P0-6 (versiones fijas, comprobadas el 2 de noviembre de 2026):**
@@ -62,19 +62,19 @@ Se corrigen con **parches exactos**: los mismos en `scripts/update-plan.json` �
 | P1-12 | Al reaparecer en el hospital se pierde todo el inventario, efectivo incluido | `qbx_ambulancejob/config/server.lua:3` | — | ⏸ decisión |
 | P1-13 | Las multas se rechazan si no hay saldo (efecto de P1-1) y no queda registro | `qbx_police/server/main.lua:626` | Multas pendientes y expediente → P2 | ⏸ decisión / P2 |
 
-### Recursos propios (rama `wt/pxdfix`, 🚧 en curso)
+### Recursos propios (✔ código · ⏳ juego)
 
 | # | Problema | Arreglo previsto |
 |---|---|---|
-| P1-20 | `/anuncio` estaba en pxd_admin y en pxd_chat | Un solo dueño: pxd_admin |
-| P1-21 | `/susurrar` estaba en pxd_voice (comando de cliente) y en pxd_chat | La tecla J pasa a un comando técnico; `/susurrar` queda para el texto |
-| P1-22 | El tope de dinero por hora de pxd_jobs se reiniciaba al reconectar | Tope por citizenid |
+| P1-20 | `/anuncio` estaba en pxd_admin y en pxd_chat | Un solo dueño: pxd_admin; pxd_chat lo pinta por evento. La ACE antigua `pxd.chat.announce` sigue valiendo |
+| P1-21 | `/susurrar` estaba en pxd_voice (comando de cliente) y en pxd_chat | La tecla J pasa a `pxd_voice_whisper`; `/susurrar` es del chat |
+| P1-22 | El tope de dinero por hora de pxd_jobs se reiniciaba al reconectar | Tope por licencia mientras el servidor está encendido |
 | P1-23 | Cualquier cliente podía cambiarse el estrés con eventos de red | Límites en el servidor |
-| P1-24 | pxd_gamemodes: cualquiera crea partidas, las armas las da el cliente y las bajas las informa el cliente | Límites, armas dadas por el servidor y validación de las bajas |
+| P1-24 | pxd_gamemodes: cualquiera crea partidas, las armas las da el cliente y las bajas las informa el cliente | 1 partida por anfitrión y 30 s entre creaciones; armas dadas por el servidor; bajas validadas (misma partida, ≤300 m, frecuencia). **Pendiente**: validar las bajas con los eventos de daño del servidor |
 | P1-25 | pxd_admin cambiaba de bucket saltándose Qbox y el lobby | `SetPlayerBucket` y salida limpia de la partida |
 | P1-26 | Había logros imposibles (`event_join`, 28 frente a 14 días) | Corrección |
 | P1-27 | La ayuda del panel cita `/ooc` y no menciona F9 | Corrección |
-| P1-28 | Eventos de red de nuestros recursos sin validar | Revisión |
+| P1-28 | Eventos de red de nuestros recursos sin validar | Revisados. Comandos de staff renombrados para no chocar con qbx_core/qbx_adminmenu: `/ir`, `/irmarcador`, `/volar`, `/borrarvehiculo` |
 
 ## P2 · Siguiente (tras P0/P1 y las pruebas en el juego)
 
