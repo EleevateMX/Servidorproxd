@@ -15,7 +15,7 @@ $engine: 3
 $onesync: on
 name: Próxima RP + Qbox
 author: Próxima RP (basada en Qbox Lean de The Community)
-description: Próxima RP sobre Qbox Lean (qbx_core, ox, voz, teléfono, policía, EMS, concesionario, ayuntamiento) + trabajos (mecánico, grúa, taxi, camionero, basurero, autobús, periodista, minero, leñador, pescador, repartidor…) y casas con modos de juego, editor de props, login y pantalla de carga propios. HUD, panel (TAB) y selección de personaje propios. Requiere base de datos.
+description: Próxima RP sobre Qbox Lean (qbx_core, ox, voz, teléfono, policía, EMS, concesionario, ayuntamiento) + trabajos (mecánico, grúa, taxi, camionero, basurero, autobús, periodista, minero, leñador, pescador, repartidor…) y casas con modos de juego, editor de props, login y pantalla de carga propios. HUD, panel (TAB), inventario y selección de personaje propios. Requiere base de datos.
 
 tasks:  #  Download Base Files
   - action: download_github
@@ -469,6 +469,20 @@ tasks:  #  Download Base Files
     src: ./tmp/qbox/items.lua
     dest: ./resources/[ox]/ox_inventory/data/items.lua
     overwrite: true
+
+  # Inventario con el estilo de Próxima (pxd_inventory): capa visual sobre la
+  # interfaz ya compilada de ox_inventory (docs/20-inventario.md).
+  - action: copy_path
+    src: ./resources/[proxima]/pxd_inventory/overlay/ox_inventory/pxd.css
+    dest: ./resources/[ox]/ox_inventory/web/build/assets/pxd.css
+  - action: copy_path
+    src: ./resources/[proxima]/pxd_inventory/overlay/ox_inventory/pxd.js
+    dest: ./resources/[ox]/ox_inventory/web/build/assets/pxd.js
+  - action: replace_string
+    mode: literal
+    file: ./resources/[ox]/ox_inventory/web/build/index.html
+    search: '</head>'
+    replace: '<link rel="stylesheet" href="./assets/pxd.css"><script src="./assets/pxd.js"></script></head>'
 
   - action: download_github
     dest: ./resources/[ox]/ox_fuel

@@ -77,6 +77,7 @@ local function run(src, mode)
             log(src, ('Falta el recurso nuevo «%s»: viene en el paquete de instalación (docs/07).'):format(name))
         end
         state.plan = type(manifest.plan) == 'table' and manifest.plan or state.plan
+        state.overlays = type(manifest.overlays) == 'table' and manifest.overlays or state.overlays
         for _, key in ipairs(skipped) do
             log(src, ('Se respeta %s porque lo editaste (usa «pxd_update force» para sobrescribirlo).'):format(key))
         end
@@ -98,6 +99,7 @@ local function run(src, mode)
         end
         if #changes == 0 and mode ~= 'check' then
             SaveResourceFile(RES, Config.stateFile, json.encode(state), -1)
+            PXDUpdater.applyOverlays(src)
             PXDUpdater.applyPatches(src)
             PXDUpdater.startPlanned(src)
         end
@@ -214,6 +216,55 @@ function PXDUpdater.applyPatches(src)
             end
         end
     end
+end
+
+--- Versión declarada en el fxmanifest.lua de un recurso (version '1.2.3').
+function PXDUpdater.resourceVersion(res)
+    local text = LoadResourceFile(res, 'fxmanifest.lua')
+    return text and text:match("\nversion%s*['\"]([^'\"]+)['\"]") or nil
+end
+
+local function safePath(p)
+    return type(p) == 'string' and p:match('^[%w_%-%./]+$') ~= nil and not p:find('%.%.') and p:sub(1, 1) ~= '/'
+end
+
+--- Overlays: archivos de un recurso pxd_* (ya actualizado en el servidor) que se copian
+--- a un recurso de terceros (p. ej. la capa visual del inventario en ox_inventory).
+--- Solo si la versión instalada coincide y la copia local tiene la huella esperada.
+--- No reinicia el recurso de terceros: eso lo hace el reinicio del servidor.
+function PXDUpdater.applyOverlays(src)
+    local overlays = loadState().overlays
+    local written, warned = 0, {}
+    for _, o in ipairs(type(overlays) == 'table' and overlays or {}) do
+        local from = type(o.from) == 'table' and o.from or {}
+        if type(o.resource) == 'string' and safePath(o.path) and type(from.resource) == 'string'
+            and from.resource:match('^pxd_[%w_]+$') and safePath(from.path) and type(o.sha256) == 'string'
+            and GetResourceState(o.resource) ~= 'missing' and GetResourceState(from.resource) ~= 'missing' then
+            local version = PXDUpdater.resourceVersion(o.resource)
+            if o.requiresVersion and version ~= o.requiresVersion then
+                if not warned[o.resource] then
+                    warned[o.resource] = true
+                    log(src, ('%s está en la versión %s y la capa de Próxima es para la %s: no se aplica.'):format(o.resource, tostring(version), o.requiresVersion))
+                end
+            else
+                local body = LoadResourceFile(from.resource, from.path)
+                local current = LoadResourceFile(o.resource, o.path)
+                if not body or PXDUpdater.sha256(body) ~= o.sha256 then
+                    log(src, ('%s/%s aún no está al día: ejecuta «pxd_update» otra vez.'):format(from.resource, from.path))
+                elseif not current or PXDUpdater.sha256(current) ~= o.sha256 then
+                    if SaveResourceFile(o.resource, o.path, body, #body) then
+                        written = written + 1
+                    else
+                        PXDUpdater.writeDenied(src, o.resource, o.path)
+                    end
+                end
+            end
+        end
+    end
+    if written > 0 then
+        log(src, ('Capa visual aplicada (%d archivo(s)). Reinicia el servidor para verla (ox_inventory solo recarga su interfaz al arrancar).'):format(written))
+    end
+    return written
 end
 
 --- FXServer solo deja a un recurso escribir en otro si el server.cfg lo permite

@@ -1,0 +1,185 @@
+/* Próxima RP — capa visual para la interfaz de ox_inventory (GPL-3.0).
+ * Se carga después del CSS original (pxd_updater añade <link> en web/build/index.html).
+ * No cambia la lógica: solo estilos y los paneles que añade pxd.js. */
+:root {
+  --pxd-night: #05070f;
+  --pxd-night-2: #0a0f1f;
+  --pxd-panel: rgba(10, 14, 28, 0.86);
+  --pxd-panel-2: rgba(16, 22, 42, 0.92);
+  --pxd-line: rgba(140, 170, 255, 0.16);
+  --pxd-line-strong: rgba(92, 225, 255, 0.45);
+  --pxd-text: #eef2ff;
+  --pxd-muted: #9aa6c7;
+  --pxd-star: #5ce1ff;
+  --pxd-nova: #ff4fd8;
+  --pxd-gold: #ffc857;
+  --pxd-ok: #4ade80;
+  --pxd-danger: #ff5a6e;
+  --pxd-radius: 1.1vh;
+  --pxd-slot: 7.6vh;
+  --pxd-gap: 0.75vh;
+  --pxd-font: "Segoe UI", "Inter", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+body, p, input, button { font-family: var(--pxd-font) !important; }
+
+/* ── Fondo: oscurece todo menos el hueco del personaje ─────────────── */
+#pxd-layer { position: fixed; inset: 0; pointer-events: none; opacity: 0; transition: opacity .2s ease; z-index: 0; }
+body.pxd-open #pxd-layer { opacity: 1; }
+#pxd-layer .pxd-shade {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(42vh 60vh at 16vw 55vh, rgba(5, 7, 15, 0) 0%, rgba(5, 7, 15, 0.25) 70%, rgba(5, 7, 15, 0) 100%),
+    linear-gradient(90deg, rgba(5, 7, 15, 0.35) 0%, rgba(5, 7, 15, 0.15) 22%, rgba(5, 7, 15, 0.78) 34%, rgba(5, 7, 15, 0.9) 100%);
+}
+.app-wrapper { position: relative; z-index: 1; }
+
+/* ── Barra superior ───────────────────────────────────────────────── */
+.pxd-top {
+  position: absolute; top: 3vh; left: 2.5vw; right: 2.5vw; height: 6.4vh;
+  display: flex; align-items: center; gap: 1.6vh; padding: 0 2vh;
+  background: linear-gradient(90deg, rgba(10, 14, 28, .92), rgba(10, 14, 28, .78));
+  border: 1px solid var(--pxd-line); border-radius: var(--pxd-radius);
+  box-shadow: 0 1.2vh 4vh rgba(0, 0, 0, .35);
+  color: var(--pxd-text); pointer-events: auto;
+}
+.pxd-brand { display: flex; align-items: center; gap: 1vh; font-weight: 800; letter-spacing: .18em; font-size: 1.5vh; text-transform: uppercase; }
+.pxd-brand svg { width: 2.4vh; height: 2.4vh; fill: #fff; filter: drop-shadow(0 0 .8vh rgba(92, 225, 255, .9)); }
+.pxd-brand small { color: var(--pxd-muted); font-weight: 600; letter-spacing: .08em; text-transform: none; font-size: 1.35vh; }
+.pxd-who { display: flex; align-items: center; gap: 1vh; margin-left: 2vh; padding-left: 2vh; border-left: 1px solid var(--pxd-line); }
+.pxd-who b { font-size: 1.8vh; font-weight: 700; }
+.pxd-chip { display: inline-flex; align-items: center; gap: .6vh; padding: .5vh 1vh; border-radius: 99vh; font-size: 1.35vh; font-weight: 700; letter-spacing: .06em; background: rgba(92, 225, 255, .12); color: var(--pxd-star); border: 1px solid rgba(92, 225, 255, .3); }
+.pxd-money { margin-left: auto; display: flex; gap: 1vh; }
+.pxd-money span { display: inline-flex; align-items: center; gap: .7vh; padding: .8vh 1.3vh; border-radius: .9vh; background: rgba(255, 255, 255, .04); border: 1px solid var(--pxd-line); font-weight: 700; font-size: 1.7vh; font-variant-numeric: tabular-nums; }
+.pxd-money i { width: 1.1vh; height: 1.1vh; border-radius: 50%; display: inline-block; }
+.pxd-money .cash i { background: var(--pxd-ok); box-shadow: 0 0 .8vh rgba(74, 222, 128, .8); }
+.pxd-money .bank i { background: var(--pxd-gold); box-shadow: 0 0 .8vh rgba(255, 200, 87, .8); }
+.pxd-esc { display: flex; align-items: center; gap: .8vh; color: var(--pxd-muted); font-size: 1.4vh; }
+.pxd-esc kbd { font: inherit; font-weight: 700; color: var(--pxd-text); padding: .4vh .9vh; border-radius: .6vh; border: 1px solid var(--pxd-line); background: rgba(255, 255, 255, .05); }
+
+/* ── Columna del personaje: ranuras de ropa y signos vitales ───────── */
+.pxd-char { position: absolute; left: 2.5vw; top: 12vh; bottom: 4vh; width: 24vw; display: flex; flex-direction: column; gap: 1.6vh; pointer-events: none; }
+.pxd-stage { position: relative; flex: 1; border-radius: var(--pxd-radius); border: 1px solid rgba(140, 170, 255, .08); background: linear-gradient(180deg, rgba(92, 225, 255, .03), rgba(255, 79, 216, .03)); }
+.pxd-stage::after { content: ''; position: absolute; left: 22%; right: 22%; bottom: 3%; height: 1.6vh; border-radius: 50%; background: radial-gradient(closest-side, rgba(92, 225, 255, .35), transparent); }
+.pxd-rail { position: absolute; top: 46%; transform: translateY(-50%); display: flex; flex-direction: column; gap: var(--pxd-gap); pointer-events: auto; }
+.pxd-rail.left { left: 1.4vh; }
+.pxd-rail.right { right: 1.4vh; }
+.pxd-cloth {
+  position: relative; width: 7.2vh; height: 7.2vh; border-radius: 1vh; cursor: pointer;
+  display: grid; place-items: center; background: var(--pxd-panel); border: 1px solid var(--pxd-line);
+  transition: border-color .15s, transform .15s, background .15s;
+}
+.pxd-cloth svg { width: 3.4vh; height: 3.4vh; fill: none; stroke: var(--pxd-text); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.pxd-cloth:hover { border-color: var(--pxd-line-strong); transform: translateY(-.2vh); background: var(--pxd-panel-2); }
+.pxd-cloth.off { background: rgba(10, 14, 28, .55); }
+.pxd-cloth.off svg { stroke: var(--pxd-muted); opacity: .5; }
+.pxd-cloth.off::after { content: ''; position: absolute; left: 22%; right: 22%; top: 50%; height: 2px; background: var(--pxd-muted); transform: rotate(-35deg); opacity: .6; }
+.pxd-cloth.on::before { content: ''; position: absolute; top: .6vh; right: .6vh; width: .7vh; height: .7vh; border-radius: 50%; background: var(--pxd-star); box-shadow: 0 0 .7vh var(--pxd-star); }
+.pxd-cloth .pxd-tip { position: absolute; white-space: nowrap; top: 50%; transform: translateY(-50%); padding: .5vh 1vh; border-radius: .6vh; background: var(--pxd-night); border: 1px solid var(--pxd-line); color: var(--pxd-text); font-size: 1.3vh; opacity: 0; pointer-events: none; transition: opacity .12s; }
+.pxd-rail.left .pxd-tip { left: calc(100% + 1vh); }
+.pxd-rail.right .pxd-tip { right: calc(100% + 1vh); }
+.pxd-cloth:hover .pxd-tip { opacity: 1; }
+.pxd-stage-note { position: absolute; left: 50%; top: 1.4vh; transform: translateX(-50%); font-size: 1.25vh; color: var(--pxd-muted); letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; }
+
+.pxd-vitals { pointer-events: auto; padding: 1.6vh 1.8vh; border-radius: var(--pxd-radius); background: var(--pxd-panel); border: 1px solid var(--pxd-line); color: var(--pxd-text); }
+.pxd-vitals h3 { margin: 0 0 1.2vh; font-size: 1.7vh; font-weight: 800; display: flex; align-items: baseline; gap: 1vh; }
+.pxd-vitals h3 small { font-size: 1.25vh; font-weight: 500; color: var(--pxd-muted); }
+.pxd-vital { display: grid; grid-template-columns: 2.2vh 1fr 7.4vh; align-items: center; gap: 1vh; margin-top: .9vh; font-size: 1.35vh; }
+.pxd-vital svg { width: 1.8vh; height: 1.8vh; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.pxd-vital .bar { height: .8vh; border-radius: 99vh; background: rgba(255, 255, 255, .08); overflow: hidden; }
+.pxd-vital .bar i { display: block; height: 100%; width: 0; border-radius: inherit; transition: width .4s ease; }
+.pxd-vital span { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; color: var(--pxd-muted); }
+.pxd-vital span b { color: var(--pxd-text); }
+.pxd-vital.low span b { color: var(--pxd-danger); }
+
+/* ── Inventarios (ox_inventory) ───────────────────────────────────── */
+.inventory-wrapper {
+  position: absolute; left: 28vw; right: 17.5vw; top: 12vh; bottom: 4vh;
+  justify-content: flex-start !important; align-items: flex-start !important; gap: 1.6vh !important;
+}
+.inventory-grid-wrapper {
+  padding: 1.6vh; border-radius: var(--pxd-radius); background: var(--pxd-panel); border: 1px solid var(--pxd-line);
+  box-shadow: 0 1.2vh 4vh rgba(0, 0, 0, .35); gap: 1.2vh !important;
+}
+.inventory-grid-header-wrapper { align-items: baseline; color: var(--pxd-text); }
+.inventory-grid-header-wrapper p { font-size: 1.6vh !important; font-weight: 700; }
+.inventory-grid-header-wrapper p:last-child { font-size: 1.35vh !important; font-weight: 600; color: var(--pxd-muted); font-variant-numeric: tabular-nums; }
+.weight-bar { height: .7vh !important; border-radius: 99vh !important; border: none !important; background: rgba(255, 255, 255, .08) !important; }
+.weight-bar > div { background: linear-gradient(90deg, var(--pxd-star), var(--pxd-nova)) !important; border-radius: inherit; }
+.inventory-grid-container {
+  grid-template-columns: repeat(4, var(--pxd-slot)) !important; grid-auto-rows: var(--pxd-slot) !important;
+  gap: var(--pxd-gap) !important; height: calc(8 * var(--pxd-slot) + 7 * var(--pxd-gap)) !important;
+}
+.inventory-slot, .hotbar-item-slot, .item-notification-item-box {
+  background-color: rgba(255, 255, 255, .035) !important; border: 1px solid rgba(140, 170, 255, .1) !important;
+  border-radius: 1vh !important; background-size: 5.6vh !important; color: var(--pxd-text) !important;
+  transition: border-color .15s, background-color .15s;
+}
+.inventory-slot:hover { border-color: var(--pxd-line-strong) !important; background-color: rgba(92, 225, 255, .06) !important; }
+.inventory-slot-number { background: var(--pxd-star) !important; color: #031018 !important; font-weight: 800; border-radius: .9vh 0 .6vh 0 !important; height: auto !important; padding: .25vh .7vh !important; font-size: 1.15vh !important; }
+.item-slot-info-wrapper p { font-size: 1.15vh !important; color: var(--pxd-muted); font-variant-numeric: tabular-nums; }
+.item-slot-info-wrapper p:last-child { color: var(--pxd-text); font-weight: 700; }
+.inventory-slot-label-box { background: transparent !important; border: none !important; }
+.inventory-slot-label-text { font-size: 1.1vh !important; font-weight: 600 !important; letter-spacing: .04em; text-transform: none !important; color: var(--pxd-text); padding: .3vh .5vh !important; }
+.durability-bar { height: .35vh !important; margin: 0 .5vh .5vh; border-radius: 99vh; background: rgba(255, 255, 255, .08) !important; }
+
+/* Usar / Dar / Cerrar */
+.inventory-control-wrapper { gap: 1vh !important; padding: 1.6vh; border-radius: var(--pxd-radius); background: var(--pxd-panel); border: 1px solid var(--pxd-line); margin-top: 4.2vh; }
+.inventory-control-input { width: 11vh; padding: 1.3vh .8vh !important; border-radius: .9vh !important; background: rgba(255, 255, 255, .06) !important; border: 1px solid var(--pxd-line) !important; font-size: 1.7vh !important; font-weight: 700; }
+.inventory-control-input:focus-within { border-color: var(--pxd-line-strong) !important; }
+.inventory-control-button { border-radius: .9vh !important; padding: 1.2vh .8vh !important; font-size: 1.35vh !important; font-weight: 700 !important; letter-spacing: .08em; background: rgba(255, 255, 255, .06) !important; border: 1px solid var(--pxd-line) !important; }
+.inventory-control-button:hover { background: rgba(92, 225, 255, .14) !important; border-color: var(--pxd-line-strong) !important; }
+.inventory-control-button:nth-of-type(1) { background: linear-gradient(135deg, var(--pxd-star), #22c8f0) !important; color: #031018 !important; border: none !important; }
+.inventory-control-button:nth-of-type(2) { background: linear-gradient(135deg, var(--pxd-nova), #b24bff) !important; border: none !important; }
+.useful-controls-button { background: var(--pxd-panel) !important; border: 1px solid var(--pxd-line) !important; border-radius: 1vh !important; }
+
+/* Tooltip, menú contextual y diálogo de ayuda */
+.tooltip-wrapper, .context-menu-list, .useful-controls-dialog {
+  background: var(--pxd-night-2) !important; color: var(--pxd-text) !important; border: 1px solid var(--pxd-line) !important; border-radius: 1vh !important;
+  box-shadow: 0 1.2vh 3vh rgba(0, 0, 0, .45);
+}
+.tooltip-header-wrapper p { font-weight: 700; }
+.context-menu-item { color: var(--pxd-text) !important; border-radius: .7vh !important; }
+.context-menu-item:hover { background: rgba(92, 225, 255, .12) !important; }
+.divider { background: var(--pxd-line) !important; }
+
+/* Barra rápida y avisos de objetos */
+.hotbar-container { gap: var(--pxd-gap) !important; bottom: 2.4vh !important; }
+.hotbar-item-slot { width: 8vh !important; height: 8vh !important; background-color: var(--pxd-panel) !important; }
+.item-notification-container { gap: var(--pxd-gap) !important; }
+.item-notification-action-box { background: var(--pxd-star) !important; color: #031018 !important; font-weight: 800; border-radius: .9vh .9vh 0 0 !important; }
+.item-notification-item-box { background-color: var(--pxd-panel) !important; }
+
+/* Fila de ranuras bajo el personaje */
+.pxd-rail.bottom { top: auto; bottom: 1.4vh; left: 50%; transform: translateX(-50%); flex-direction: row; }
+.pxd-rail.bottom .pxd-tip { top: auto; bottom: calc(100% + .8vh); left: 50%; transform: translateX(-50%); }
+
+/* Contador de ranuras en la cabecera del inventario del jugador */
+.pxd-slots { margin-left: auto; margin-right: 1vh; padding: .3vh .9vh; border-radius: 99vh; font-size: 1.25vh; font-weight: 700; color: var(--pxd-star); background: rgba(92, 225, 255, .1); border: 1px solid rgba(92, 225, 255, .25); font-variant-numeric: tabular-nums; }
+
+/* Panel de notificaciones (derecha) */
+.pxd-notices { position: absolute; right: 2.5vw; top: 12vh; bottom: 4vh; width: 14vw; display: flex; flex-direction: column; gap: 1vh; padding: 1.6vh; border-radius: var(--pxd-radius); background: var(--pxd-panel); border: 1px solid var(--pxd-line); color: var(--pxd-text); pointer-events: auto; }
+.pxd-notices h3 { margin: 0; font-size: 1.7vh; font-weight: 800; display: flex; align-items: center; }
+.pxd-notices h3 button { margin-left: auto; font: inherit; font-size: 1.2vh; font-weight: 600; color: var(--pxd-muted); background: rgba(255, 255, 255, .05); border: 1px solid var(--pxd-line); border-radius: .7vh; padding: .5vh 1vh; cursor: pointer; }
+.pxd-notices h3 button:hover { color: var(--pxd-text); border-color: var(--pxd-line-strong); }
+.pxd-notice-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: .8vh; }
+.pxd-notice { position: relative; padding: 1.1vh 1.2vh 1.1vh 1.6vh; border-radius: .9vh; background: rgba(255, 255, 255, .04); border: 1px solid rgba(140, 170, 255, .08); }
+.pxd-notice::before { content: ''; position: absolute; left: 0; top: 1vh; bottom: 1vh; width: .3vh; border-radius: 99vh; background: var(--pxd-star); }
+.pxd-notice.success::before { background: var(--pxd-ok); }
+.pxd-notice.error::before { background: var(--pxd-danger); }
+.pxd-notice.warning::before { background: var(--pxd-gold); }
+.pxd-notice b { display: block; font-size: 1.4vh; }
+.pxd-notice p { font-size: 1.3vh !important; color: var(--pxd-muted); margin-top: .3vh !important; line-height: 1.35; }
+.pxd-notice small { display: block; margin-top: .5vh; font-size: 1.1vh; color: rgba(154, 166, 199, .7); }
+.pxd-empty { margin: auto; text-align: center; color: var(--pxd-muted); font-size: 1.35vh; }
+.pxd-empty svg { display: block; margin: 0 auto 1vh; width: 3.6vh; height: 3.6vh; fill: rgba(92, 225, 255, .5); }
+
+/* Barra rápida (5 ranuras en ox_inventory 2.48): número arriba a la derecha */
+.hotbar-item-slot { border-radius: 1.1vh !important; box-shadow: 0 .8vh 2.4vh rgba(0, 0, 0, .35); }
+.hotbar-slot-header-wrapper { justify-content: flex-end !important; flex-direction: row-reverse !important; }
+.hotbar-item-slot .inventory-slot-number { border-radius: 0 1vh 0 .7vh !important; }
+
+/* Pantallas bajas (720p): en cada ranura solo la cantidad, sin el peso */
+@media (max-height: 800px) {
+  .inventory-slot .item-slot-info-wrapper p:first-child { display: none; }
+}
