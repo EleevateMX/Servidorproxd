@@ -1,8 +1,12 @@
--- pxd_update [check|force]
---   check  muestra qué cambiaría, sin tocar nada
---   force  también sobrescribe config.lua que hayas editado a mano
+-- pxd_update [check | force [recurso/ruta] | backups | rollback [id] [force]]
+--   check     muestra qué cambiaría, sin tocar nada (también copias y configs protegidas)
+--   force     también sobrescribe archivos editables (config.lua, reglas…) que tengas
+--             distintos; con «recurso/ruta» solo ese archivo
+--   backups   lista las copias de seguridad
+--   rollback  deshace una actualización (sin id: la última) usando su copia
 -- Descarga update-manifest.json del repo, baja solo lo que cambió, comprueba el
--- SHA-256 de cada archivo y, si todo está bien, escribe y reinicia los recursos.
+-- SHA-256 de cada archivo y, si todo está bien, guarda una copia de lo que va a
+-- cambiar, escribe (todo o nada) y reinicia los recursos.
 local RES = GetCurrentResourceName()
 local running = false
 
@@ -35,7 +39,7 @@ local function loadState()
     return type(data) == 'table' and data or {}
 end
 
-local function run(src, mode)
+local function run(src, mode, target)
     if running then return log(src, 'Ya hay una actualización en curso.') end
     running = true
     local ok, err = pcall(function()
@@ -56,14 +60,22 @@ local function run(src, mode)
                 local current = LoadResourceFile(f.resource, f.path)
                 local curHash = current and PXDUpdater.sha256(current)
                 if curHash ~= f.sha256 then
-                    local edited = f.config and current and state[key] and curHash ~= state[key]
-                    if edited and mode ~= 'force' then
-                        skipped[#skipped + 1] = key
+                    local protect = f.config and current and PXDUpdater.isProtected(f, curHash, state[key])
+                    local forced = mode == 'force' and (target == nil or target == key)
+                    if protect and not forced then
+                        skipped[#skipped + 1] = { key = key, why = protect }
                     else
                         changes[#changes + 1] = f
                     end
                 end
             end
+        end
+        if mode == 'force' and target then
+            local filtered = {}
+            for _, f in ipairs(changes) do
+                if not f.config or (f.resource .. '/' .. f.path) == target then filtered[#filtered + 1] = f end
+            end
+            changes = filtered
         end
 
         -- Recursos nuevos: FXServer no deja a un recurso crear carpetas de otros,
@@ -78,9 +90,14 @@ local function run(src, mode)
         end
         state.plan = type(manifest.plan) == 'table' and manifest.plan or state.plan
         state.overlays = type(manifest.overlays) == 'table' and manifest.overlays or state.overlays
-        for _, key in ipairs(skipped) do
-            log(src, ('Se respeta %s porque lo editaste (usa «pxd_update force» para sobrescribirlo).'):format(key))
+        for _, sk in ipairs(skipped) do
+            if sk.why == 'editado' then
+                log(src, ('Se respeta %s porque lo editaste (usa «pxd_update force %s» para reemplazarlo; se guarda copia).'):format(sk.key, sk.key))
+            else
+                log(src, ('Se respeta tu versión de %s (no consta qué versión se instaló). Usa «pxd_update force %s» para reemplazarla; se guarda copia.'):format(sk.key, sk.key))
+            end
         end
+        if mode == 'check' then PXDUpdater.describeBackups(src) end
         -- Arte que falte (imágenes/vídeo): solo si no existe ya en el servidor.
         local newAssets = {}
         for _, a in ipairs(type(manifest.assets) == 'table' and manifest.assets or {}) do
@@ -99,9 +116,14 @@ local function run(src, mode)
         end
         if #changes == 0 and mode ~= 'check' then
             SaveResourceFile(RES, Config.stateFile, json.encode(state), -1)
-            PXDUpdater.applyOverlays(src)
-            PXDUpdater.applyPatches(src)
+            local session = PXDUpdater.Backup.new(ref(), 'terceros')
+            PXDUpdater.applyOverlays(src, session)
+            PXDUpdater.applyPatches(src, session)
+            local id = session:commit(Config.backupKeep)
+            if id then log(src, ('Copia de seguridad de los cambios en terceros: %s («pxd_update rollback %s» para deshacerlos).'):format(id, id)) end
             PXDUpdater.startPlanned(src)
+        elseif mode == 'check' then
+            PXDUpdater.applyPatches(src, nil, true, plan)
         end
         if #changes == 0 and #newAssets == 0 then
             return log(src, #installs > 0 and 'Lo demás está al día.' or 'Todo está al día.')
@@ -126,42 +148,32 @@ local function run(src, mode)
             end
             staged[#staged + 1] = { f = f, body = d.body }
         end
+        -- 3) Copia de seguridad + escritura transaccional: si una escritura falla, se
+        --    deshacen las anteriores y no se toca installed.json.
+        local session = PXDUpdater.Backup.new(ref(), 'update')
         local touched, order = {}, {}
         for _, s in ipairs(staged) do
-            if not SaveResourceFile(s.f.resource, s.f.path, s.body, #s.body) then
-                return PXDUpdater.writeDenied(src, s.f.resource, s.f.path)
+            local okWrite, why = session:write(s.f.resource, s.f.path, s.body)
+            if not okWrite then
+                local restored, bad = session:revert()
+                if why == 'copia' then
+                    log(src, ('No se pudo guardar la copia de seguridad de %s/%s: no se escribe nada.'):format(s.f.resource, s.f.path))
+                else
+                    PXDUpdater.writeDenied(src, s.f.resource, s.f.path)
+                end
+                log(src, ('Actualización cancelada: se han restaurado %d archivo(s) ya escritos%s. No ha cambiado nada.'):format(
+                    restored, bad > 0 and (' (%d no se pudieron restaurar: revisa la consola)'):format(bad) or ''))
+                return
             end
-            state[s.f.resource .. '/' .. s.f.path] = s.f.sha256
             if not touched[s.f.resource] then touched[s.f.resource] = true; order[#order + 1] = s.f.resource end
         end
+        for _, s in ipairs(staged) do state[s.f.resource .. '/' .. s.f.path] = s.f.sha256 end
         SaveResourceFile(RES, Config.stateFile, json.encode(state), -1)
+        local id = session:commit(Config.backupKeep)
 
-        -- Reinicio de los recursos tocados (el propio actualizador, al final).
-        -- `ensure` ejecuta stop/start con los permisos de quien lo llama (ACE command.stop
-        -- y command.start); los natives StopResource/StartResource no los piden, pero no
-        -- permiten pararse a uno mismo. Por eso el propio actualizador usa `ensure`.
-        ExecuteCommand('refresh')
-        local self = false
-        for _, res in ipairs(order) do
-            if res == RES then self = true
-            elseif GetResourceState(res) == 'started' then
-                StopResource(res)
-                if not StartResource(res) then
-                    log(src, ('No se pudo reiniciar %s: escribe «ensure %s» en la consola.'):format(res, res))
-                end
-            end
-        end
-        log(src, ('Listo: %d archivo(s) en %d recurso(s).'):format(#staged, #order))
+        log(src, ('Listo: %d archivo(s) en %d recurso(s). Copia de seguridad: %s («pxd_update rollback» para deshacer).'):format(#staged, #order, tostring(id)))
         if #newAssets > 0 then log(src, 'Hay arte nuevo por descargar: vuelve a ejecutar «pxd_update».') end
-        if self then
-            log(src, 'El actualizador también cambió: se reinicia ahora.')
-            ExecuteCommand('ensure ' .. RES)
-            -- Si se reinició, este temporizador ya no existe. Si sigue aquí, faltan permisos.
-            SetTimeout(2000, function()
-                log(src, ('No pude reiniciarme solo. Escribe «ensure %s» en la consola y luego «pxd_update».'):format(RES))
-                log(src, ('Para que no vuelva a pasar, añade al server.cfg: add_ace resource.%s command.stop allow  y  add_ace resource.%s command.start allow'):format(RES, RES))
-            end)
-        end
+        PXDUpdater.restartTouched(src, order)
     end)
     running = false
     if not ok then log(src, 'Error: ' .. tostring(err)) end
@@ -170,6 +182,128 @@ end
 AddEventHandler('pxd_updater:assetLog', function(src, msg)
     log(tonumber(src) or 0, tostring(msg))
 end)
+
+--- Reinicia los recursos pxd_* tocados (el propio actualizador, al final).
+--- `ensure` ejecuta stop/start con los permisos de quien lo llama (ACE command.stop
+--- y command.start); los natives StopResource/StartResource no los piden, pero no
+--- permiten pararse a uno mismo. Por eso el propio actualizador usa `ensure`.
+function PXDUpdater.restartTouched(src, order)
+    ExecuteCommand('refresh')
+    local self, third = false, {}
+    for _, res in ipairs(order) do
+        if res == RES then self = true
+        elseif not res:match('^pxd_') then third[#third + 1] = res
+        elseif GetResourceState(res) == 'started' then
+            StopResource(res)
+            if not StartResource(res) then
+                log(src, ('No se pudo reiniciar %s: escribe «ensure %s» en la consola.'):format(res, res))
+            end
+        end
+    end
+    if #third > 0 then
+        log(src, ('Cambiaron archivos de %s: reinicia el servidor (sin jugadores) para aplicarlos.'):format(table.concat(third, ', ')))
+    end
+    if self then
+        log(src, 'El actualizador también cambió: se reinicia ahora.')
+        ExecuteCommand('ensure ' .. RES)
+        -- Si se reinició, este temporizador ya no existe. Si sigue aquí, faltan permisos.
+        SetTimeout(2000, function()
+            log(src, ('No pude reiniciarme solo. Escribe «ensure %s» en la consola y luego «pxd_update».'):format(RES))
+            log(src, ('Para que no vuelva a pasar, añade al server.cfg: add_ace resource.%s command.stop allow  y  add_ace resource.%s command.start allow'):format(RES, RES))
+        end)
+    end
+end
+
+--- ¿Se debe respetar un archivo editable (config.lua, reglas…) con hash `curHash`?
+--- Devuelve nil (se puede actualizar), 'editado' o 'desconocido'.
+---  · Hay hash instalado y coincide → no lo tocaste → se actualiza.
+---  · Hay hash instalado y no coincide → lo editaste → se respeta.
+---  · No hay hash instalado (primera vez, paquete o receta): solo se actualiza si
+---    coincide con una versión publicada antes (f.known); si no, se respeta.
+function PXDUpdater.isProtected(f, curHash, installedHash)
+    if installedHash then
+        return curHash ~= installedHash and 'editado' or nil
+    end
+    for _, h in ipairs(type(f.known) == 'table' and f.known or {}) do
+        if h == curHash then return nil end
+    end
+    return 'desconocido'
+end
+
+--- Resumen de copias de seguridad (para «check» y «backups»).
+function PXDUpdater.describeBackups(src, full)
+    local ids = PXDUpdater.Backup.list()
+    if #ids == 0 then return log(src, 'Copias de seguridad: ninguna todavía.') end
+    log(src, ('Copias de seguridad: %d (la última: %s). «pxd_update rollback» deshace la última.'):format(#ids, ids[#ids]))
+    if not full then return end
+    for i = #ids, 1, -1 do
+        local idx = PXDUpdater.Backup.read(ids[i])
+        if idx then
+            log(src, (' · %s — %s, %s, %d archivo(s), %s'):format(idx.id, idx.fecha or '?', idx.motivo or '?', #(idx.archivos or {}), idx.estado or '?'))
+        end
+    end
+end
+
+--- Deshace una copia (sin id: la última aplicada). Valida que cada archivo siga como lo
+--- dejó la actualización; si alguien lo cambió después, lo omite salvo con force.
+--- Lo restaurado se guarda a su vez en una copia nueva (se puede deshacer el rollback).
+function PXDUpdater.rollback(src, id, force)
+    local ids = PXDUpdater.Backup.list()
+    if not id then
+        for i = #ids, 1, -1 do
+            local idx = PXDUpdater.Backup.read(ids[i])
+            if idx and (idx.estado == 'aplicada' or idx.estado == 'parcial') and idx.motivo ~= 'rollback' then id = ids[i]; break end
+        end
+    end
+    local idx = id and PXDUpdater.Backup.read(id)
+    if not idx then return log(src, ('No existe la copia %s. Usa «pxd_update backups» para verlas.'):format(tostring(id))) end
+    if idx.estado ~= 'aplicada' and idx.estado ~= 'parcial' then
+        return log(src, ('La copia %s está «%s»: no se puede restaurar.'):format(id, tostring(idx.estado)))
+    end
+    local session = PXDUpdater.Backup.new('rollback-' .. id, 'rollback')
+    local state = loadState()
+    local touched, order, restored, omitted = {}, {}, 0, 0
+    for i = #idx.archivos, 1, -1 do
+        local e = idx.archivos[i]
+        if not e.fallo then
+            local current = LoadResourceFile(e.resource, e.path)
+            local curHash = current and PXDUpdater.sha256(current)
+            if curHash ~= e.sha256Despues and not force then
+                omitted = omitted + 1
+                log(src, ('Se omite %s/%s: cambió después de la actualización (usa «pxd_update rollback %s force»).'):format(e.resource, e.path, id))
+            else
+                local prev = PXDUpdater.Backup.content(id, e)
+                if e.existia and not prev then
+                    omitted = omitted + 1
+                    log(src, ('Falta la copia de %s/%s: no se puede restaurar.'):format(e.resource, e.path))
+                else
+                    local okWrite, why = session:write(e.resource, e.path, prev or '')
+                    if not okWrite then
+                        local back = session:revert()
+                        if why == 'escritura' then PXDUpdater.writeDenied(src, e.resource, e.path) end
+                        return log(src, ('Vuelta atrás cancelada: se dejaron %d archivo(s) como estaban.'):format(back))
+                    end
+                    if not e.existia then
+                        log(src, ('%s/%s no existía antes: se ha vaciado (FXServer no deja borrarlo; puedes eliminarlo a mano).'):format(e.resource, e.path))
+                    end
+                    if e.resource:match('^pxd_') then
+                        state[e.resource .. '/' .. e.path] = e.sha256Antes
+                    end
+                    restored = restored + 1
+                    if not touched[e.resource] then touched[e.resource] = true; order[#order + 1] = e.resource end
+                end
+            end
+        end
+    end
+    SaveResourceFile(RES, Config.stateFile, json.encode(state), -1)
+    local newId = session:commit(Config.backupKeep)
+    -- Si se omitió algo, queda «parcial» (se puede repetir con force); si no, «restaurada».
+    if restored > 0 or omitted == 0 then idx.estado = omitted > 0 and 'parcial' or 'restaurada' end
+    local text = json.encode(idx)
+    SaveResourceFile(RES, PXDUpdater.backupPaths.index(id), text, #text)
+    log(src, ('Vuelta atrás de %s: %d archivo(s) restaurados, %d omitidos. Copia de lo deshecho: %s.'):format(id, restored, omitted, tostring(newId)))
+    if restored > 0 then PXDUpdater.restartTouched(src, order) end
+end
 
 --- Arranca los recursos del plan (manifest.plan.autostart, en orden) que no estén
 --- iniciados, y para los que sustituyen (plan.replaces). Así no hace falta tocar el
@@ -197,18 +331,34 @@ end
 --- Cambios de configuración en recursos de terceros (plan.patches): texto exacto
 --- a sustituir, solo si el recurso que lo necesita está instalado. Requieren reiniciar
 --- el servidor para aplicarse, porque el recurso parcheado ya está en marcha.
-function PXDUpdater.applyPatches(src)
-    local plan = (loadState().plan) or {}
+function PXDUpdater.applyPatches(src, session, dryRun, planOverride)
+    local plan = planOverride or (loadState().plan) or {}
     for _, p in ipairs(type(plan.patches) == 'table' and plan.patches or {}) do
         if type(p.resource) == 'string' and type(p.path) == 'string' and type(p.find) == 'string' and type(p.replace) == 'string'
             and GetResourceState(p.requires or p.resource) ~= 'missing' and GetResourceState(p.resource) ~= 'missing' then
+            local version = PXDUpdater.resourceVersion(p.resource)
             local text = LoadResourceFile(p.resource, p.path)
-            if text and not text:find(p.replace, 1, true) then
+            if p.requiresVersion and version ~= p.requiresVersion then
+                log(src, ('%s está en la versión %s y el ajuste «%s» es para la %s: no se aplica.'):format(
+                    p.resource, tostring(version), p.why or p.path, p.requiresVersion))
+            elseif not text then
+                log(src, ('No se encuentra %s/%s: el ajuste «%s» no se aplica.'):format(p.resource, p.path, p.why or p.path))
+            elseif not text:find(p.replace, 1, true) then
                 local i, j = text:find(p.find, 1, true)
-                if i then
+                if not i then
+                    log(src, ('AVISO: en %s/%s no está el texto esperado para «%s»: probablemente es otra versión. No se aplica.'):format(
+                        p.resource, p.path, p.why or 'ajuste'))
+                elseif dryRun then
+                    log(src, (' ~ ajuste pendiente: %s/%s (%s)'):format(p.resource, p.path, p.why or 'configuración'))
+                else
                     text = text:sub(1, i - 1) .. p.replace .. text:sub(j + 1)
-                    if SaveResourceFile(p.resource, p.path, text, #text) then
+                    local okWrite, why
+                    if session then okWrite, why = session:write(p.resource, p.path, text)
+                    else okWrite = SaveResourceFile(p.resource, p.path, text, #text) end
+                    if okWrite then
                         log(src, ('Ajustado %s/%s (%s). Reinicia el servidor para aplicarlo.'):format(p.resource, p.path, p.why or 'configuración'))
+                    elseif why == 'copia' then
+                        log(src, ('No se pudo guardar la copia de %s/%s: el ajuste no se aplica.'):format(p.resource, p.path))
                     else
                         PXDUpdater.writeDenied(src, p.resource, p.path)
                     end
@@ -232,7 +382,7 @@ end
 --- a un recurso de terceros (p. ej. la capa visual del inventario en ox_inventory).
 --- Solo si la versión instalada coincide y la copia local tiene la huella esperada.
 --- No reinicia el recurso de terceros: eso lo hace el reinicio del servidor.
-function PXDUpdater.applyOverlays(src)
+function PXDUpdater.applyOverlays(src, session)
     local overlays = loadState().overlays
     local written, warned = 0, {}
     for _, o in ipairs(type(overlays) == 'table' and overlays or {}) do
@@ -252,8 +402,13 @@ function PXDUpdater.applyOverlays(src)
                 if not body or PXDUpdater.sha256(body) ~= o.sha256 then
                     log(src, ('%s/%s aún no está al día: ejecuta «pxd_update» otra vez.'):format(from.resource, from.path))
                 elseif not current or PXDUpdater.sha256(current) ~= o.sha256 then
-                    if SaveResourceFile(o.resource, o.path, body, #body) then
+                    local okWrite, why
+                    if session then okWrite, why = session:write(o.resource, o.path, body)
+                    else okWrite = SaveResourceFile(o.resource, o.path, body, #body) end
+                    if okWrite then
                         written = written + 1
+                    elseif why == 'copia' then
+                        log(src, ('No se pudo guardar la copia de %s/%s: la capa no se aplica.'):format(o.resource, o.path))
                     else
                         PXDUpdater.writeDenied(src, o.resource, o.path)
                     end
@@ -300,7 +455,21 @@ end)
 RegisterCommand('pxd_update', function(src, args)
     if src ~= 0 and not IsPlayerAceAllowed(src, Config.ace) then return end
     local mode = args[1]
-    CreateThread(function() run(src, mode) end)
+    if mode == 'backups' then return PXDUpdater.describeBackups(src, true) end
+    if mode == 'rollback' then
+        if running then return log(src, 'Ya hay una actualización en curso.') end
+        local id, force = args[2], args[3] == 'force'
+        if id == 'force' then id, force = nil, true end
+        running = true
+        CreateThread(function()
+            local ok, err = pcall(PXDUpdater.rollback, src, id, force)
+            running = false
+            if not ok then log(src, 'Error: ' .. tostring(err)) end
+        end)
+        return
+    end
+    local target = mode == 'force' and args[2] or nil
+    CreateThread(function() run(src, mode, target) end)
 end, false)
 
 PXDUpdater.run = run   -- para pruebas

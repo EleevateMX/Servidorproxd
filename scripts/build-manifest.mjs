@@ -6,10 +6,41 @@ import { readdirSync, readFileSync, writeFileSync, statSync, existsSync } from '
 import { createHash } from 'node:crypto';
 import { join, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { execFileSync } from 'node:child_process';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const res = join(root, 'server-data/resources/[proxima]');
 const TEXT = /\.(lua|html|css|js|json|svg)$/;
+
+// Archivos que el dueño del servidor puede editar: pxd_updater no los sobrescribe si
+// difieren y no sabe qué versión se instaló (se respetan salvo «pxd_update force»).
+export const EDITABLE = new Set([
+  'pxd_panel/shared/rules.lua',      // reglamento del panel
+  'pxd_props/html/catalog.json',     // catálogo de props del editor
+  'pxd_hud/npwd/config.json',        // configuración propuesta del teléfono
+]);
+export const isEditable = (resource, rel) => rel === 'config.lua' || EDITABLE.has(`${resource}/${rel}`);
+
+// Huellas de las versiones publicadas antes de un archivo editable (historial de git).
+// Con ellas el actualizador sabe que un archivo sin editar se puede actualizar aunque
+// no conste qué versión se instaló (instalación con el paquete o la receta).
+function knownHashes(absPath, currentSha) {
+  try {
+    const rel = relative(root, absPath).split(sep).join('/');
+    const commits = execFileSync('git', ['-C', root, 'log', '--format=%H', '--', rel], { encoding: 'utf8' }).split('\n').filter(Boolean);
+    const out = new Set();
+    for (const c of commits.slice(0, 60)) {
+      try {
+        const buf = execFileSync('git', ['-C', root, 'show', `${c}:${rel}`], { maxBuffer: 16 * 1024 * 1024 });
+        out.add(createHash('sha256').update(buf).digest('hex'));
+      } catch { /* el archivo no existía en ese commit */ }
+    }
+    out.delete(currentSha);
+    return [...out].sort();
+  } catch {
+    return [];   // sin git (p. ej. dentro del paquete): sin historial
+  }
+}
 
 function walk(dir, out = []) {
   for (const name of readdirSync(dir).sort()) {
@@ -41,8 +72,11 @@ export function buildManifest() {
       if (!TEXT.test(rel)) continue;                       // binarios (arte, audio) fuera
       if (rel.startsWith('data/') || rel.startsWith('html/assets/')) continue; // datos del servidor
       const buf = readFileSync(p);
-      files.push({ resource, path: rel, size: buf.length, sha256: createHash('sha256').update(buf).digest('hex'),
-        config: rel === 'config.lua' || undefined });
+      const sha256 = createHash('sha256').update(buf).digest('hex');
+      const editable = isEditable(resource, rel);
+      const known = editable ? knownHashes(p, sha256) : [];
+      files.push({ resource, path: rel, size: buf.length, sha256,
+        config: editable || undefined, known: known.length ? known : undefined });
     }
   }
   // Arte (binario, en Higgsfield): se descarga solo si falta en el servidor.

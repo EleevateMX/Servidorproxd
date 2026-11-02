@@ -101,11 +101,44 @@ En txAdmin → **Live Console**:
 
 | Comando | Qué hace |
 |---|---|
-| `pxd_update check` | Muestra qué cambiaría, sin tocar nada |
-| `pxd_update` | Aplica: descarga, comprueba la huella SHA-256 de cada archivo, escribe todo (o nada si algo falla) y reinicia los recursos tocados. También baja el arte que falte |
-| `pxd_update force` | Igual, pero sobrescribe también los `config.lua` que hayas editado a mano |
+| `pxd_update check` | Muestra qué cambiaría, sin tocar nada: archivos, ajustes de terceros pendientes, archivos editables que se respetarán y copias de seguridad que hay |
+| `pxd_update` | Aplica: descarga, comprueba la huella SHA-256 de cada archivo, **guarda una copia de seguridad** de lo que va a cambiar, escribe todo (o nada: si una escritura falla, deshace las anteriores) y reinicia los recursos tocados. También baja el arte que falte |
+| `pxd_update force` | Igual, pero reemplaza también los archivos editables que tengas distintos (con copia) |
+| `pxd_update force <recurso/ruta>` | Reemplaza solo ese archivo editable, p. ej. `pxd_update force pxd_panel/shared/rules.lua` |
+| `pxd_update backups` | Lista las copias de seguridad (id, fecha, motivo, nº de archivos, estado) |
+| `pxd_update rollback` | Deshace la última actualización (o ajuste de terceros) con su copia |
+| `pxd_update rollback <id> [force]` | Deshace una copia concreta; `force` restaura también archivos que cambiaron después |
 
-- Los `config.lua` que edites se respetan (el actualizador recuerda la versión que instaló).
+### Copias de seguridad y vuelta atrás
+
+- Antes de escribir **cualquier** archivo (recursos `pxd_*`, ajustes en qbx_core/npwd/illenium…, capas en ox_inventory) se guarda su contenido anterior en `pxd_updater/data/` (archivos `bk_<id>_<n>.bak`; `<id>` = fecha UTC + ref, p. ej. `20261102T091500Z-HEAD`; FXServer no deja crear carpetas, por eso son archivos planos). Índice de cada copia: `data/bk_<id>.json` con `{ id, ref, fecha, motivo, estado, archivos: [{ resource, path, existia, sha256Antes, sha256Despues, copia }] }`; lista de copias en `data/backups.json`.
+- **Todo o nada.** Si FXServer rechaza una escritura a mitad (p. ej. falta un `add_filesystem_permission`), se restauran los archivos ya escritos, no se toca `installed.json` y no se reinicia nada.
+- **Rollback con validación.** Antes de restaurar, comprueba que cada archivo sigue como lo dejó la actualización (`sha256Despues`). Si alguien lo cambió después, lo omite y avisa (la copia queda «parcial»; repite con `force`). Lo restaurado se guarda a su vez en una copia nueva, así que un rollback también se puede deshacer. Los archivos que la actualización **creó** se vacían (FXServer no deja borrar archivos de un recurso; puedes eliminarlos a mano).
+- Tras restaurar reinicia los `pxd_*` tocados; si tocó recursos de terceros, pide **reiniciar el servidor**.
+- Se guardan las últimas `Config.backupKeep` copias (10 por defecto, en `pxd_updater/config.lua`); las más antiguas se vacían.
+- Estas copias son de **archivos**. La base de datos (MariaDB) se copia aparte: ver `docs/27-respaldo-y-restauracion.md`.
+
+### Archivos editables protegidos
+
+- Son editables: el `config.lua` de cada recurso y los de la lista `EDITABLE` de `scripts/build-manifest.mjs` (reglamento `pxd_panel/shared/rules.lua`, catálogo `pxd_props/html/catalog.json`, `pxd_hud/npwd/config.json`).
+- Si el archivo está igual que la versión instalada, se actualiza. Si lo editaste, se respeta.
+- Si no consta qué versión se instaló (servidor montado con el paquete o la receta), solo se actualiza si coincide con una versión publicada antes (el manifiesto trae sus huellas en `known`); si no, **se respeta tu versión** y avisa: «usa `pxd_update force <ruta>`».
+
+### Versión fija (recomendado en producción)
+
+Por defecto el actualizador sigue la rama por defecto del repositorio (`HEAD`), que cambia con cada desarrollo. En producción, fija una versión probada:
+
+```
+set pxd_updater_ref "<commit completo o etiqueta>"
+```
+
+Procedimiento de versión estable:
+1. Prueba el commit en el servidor de pruebas (`docs/27`, checklist).
+2. Antes de cambiar de versión en producción: copia de archivos y de la base de datos (`docs/27`).
+3. Cambia `pxd_updater_ref` en *CFG Editor*, reinicia, `pxd_update check`, `pxd_update` (repite hasta «Todo está al día») y reinicia en ventana sin jugadores.
+4. Si algo va mal: `pxd_update rollback` (archivos) o vuelve al `pxd_updater_ref` anterior y `pxd_update force`; si hace falta, restaura la copia de Nodecraft y de la base de datos.
+
+- El paquete de instalación tiene una variante para **actualizar sin pisar configuraciones**: `scripts/build-package.sh --sin-configs` (deja fuera `config.lua` y los editables). Úsalo para servidores que ya funcionan; para una instalación nueva usa el paquete normal.
 - El arte (imágenes y vídeo) lo descarga `server/assets.js` con Node.js, porque las descargas de Lua cortan los archivos binarios. Si `pxd_update` dice que actualizó el propio `pxd_updater`, ejecútalo otra vez para bajar el arte.
 - Si sale «No pude reiniciarme solo», escribe `ensure pxd_updater` y repite `pxd_update`; para que no vuelva a pasar, añade las líneas `command.stop` y `command.start` de abajo.
 - Nunca toca `data/` (props guardados, jugadores).
