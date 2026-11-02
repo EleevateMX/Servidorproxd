@@ -174,10 +174,18 @@
   {
    "resource": "qbx_smallresources",
    "path": "qbx_crouch/client.lua",
-   "find": "  name = 'crouch',\n  description = 'Crouch',\n  defaultKey = 'K',",
-   "replace": "  name = 'crouch',\n  description = 'Crouch',\n  defaultKey = '', -- Próxima: agacharse con Ctrl izquierdo (pxd_interact)",
+   "find": "  name = 'crouch',\n  description = 'Crouch',\n  defaultKey = '', -- Próxima: agacharse con Ctrl izquierdo (pxd_interact)",
+   "replace": "  name = 'pxd_sin_tecla_crouch', -- Próxima: nombre nuevo para que la K guardada por FiveM deje de agachar (Ctrl izquierdo en pxd_interact)\n  description = 'Crouch',\n  defaultKey = '',",
    "requires": "pxd_interact",
-   "why": "K queda libre: agacharse va con Ctrl izquierdo"
+   "why": "K no agacha en servidores que ya tenían el ajuste anterior"
+  },
+  {
+   "resource": "qbx_smallresources",
+   "path": "qbx_crouch/client.lua",
+   "find": "  name = 'crouch',\n  description = 'Crouch',\n  defaultKey = 'K',",
+   "replace": "  name = 'pxd_sin_tecla_crouch', -- Próxima: nombre nuevo para que la K guardada por FiveM deje de agachar (Ctrl izquierdo en pxd_interact)\n  description = 'Crouch',\n  defaultKey = '',",
+   "requires": "pxd_interact",
+   "why": "K no agacha: la tecla guardada antes deja de funcionar (agacharse va con Ctrl izquierdo)"
   },
   {
    "resource": "npwd",
@@ -218,6 +226,24 @@
    "replace": "    CreateThread(function()\n        -- Próxima: ox_inventory publica RegisterShop al terminar de cargar; se reintenta hasta 60 s\n        for _ = 1, 120 do\n            if pcall(registerArmory) then break end\n            Wait(500)\n        end\n        registerStashes()\n    end)\nend)",
    "requires": "pxd_compat",
    "why": "armería y taquillas de EMS: esperar a que ox_inventory termine de cargar (evita «No such export RegisterShop»)"
+  },
+  {
+   "resource": "ox_inventory",
+   "path": "client.lua",
+   "find": "name = 'inv',",
+   "replace": "name = 'pxd_inventario', -- Próxima: nombre nuevo, así la tecla que FiveM guardó antes (F2) deja de abrir el inventario",
+   "requires": "pxd_inventory",
+   "requiresVersion": "2.48.1",
+   "why": "F2 deja de abrir el inventario aunque el jugador la tenga guardada (I abre el inventario)"
+  },
+  {
+   "resource": "ox_inventory",
+   "path": "client.lua",
+   "find": "name = 'inv2',",
+   "replace": "name = 'pxd_inventario2', -- Próxima: nombre nuevo, la K guardada deja de abrir el inventario secundario (maletero con E)",
+   "requires": "pxd_inventory",
+   "requiresVersion": "2.48.1",
+   "why": "K deja de abrir el inventario secundario aunque el jugador la tenga guardada"
   }
  ],
  "_comment_overlays": "Archivos de pxd_* que se copian a recursos de terceros (solo con la versión indicada). Requieren add_filesystem_permission pxd_updater write <recurso> y reiniciar el servidor.",

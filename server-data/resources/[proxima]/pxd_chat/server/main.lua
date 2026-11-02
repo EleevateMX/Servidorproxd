@@ -74,7 +74,10 @@ local function speak(src, kind, rawText)
         })
         TriggerClientEvent('chat:addMessage', target, { templateId = 'pxd_' .. kind, args = { label, text } })
     end
-    print(('[pxd_chat] %s %s (%s): %s'):format(kind, GetPlayerName(src), id or src, text))
+    -- Registro en la consola del servidor. Se hace en el siguiente tick: FXServer devuelve al chat
+    -- del jugador lo que se imprime mientras se ejecuta SU comando, y salía «[pxd_chat] …» duplicado.
+    local line = ('[pxd_chat] %s %s (%s): %s'):format(kind, GetPlayerName(src), id or src, text)
+    SetTimeout(0, function() print(line) end)
 end
 
 -- Lo que se escribe sin comando: el personaje habla. Los comandos que no existen

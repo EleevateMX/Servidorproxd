@@ -98,6 +98,18 @@ T.describe('pxd_chat · servidor', function()
         T.eq(#msgs(2), 1, 'el reinicio a nil no envía nada')
     end)
 
+    T.it('/me: una sola línea en el chat y el registro de consola fuera del comando (sin «[pxd_chat]» al jugador)', function()
+        local _, handlers = boot()
+        local deferred = {}
+        _G.SetTimeout = function(_, fn) deferred[#deferred + 1] = fn end
+        local before = #Fx.logs
+        handlers.me('player:1', 'me', 'se ajusta la chaqueta')
+        T.eq(#Fx.logs, before, 'nada se imprime mientras corre el comando del jugador')
+        T.eq(#msgs(1), 1, 'quien escribe ve una sola línea'); T.eq(msgs(1)[1].templateId, 'pxd_me')
+        for _, fn in ipairs(deferred) do fn() end
+        T.truthy(Fx.logs[#Fx.logs]:find('^%[pxd_chat%] me'), 'el registro llega a la consola después')
+    end)
+
     T.it('anti-spam; /anuncio es de pxd_admin y aquí solo se pinta', function()
         local say = boot()
         for _ = 1, 5 do say(2, 'spam') end

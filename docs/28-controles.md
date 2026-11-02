@@ -75,3 +75,20 @@ Nada de esto está probado en FiveM todavía (solo pruebas automáticas de la l�
 - Ctrl: la animación la ven los demás; apuntar y correr agachado; que no aparece el sigilo nativo.
 - E: maletero en coches, furgonetas y modelos con motor delante; cerrado con llave; junto a puertas, surtidores y teletransportes.
 - B: recogida con varios jugadores a la vez; objetos con metadata; inventario lleno.
+
+## Teclas guardadas por FiveM (2026-11-02)
+
+**Problema visto en el servidor:** F2 seguía abriendo el inventario y K seguía agachando, aunque las teclas por defecto ya eran I y nada.
+
+**Causa:** `RegisterKeyMapping` solo aplica la tecla por defecto la **primera** vez que un jugador ve ese comando. Después, FiveM guarda la tecla en la configuración del jugador, y cambiar el valor por defecto no la borra:
+- ox_inventory: `+inv` (F2) y `+inv2` (K);
+- qbx_crouch: `+crouch` (K).
+
+**Arreglo:** parches de `scripts/update-plan.json` que **renombran** esas combinaciones:
+- `inv` → `pxd_inventario`;
+- `inv2` → `pxd_inventario2`;
+- `crouch` → `pxd_sin_tecla_crouch`.
+
+La tecla antigua queda apuntando a un comando que ya no existe y no hace nada. El nombre nuevo toma su valor por defecto: I para el inventario, nada para el resto.
+
+**Para el jugador:** si alguien había cambiado a mano la tecla del inventario en *Ajustes → Asignación de teclas → FiveM*, ahora verá la entrada nueva con I.

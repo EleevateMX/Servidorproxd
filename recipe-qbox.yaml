@@ -675,7 +675,19 @@ tasks:  #  Download Base Files
     file: ./resources/[qbx]/qbx_smallresources/qbx_crouch/client.lua
     mode: literal
     search: "  name = 'crouch',\\n  description = 'Crouch',\\n  defaultKey = 'K',"
-    replace: "  name = 'crouch',\n  description = 'Crouch',\n  defaultKey = '', -- Próxima: agacharse con Ctrl izquierdo (pxd_interact)"
+    replace: "  name = 'pxd_sin_tecla_crouch', -- Próxima: nombre nuevo para que la K guardada por FiveM deje de agachar (Ctrl izquierdo en pxd_interact)\n  description = 'Crouch',\n  defaultKey = '',"
+
+  - action: replace_string # F2 no abre el inventario (I sí)
+    file: ./resources/[ox]/ox_inventory/client.lua
+    mode: literal
+    search: "name = 'inv',"
+    replace: "name = 'pxd_inventario', -- Próxima: nombre nuevo, así la tecla que FiveM guardó antes (F2) deja de abrir el inventario"
+
+  - action: replace_string # K no abre el inventario secundario
+    file: ./resources/[ox]/ox_inventory/client.lua
+    mode: literal
+    search: "name = 'inv2',"
+    replace: "name = 'pxd_inventario2', -- Próxima: nombre nuevo, la K guardada deja de abrir el inventario secundario (maletero con E)"
 
   # Clean up
   - action: remove_path
