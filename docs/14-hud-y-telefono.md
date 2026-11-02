@@ -51,7 +51,7 @@ La receta instala **npwd 3.14.3** con `qbx_npwd`, que copia su `config.json` a `
 | Qué | Dónde | Propuesta |
 |---|---|---|
 | Idioma por defecto | `general.defaultLanguage` | `es` (npwd trae `locale/es.json`) |
-| Tecla | `general.toggleKey` | `m` (la que pone qbx_npwd) |
+| Tecla | `general.toggleKey` | `UP` (flecha arriba; la de qbx_npwd era `m`). Quien ya entró conserva su tecla en Ajustes → Asignación de teclas → FiveM |
 | Apps quitadas | `disabledApps` | `BROWSER` (como qbx_npwd) |
 | Apps externas | `apps` | `npwd_qbx_mail`, `npwd_qbx_garages` |
 | Contactos por defecto | `defaultContacts` (`display`, `number`, `avatar`) | Vacío: no hay números de servicio que respondan |
