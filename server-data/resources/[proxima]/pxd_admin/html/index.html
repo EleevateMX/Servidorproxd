@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Próxima RP — soporte y staff</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Soporte (todos los jugadores) -->
+  <section class="shell support hidden" id="support" aria-label="Soporte">
+    <header class="head">
+      <img class="logo" src="logo.svg" alt="Próxima RP">
+      <div class="head__text">
+        <p class="eyebrow">Soporte</p>
+        <h1>¿En qué te ayudamos?</h1>
+      </div>
+      <button class="btn btn--ghost hidden" id="open-staff" type="button">Panel de staff</button>
+      <button class="icon-btn" data-close type="button" aria-label="Cerrar">✕</button>
+    </header>
+
+    <nav class="tabs" role="tablist">
+      <button class="tab is-on" data-stab="help" type="button" role="tab">Pedir ayuda</button>
+      <button class="tab" data-stab="player" type="button" role="tab">Reportar a alguien</button>
+      <button class="tab" data-stab="mine" type="button" role="tab">Mis reportes <span class="count" id="mine-count"></span></button>
+    </nav>
+
+    <div class="body">
+      <form class="form" id="report-form" autocomplete="off">
+        <p class="hint" id="form-hint"></p>
+        <fieldset class="field">
+          <legend>Categoría</legend>
+          <div class="chips" id="categories"></div>
+        </fieldset>
+        <label class="field hidden" id="target-field">
+          <span>Jugador</span>
+          <input id="target" maxlength="16" placeholder="ID del servidor (p. ej. 12) o PROX-ID (p. ej. PROX-7KQ2)">
+        </label>
+        <label class="field">
+          <span>Cuéntanos qué pasa</span>
+          <textarea id="text" maxlength="600" rows="5" placeholder="Qué pasó, dónde y cuándo. Cuanto más claro, antes te ayudamos."></textarea>
+          <small class="counter"><span id="text-count">0</span>/600</small>
+        </label>
+        <div class="row-end">
+          <button class="btn btn--primary" type="submit">Enviar</button>
+        </div>
+      </form>
+
+      <div class="mine hidden" id="mine">
+        <ul class="list" id="mine-list"></ul>
+        <article class="thread hidden" id="mine-thread"></article>
+      </div>
+    </div>
+  </section>
+
+  <!-- Panel de staff -->
+  <section class="shell staff hidden" id="staff" aria-label="Panel de staff">
+    <aside class="side">
+      <img class="logo" src="logo.svg" alt="Próxima RP">
+      <p class="side__role">Panel de staff</p>
+      <nav class="side__nav">
+        <button class="nav is-on" data-view="players" type="button">Jugadores <span class="pill" id="players-count">0</span></button>
+        <button class="nav" data-view="reports" type="button">Reportes <span class="pill pill--alert" id="reports-open">0</span></button>
+        <button class="nav" data-view="tools" type="button">Herramientas</button>
+        <button class="nav" data-view="log" type="button">Registro</button>
+        <button class="nav" data-view="commands" type="button">Comandos</button>
+      </nav>
+      <div class="side__foot">
+        <button class="duty" id="duty" type="button"><span class="duty__dot"></span><span id="duty-label">Fuera de servicio</span></button>
+        <button class="btn btn--ghost" id="refresh" type="button">Actualizar</button>
+        <button class="btn btn--ghost" data-close type="button">Cerrar</button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <!-- Jugadores -->
+      <div class="view" data-pane="players">
+        <div class="split">
+          <div class="col">
+            <input class="search" id="player-search" placeholder="Buscar por ID, nombre, personaje, PROX-ID o trabajo">
+            <ul class="list list--players" id="player-list"></ul>
+          </div>
+          <div class="col col--detail" id="player-detail">
+            <p class="empty">Elige un jugador para ver su ficha.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Reportes -->
+      <div class="view hidden" data-pane="reports">
+        <div class="split">
+          <div class="col">
+            <div class="chips chips--filter" id="report-filter">
+              <button class="chip is-on" data-filter="active" type="button">Activos</button>
+              <button class="chip" data-filter="open" type="button">Nuevos</button>
+              <button class="chip" data-filter="claimed" type="button">En curso</button>
+              <button class="chip" data-filter="closed" type="button">Cerrados</button>
+            </div>
+            <ul class="list" id="report-list"></ul>
+          </div>
+          <div class="col col--detail" id="report-detail">
+            <p class="empty">Elige un reporte.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Herramientas propias -->
+      <div class="view hidden" data-pane="tools">
+        <p class="section-title">Moverte</p>
+        <div class="actions">
+          <button class="btn" data-tool="noclip" type="button">Noclip</button>
+          <button class="btn" data-tool="invisible" type="button">Invisible</button>
+          <button class="btn" data-tool="tpm" type="button">Ir al marcador</button>
+          <button class="btn" data-tool="back" type="button">Volver</button>
+        </div>
+        <p class="section-title">Vehículos</p>
+        <div class="reply">
+          <input id="car-model" maxlength="32" placeholder="Modelo (p. ej. sultan, police, adder)">
+          <button class="btn btn--primary" data-tool="car" type="button">Sacar</button>
+        </div>
+        <div class="actions actions--top">
+          <button class="btn" data-tool="repair" type="button">Reparar</button>
+          <button class="btn btn--danger" data-tool="dv" type="button">Borrar vehículo</button>
+        </div>
+        <p class="section-title">Ciudad</p>
+        <div class="reply">
+          <input id="announce-text" maxlength="240" placeholder="Anuncio para toda la ciudad">
+          <button class="btn btn--primary" data-tool="announce" type="button">Anunciar</button>
+        </div>
+        <p class="note">Casi todo pide estar de servicio (botón de abajo a la izquierda o /duty).</p>
+      </div>
+
+      <!-- Comandos -->
+      <div class="view hidden" data-pane="commands">
+        <table class="table">
+          <thead><tr><th>Comando</th><th>Qué hace</th><th>Servicio</th></tr></thead>
+          <tbody id="commands-body"></tbody>
+        </table>
+      </div>
+
+      <!-- Registro -->
+      <div class="view hidden" data-pane="log">
+        <table class="table">
+          <thead><tr><th>Cuándo</th><th>Staff</th><th>Acción</th><th>A quién</th><th>Detalle</th></tr></thead>
+          <tbody id="log-body"></tbody>
+        </table>
+      </div>
+    </main>
+  </section>
+
+  <div class="spectate hidden" id="spectate"></div>
+  <div class="modal hidden" id="wounds" role="dialog" aria-label="Heridas"></div>
+  <div class="announce hidden" id="announce" role="status">
+    <svg viewBox="0 0 160 160" aria-hidden="true"><path d="M80 12 C85 62 98 75 148 80 C98 85 85 98 80 148 C75 98 62 85 12 80 C62 75 75 62 80 12Z"/></svg>
+    <div><b>Anuncio de la ciudad</b><span id="announce-text-view"></span></div>
+  </div>
+  <div class="toasts" id="toasts" aria-live="polite"></div>
+  <script src="app.js"></script>
+</body>
+</html>

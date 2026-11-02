@@ -8,7 +8,8 @@
   "pxd_panel",
   "pxd_multichar",
   "pxd_hud",
-  "pxd_voice"
+  "pxd_voice",
+  "pxd_admin"
  ],
  "replaces": {
   "pxd_hud": [
