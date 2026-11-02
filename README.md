@@ -43,6 +43,12 @@ Antes rellena `deploy/.env` (ver [docs/06-servidor-en-la-nube.md](docs/06-servid
 8. [Kit de lanzamiento (portal, hosting, comandos)](docs/08-kit-lanzamiento.md)
 9. [Hoja de ruta: de servidor base a rol completo](docs/09-hoja-de-ruta.md)
 10. [Fase 1: Próxima RP + Qbox](docs/10-fase-1-qbox.md)
+11. [Selección y creación de personaje](docs/11-personajes.md)
+12. [Progreso: nivel, horas, recompensas y logros](docs/12-progreso.md)
+13. [Panel de la ciudad (TAB)](docs/13-panel.md)
+14. [HUD y teléfono](docs/14-hud-y-telefono.md)
+15. [Trabajos y casas](docs/15-trabajos.md)
+16. [Ficha del servidor en FiveM](docs/16-ficha-fivem.md)
 
 ## Pruebas
 

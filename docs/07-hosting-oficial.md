@@ -109,7 +109,11 @@ En txAdmin → **Live Console**:
 - El arte (imágenes y vídeo) lo descarga `server/assets.js` con Node.js, porque las descargas de Lua cortan los archivos binarios. Si `pxd_update` dice que actualizó el propio `pxd_updater`, ejecútalo otra vez para bajar el arte.
 - Si sale «No pude reiniciarme solo», escribe `ensure pxd_updater` y repite `pxd_update`; para que no vuelva a pasar, añade las líneas `command.stop` y `command.start` de abajo.
 - Nunca toca `data/` (props guardados, jugadores).
-- Un recurso **nuevo** (que aún no existe en el servidor) hay que subirlo una vez a mano.
+- Los recursos **nuevos** de Próxima (`pxd_*`) los instala solo: descarga cada archivo, comprueba su huella y crea la carpeta. Luego los arranca, y en cada encendido arranca los del plan (`scripts/update-plan.json`), así no hace falta tocar el `server.cfg`.
+- Los **recursos de terceros** de la fase 2 (trabajos de Qbox y casas, bloque «fase 2» de `recipe-qbox.yaml`) los descarga de GitHub a `resources/[qbx]/` si faltan.
+- Algunos recursos sustituyen a otros (p. ej. `pxd_hud` a `qbx_hud`): el actualizador para el antiguo.
+- Ajustes en recursos de terceros (p. ej. `useExternalCharacters` de qbx_core para la pantalla de personajes): los hace y pide **reiniciar el servidor**.
+- Si algo tiene varios pasos (el propio actualizador, recursos nuevos, terceros, arte), ve ejecutando `pxd_update` hasta que diga «Todo está al día».
 - Necesita en el `server.cfg` (ya viene en las recetas nuevas):
   ```
   ensure pxd_updater
