@@ -66,6 +66,7 @@ Antes rellena `deploy/.env` (ver [docs/06-servidor-en-la-nube.md](docs/06-servid
 36. [Inventario propio (React + ox_inventory)](docs/36-inventario.md)
 37. [Centro administrativo (pxd_admin)](docs/37-administracion.md)
 38. [Personajes: selección, creador y editor de apariencia](docs/38-personajes.md)
+39. [Entrega: inventario, administración y personajes](docs/39-entrega-inventario-admin-personajes.md)
 
 ## Pruebas
 
