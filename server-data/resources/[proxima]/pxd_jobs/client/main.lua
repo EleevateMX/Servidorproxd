@@ -1,10 +1,13 @@
--- Cliente de pxd_jobs: blips, puntos de interacción (ox_target si está; si no, marcador + E)
--- y la animación de la tarea. Todo se valida en el servidor.
+-- Cliente de pxd_jobs: blips, puntos de interacción y la animación de la tarea.
+-- Interacción: pxd_interact (aviso «E · acción») si está; si no, ox_target; si no, marcador + E.
+-- Todo se valida en el servidor.
 local base = json.decode(json.encode(Config.jobs)) -- copia limpia para reaplicar puntos extra
 local jobs = Config.jobs
 local blips, zones, route = {}, {}, nil
 local busy = false
 local useTarget = false
+local useInteract = false
+local routeZone = nil
 
 local INPUT_CONTEXT = 38 -- tecla E
 
@@ -54,7 +57,10 @@ local current = {}
 local function rebuild()
     for _, b in ipairs(blips) do if DoesBlipExist(b) then RemoveBlip(b) end end
     blips = {}
-    if useTarget then
+    if useInteract then
+        for _, id in ipairs(zones) do pcall(function() exports.pxd_interact:removeZone(id) end) end
+        zones = {}
+    elseif useTarget then
         for _, id in ipairs(zones) do pcall(function() exports.ox_target:removeZone(id) end) end
         zones = {}
     end
@@ -63,7 +69,23 @@ local function rebuild()
         if job.kind == 'gather' then addBlip(job.sell.point, job.blip.sprite, job.blip.color, job.sell.label) end
     end
     current = interactions()
-    if useTarget then
+    if useInteract then
+        local byPoint = {}
+        for _, it in ipairs(current) do
+            local key = ('%.2f:%.2f:%.2f'):format(it.pt.x, it.pt.y, it.pt.z)
+            byPoint[key] = byPoint[key] or { pt = it.pt, radius = it.radius, options = {} }
+            local g = byPoint[key]
+            g.options[#g.options + 1] = { label = it.label, icon = it.secondary and 'close' or 'briefcase',
+                canInteract = function() return not busy end, onSelect = it.action }
+        end
+        for _, g in pairs(byPoint) do
+            local ok, id = pcall(function()
+                return exports.pxd_interact:addZone({ coords = vector3(g.pt.x, g.pt.y, g.pt.z),
+                    radius = math.max(1.5, g.radius), options = g.options })
+            end)
+            if ok and id then zones[#zones + 1] = id end
+        end
+    elseif useTarget then
         -- Agrupa las opciones que comparten punto (alta y baja).
         local byPoint = {}
         for _, it in ipairs(current) do
@@ -121,15 +143,29 @@ RegisterNetEvent('pxd_jobs:route', function(name, pt)
         if DoesBlipExist(route.blip) then RemoveBlip(route.blip) end
         route = nil
     end
+    if routeZone then
+        pcall(function() exports.pxd_interact:removeZone(routeZone) end)
+        routeZone = nil
+    end
     if not name or not pt then return end
     local b = AddBlipForCoord(pt.x, pt.y, pt.z)
     SetBlipRoute(b, true)
     route = { name = name, pt = pt, blip = b }
+    if useInteract then
+        local ok, id = pcall(function()
+            return exports.pxd_interact:addZone({ coords = vector3(pt.x, pt.y, pt.z), radius = 6.0, options = {
+                { label = 'Entregar el paquete', icon = 'box', canInteract = function() return not busy end,
+                  onSelect = function() TriggerServerEvent('pxd_jobs:deliver', name) end },
+            } })
+        end)
+        if ok then routeZone = id end
+    end
 end)
 
 -- Bucle: entrega del repartidor (siempre por tecla) y, sin ox_target, marcadores + E.
 CreateThread(function()
-    useTarget = GetResourceState('ox_target') == 'started'
+    useInteract = GetResourceState('pxd_interact') == 'started'
+    useTarget = not useInteract and GetResourceState('ox_target') == 'started'
     rebuild()
     TriggerServerEvent('pxd_jobs:ready')
     while true do
@@ -142,12 +178,13 @@ CreateThread(function()
                 sleep = 0
                 DrawMarker(1, route.pt.x, route.pt.y, route.pt.z - 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
                     2.0, 2.0, 0.6, 92, 225, 255, 120, false, false, 2, false, nil, nil, false)
-                if d < 6.0 then
+                if d < 6.0 and not useInteract then
                     helpText('Pulsa ~INPUT_CONTEXT~ para entregar el paquete')
                     if IsControlJustReleased(0, INPUT_CONTEXT) then TriggerServerEvent('pxd_jobs:deliver', route.name) end
                 end
             end
         end
+        -- Marcadores: guía visual (también con pxd_interact); la E solo sin pxd_interact.
         if not useTarget and not busy then
             for _, it in ipairs(current) do
                 if not it.secondary then
@@ -156,7 +193,7 @@ CreateThread(function()
                         sleep = 0
                         DrawMarker(1, it.pt.x, it.pt.y, it.pt.z - 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
                             1.2, 1.2, 0.4, 255, 79, 216, 110, false, false, 2, false, nil, nil, false)
-                        if d < math.max(1.5, it.radius) then
+                        if d < math.max(1.5, it.radius) and not useInteract then
                             helpText(('Pulsa ~INPUT_CONTEXT~: %s'):format(it.label))
                             if IsControlJustReleased(0, INPUT_CONTEXT) then it.action() end
                         end
@@ -168,8 +205,9 @@ CreateThread(function()
     end
 end)
 
--- Sin ox_target, dejar el trabajo con comando.
+-- Solo sin pxd_interact ni ox_target: dejar el trabajo con comando (con ellos es una opción de la E).
 RegisterCommand('dejartrabajo', function()
+    if useInteract or useTarget then return end
     local here = GetEntityCoords(PlayerPedId())
     for name, job in pairs(jobs) do
         if #(here - vector3(job.signOn.x, job.signOn.y, job.signOn.z)) < 5.0 then
@@ -177,6 +215,25 @@ RegisterCommand('dejartrabajo', function()
         end
     end
 end, false)
+
+-- Si pxd_interact arranca o se para después que este recurso, cambia de modo.
+AddEventHandler('onClientResourceStart', function(res)
+    if res ~= 'pxd_interact' or useInteract then return end
+    if useTarget then
+        for _, id in ipairs(zones) do pcall(function() exports.ox_target:removeZone(id) end) end
+        zones = {}
+    end
+    useInteract, useTarget = true, false
+    rebuild()
+end)
+
+AddEventHandler('onClientResourceStop', function(res)
+    if res ~= 'pxd_interact' or not useInteract then return end
+    zones, routeZone = {}, nil   -- pxd_interact se lleva sus zonas al pararse
+    useInteract = false
+    useTarget = GetResourceState('ox_target') == 'started'
+    rebuild()
+end)
 
 AddEventHandler('onResourceStop', function(res)
     if res ~= GetCurrentResourceName() then return end
