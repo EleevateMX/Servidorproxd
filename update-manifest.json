@@ -801,17 +801,24 @@
   },
   {
    "resource": "pxd_multichar",
+   "path": "client/editor.lua",
+   "size": 13901,
+   "sha256": "9e70c9c68047c87c5e1cb113310294c87447cce84ab65d85074cd41cb8b957a8"
+  },
+  {
+   "resource": "pxd_multichar",
    "path": "client/main.lua",
-   "size": 21890,
-   "sha256": "5f3b62fe739bf37dc06895daa27ec1aada08fa79955d934968e2180aa1e1599f"
+   "size": 33002,
+   "sha256": "542c975b41bb9ab629e94ad6832aecfb63919cffc76f05c8db3f21a26a192a24"
   },
   {
    "resource": "pxd_multichar",
    "path": "config.lua",
-   "size": 4173,
-   "sha256": "356eed5890faccffd2be11341b915097141b3547a7993335b53ee90660b2df71",
+   "size": 5628,
+   "sha256": "a47ceb962e05796685bba305cd1d9389659366b0b31f9a00bb007661e852ccdf",
    "config": true,
    "known": [
+    "356eed5890faccffd2be11341b915097141b3547a7993335b53ee90660b2df71",
     "657a6868ea8143fa365c4904a4d1fb83d25c30ef3f8932e0f199bc4ff78dcea8",
     "d9efe5f46092c753edd1a06a5dfdb3b3ab870c7b4b44feb5c6692be70b86b4c8"
    ]
@@ -819,32 +826,20 @@
   {
    "resource": "pxd_multichar",
    "path": "fxmanifest.lua",
-   "size": 772,
-   "sha256": "88cbc8e9c5328125afd9a356d01ac8191d1927d65d30897a9bf83e2fcb2d5285"
-  },
-  {
-   "resource": "pxd_multichar",
-   "path": "html/app.js",
-   "size": 21818,
-   "sha256": "42e267862ef988fde4b61ad2388651aebe61f2827e2ab93f9bf90cbc6ba7a321"
+   "size": 992,
+   "sha256": "0b647b83485291afa037ad040ef64f40f6678d043242aeaa344d7b9052476358"
   },
   {
    "resource": "pxd_multichar",
    "path": "html/index.html",
-   "size": 7584,
-   "sha256": "b4146d5252c8579a6f4f97ab0d00508920a961d7325300a51e30f7fc515be6d9"
+   "size": 364,
+   "sha256": "c111e81a6f0b201a799b7b6e269dbacceb5fefa530aeebbb7e887246716b1c75"
   },
   {
    "resource": "pxd_multichar",
    "path": "html/logo.svg",
    "size": 1335,
    "sha256": "7a98455a0e55f769f346a8977fca200177c322b15cf60579109cc79f7d9d7c35"
-  },
-  {
-   "resource": "pxd_multichar",
-   "path": "html/style.css",
-   "size": 15011,
-   "sha256": "1edfacf985f38e0dff7553e5ce66337618d5cbe676a3c7291c7e7918e9244dd4"
   },
   {
    "resource": "pxd_multichar",
@@ -861,8 +856,14 @@
   {
    "resource": "pxd_multichar",
    "path": "server/main.lua",
-   "size": 4222,
-   "sha256": "75b7e56da83e9d7207bcbe7c4936e6361c4090024a9d998c26ec2d07ec26d10b"
+   "size": 9971,
+   "sha256": "83f1923a01a1f90ba6416ac4248d00dba3f443d3e304c04dda2ec7bd047be7b1"
+  },
+  {
+   "resource": "pxd_multichar",
+   "path": "shared/appearance.lua",
+   "size": 15454,
+   "sha256": "c7f638226dfa9b1fe37363d9158925b00f04a7b5cf5adc0f84d0bd00ee06180f"
   },
   {
    "resource": "pxd_multichar",
@@ -1580,6 +1581,14 @@
     "requires": "pxd_admin",
     "requiresVersion": "0.1.0",
     "why": "un solo noclip (pxd_admin)"
+   },
+   {
+    "resource": "qbx_properties",
+    "path": "server/apartmentselect.lua",
+    "find": "    TriggerClientEvent('qb-clothes:client:CreateFirstCharacter', playerSource)",
+    "replace": "    if GetResourceState('pxd_multichar') ~= 'started' then TriggerClientEvent('qb-clothes:client:CreateFirstCharacter', playerSource) end -- Próxima: la apariencia ya la creó pxd_multichar",
+    "requires": "pxd_multichar",
+    "why": "tras elegir apartamento no se abre el editor de illenium (la apariencia ya la creó pxd_multichar)"
    }
   ],
   "external": []

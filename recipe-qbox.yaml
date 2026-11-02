@@ -701,6 +701,12 @@ tasks:  #  Download Base Files
     search: "lib\\.addCommand\\('noclip', \\{"
     replace: "lib.addCommand('qbxnoclip', { -- Próxima: /noclip es el de pxd_admin"
 
+  - action: replace_string # tras el apartamento no se abre el editor de illenium (pxd_multichar)
+    file: ./resources/[qbx]/qbx_properties/server/apartmentselect.lua
+    mode: literal
+    search: "    TriggerClientEvent\\('qb-clothes:client:CreateFirstCharacter', playerSource\\)"
+    replace: "    if GetResourceState('pxd_multichar') ~= 'started' then TriggerClientEvent('qb-clothes:client:CreateFirstCharacter', playerSource) end -- Próxima: la apariencia ya la creó pxd_multichar"
+
   # Clean up
   - action: remove_path
     path: ./tmp
