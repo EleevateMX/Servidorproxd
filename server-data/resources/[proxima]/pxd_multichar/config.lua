@@ -18,6 +18,33 @@ Config.enableDelete = true
 -- Al crear personaje: ¿mostrar la elección de apartamento? Solo si qbx_apartments está iniciado.
 Config.startingApartment = false
 
+-- ── Aparición (sustituye las pizarras de qbx_spawn y de qbx_properties) ──────
+-- true: tras JUGAR se elige dónde aparecer con nuestra pantalla (última ubicación,
+-- casas propias y estos puntos). Los personajes sin apartamento eligen antes su
+-- apartamento inicial gratis (qbx_properties), también en nuestra pantalla.
+Config.spawnPicker = true
+
+-- Puntos de la ciudad. Coordenadas de qbx_spawn (config/client.lua).
+Config.spawnPoints = {
+    { label = 'Plaza Legion', detail = 'Centro de la ciudad', coords = vec4(195.17, -933.77, 29.7, 144.5), image = 'img/spawn-centro.jpg' },
+    { label = 'Paleto Bay', detail = 'Pueblo del norte, junto al mar', coords = vec4(80.35, 6424.12, 31.67, 45.5), image = 'img/spawn-paleto.jpg' },
+    { label = 'Motel', detail = 'Habitaciones baratas para empezar', coords = vec4(327.56, -205.08, 53.08, 163.5), image = 'img/spawn-motel.jpg' },
+}
+
+-- Imágenes para la última ubicación y las casas propias.
+Config.spawnImages = { last = 'img/spawn-ultima.jpg', property = 'img/spawn-casa.jpg', apartment = 'img/spawn-casa.jpg' }
+
+-- Textos en español de los apartamentos iniciales (por «interior» de
+-- qbx_properties/config/shared.lua → apartmentOptions). Los que falten usan el suyo.
+Config.apartmentTexts = {
+    DellPerroHeightsApt4 = { label = 'Del Perro Heights', detail = 'Vistas al mar, lejos del ruido de la playa.' },
+    DellPerroHeightsApt7 = { label = 'Del Perro Heights (alto)', detail = 'Planta alta con vistas a toda la costa.' },
+    ['4IntegrityWayApt28'] = { label = '4 Integrity Way', detail = 'En pleno centro, rodeado de rascacielos.' },
+    ['4IntegrityWayApt30'] = { label = '4 Integrity Way (amplio)', detail = 'El más espacioso del edificio.' },
+    RichardMajesticApt2 = { label = 'Richard Majestic', detail = 'Condominio de lujo junto a los estudios de música.' },
+    TinselTowersApt42 = { label = 'Tinsel Towers', detail = 'Torre residencial en Rockford Hills.' },
+}
+
 -- Fechas de nacimiento permitidas (formato AAAA-MM-DD).
 Config.dateMin = '1930-01-01'
 Config.dateMax = '2006-12-31'

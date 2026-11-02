@@ -224,6 +224,44 @@ function PXDChar.qbxManagesCharacters(configText)
     return configText:match('useExternalCharacters%s*=%s*true') == nil
 end
 
+--- ¿qbx_core da apartamento inicial? (config/client.lua → characters.startingApartment).
+--- Si no se puede leer, se asume el valor por defecto de qbx_core (true).
+function PXDChar.qbxStartingApartment(configText)
+    if type(configText) ~= 'string' then return true end
+    return configText:match('startingApartment%s*=%s*false') == nil
+end
+
+local function finite(n) return type(n) == 'number' and n == n and n ~= math.huge and n ~= -math.huge end
+
+--- Lista de opciones de aparición para la interfaz: valida coordenadas y da a cada
+--- opción un id estable. kinds: 'last' (última ubicación), 'property' (casa propia)
+--- y 'point' (puntos de la ciudad de Config.spawnPoints).
+--- Devuelve la lista para la NUI y un índice id → opción (con coords) para el cliente.
+function PXDChar.buildSpawnOptions(last, properties, points)
+    local list, byId = {}, {}
+    local function add(opt)
+        local c = opt.coords
+        if type(c) ~= 'table' and type(c) ~= 'vector3' and type(c) ~= 'vector4' then return end
+        if not (finite(c.x) and finite(c.y) and finite(c.z)) then return end
+        byId[opt.id] = opt
+        list[#list + 1] = { id = opt.id, kind = opt.kind, label = opt.label, detail = opt.detail, image = opt.image }
+    end
+    if type(last) == 'table' and last.coords then
+        add({ id = 'last', kind = 'last', label = 'Última ubicación', detail = 'Donde lo dejaste', coords = last.coords, propertyId = last.propertyId, image = last.image })
+    end
+    for i, p in ipairs(type(properties) == 'table' and properties or {}) do
+        if type(p) == 'table' and type(p.label) == 'string' then
+            add({ id = 'property:' .. tostring(p.propertyId or i), kind = 'property', label = p.label, detail = 'Tu casa', coords = p.coords, propertyId = p.propertyId, image = p.image })
+        end
+    end
+    for i, p in ipairs(type(points) == 'table' and points or {}) do
+        if type(p) == 'table' and type(p.label) == 'string' then
+            add({ id = 'point:' .. i, kind = 'point', label = p.label, detail = p.detail, coords = p.coords, image = p.image })
+        end
+    end
+    return list, byId
+end
+
 --- ¿El nombre escrito para confirmar el borrado coincide con el del personaje?
 function PXDChar.confirmName(card, typed)
     if type(card) ~= 'table' or type(typed) ~= 'string' then return false end

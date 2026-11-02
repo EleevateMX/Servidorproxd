@@ -81,3 +81,13 @@ lib.callback.register('pxd_multichar:server:checkRegistration', function(_, inpu
     if not data then return { ok = false, error = err, field = field } end
     return { ok = true, data = data }
 end)
+
+-- ¿Este personaje (ya cargado) necesita elegir su apartamento inicial?
+-- Misma consulta que qbx_properties (server/apartmentselect.lua) antes de enseñar su pizarra.
+lib.callback.register('pxd_multichar:server:needsApartment', function(source)
+    if GetResourceState('qbx_properties') ~= 'started' then return false end
+    local player = exports.qbx_core:GetPlayer(source)
+    if not player then return false end
+    local row = MySQL.single.await('SELECT id FROM properties WHERE owner = ? LIMIT 1', { player.PlayerData.citizenid })
+    return row == nil
+end)

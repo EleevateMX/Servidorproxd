@@ -5,7 +5,7 @@
   --star: #5ce1ff;
   --nova: #ff4fd8;
   --line: rgba(140, 170, 255, 0.18);
-  --font: "Segoe UI", "Inter", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font: var(--px-font);
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; overflow: hidden; background: transparent; color: var(--text); font-family: var(--font); }
@@ -13,7 +13,7 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: transparent;
 
 /* Aviso pequeño, arriba al centro */
 .toast { position: fixed; top: 4vh; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 10px; padding: 12px 18px; border-radius: 12px;
-  background: rgba(10, 14, 28, .82); border: 1px solid var(--line); backdrop-filter: blur(8px); font-size: 15px; font-weight: 600;
+  background: rgba(10, 14, 28, .82); border: 1px solid var(--line); font-size: 15px; font-weight: 600;
   box-shadow: 0 10px 40px rgba(0, 0, 0, .45); animation: drop .4s ease; }
 .toast::after { content: ''; position: absolute; left: 14px; right: 14px; bottom: 0; height: 2px; border-radius: 2px; background: linear-gradient(90deg, var(--star), var(--nova)); transform-origin: left; animation: shrink 9s linear forwards; }
 .toast__star { width: 16px; height: 16px; fill: var(--star); filter: drop-shadow(0 0 6px rgba(92, 225, 255, .9)); }
@@ -41,7 +41,7 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: transparent;
 .title { margin: 10px 0 0; font-size: clamp(30px, 3.2vw, 48px); font-weight: 800; letter-spacing: -.01em; }
 .lead { margin: 12px auto 0; max-width: 520px; font-size: 17px; line-height: 1.5; color: var(--muted); }
 .steps { list-style: none; margin: 36px 0 0; padding: 0; display: flex; justify-content: center; gap: 14px; counter-reset: step; }
-.steps li { position: relative; width: 200px; padding: 16px 14px 14px; border-radius: 14px; text-align: left; background: rgba(10, 14, 28, .55); border: 1px solid var(--line); backdrop-filter: blur(8px); counter-increment: step; }
+.steps li { position: relative; width: 200px; padding: 16px 14px 14px; border-radius: 14px; text-align: left; background: rgba(10, 14, 28, .55); border: 1px solid var(--line); counter-increment: step; }
 .steps li::before { content: counter(step); position: absolute; top: 14px; right: 14px; font-size: 12px; font-weight: 800; color: rgba(154, 166, 199, .6); }
 .steps svg { width: 22px; height: 22px; fill: none; stroke: var(--nova); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 0 6px rgba(255, 79, 216, .5)); }
 .steps b { display: block; margin-top: 10px; font-size: 14px; }

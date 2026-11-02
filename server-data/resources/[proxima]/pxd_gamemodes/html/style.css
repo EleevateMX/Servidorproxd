@@ -16,7 +16,7 @@
   --danger: #ff6b6b;
   --ok: #4ade80;
   --radius: 14px;
-  --font: "Segoe UI", "Inter", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font: var(--px-font);
 }
 
 * { box-sizing: border-box; }

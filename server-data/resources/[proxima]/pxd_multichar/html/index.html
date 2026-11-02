@@ -1,8 +1,10 @@
 <!doctype html>
-<html lang="es">
+<html lang="es" class="px">
 <head>
   <meta charset="utf-8">
   <title>Próxima RP — Personajes</title>
+  <link rel="stylesheet" href="ui/proxima-fonts.css">
+  <link rel="stylesheet" href="ui/proxima-ui.css">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -138,6 +140,24 @@
 
     <div class="toast hidden" id="toast" role="status"></div>
   </div>
+  <!-- Elegir dónde aparecer / apartamento inicial (sustituye las pizarras de qbx) -->
+  <section class="spawn hidden" id="spawn" aria-live="polite">
+    <div class="spawn__veil" aria-hidden="true"></div>
+    <header class="spawn__head">
+      <img src="logo.svg" alt="Próxima RP" class="spawn__logo">
+      <p class="px-eyebrow" id="spawn-kicker"></p>
+      <h1 class="px-title px-title--l" id="spawn-title"></h1>
+      <p class="spawn__text" id="spawn-text"></p>
+    </header>
+    <ul class="spawn__list" id="spawn-list" role="listbox" aria-label="Opciones"></ul>
+    <footer class="spawn__foot">
+      <p class="spawn__hint"><span class="px-kbd">←</span><span class="px-kbd">→</span> elegir <span class="px-kbd">Enter</span> confirmar</p>
+      <button class="px-btn px-btn--primary px-btn--xl" type="button" id="spawn-go"><span id="spawn-confirm"></span>
+        <svg viewBox="0 0 160 160" class="spawn__star" aria-hidden="true"><path d="M80 12 C85 62 98 75 148 80 C98 85 85 98 80 148 C75 98 62 85 12 80 C62 75 75 62 80 12Z"/></svg>
+      </button>
+    </footer>
+  </section>
+
   <script src="app.js"></script>
 </body>
 </html>

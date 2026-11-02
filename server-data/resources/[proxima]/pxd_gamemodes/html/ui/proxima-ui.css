@@ -1,0 +1,175 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   Próxima UI — tokens y componentes comunes de todas las interfaces del juego.
+   Fuente única: design/ui/proxima-ui.css. `node scripts/sync-ui.mjs` la copia a
+   html/ui/ de cada recurso (no editar las copias).
+
+   Reglas para el juego (NUI de FiveM):
+   - Nada de backdrop-filter: la página es transparente sobre el juego y CEF no
+     difumina el juego; deja rectángulos oscuros. El desenfoque del juego se hace
+     con TriggerScreenblurFadeIn/Out desde Lua.
+   - Superficies sólidas o casi sólidas, texto grande y con contraste.
+   - Tamaños en rem: el html escala con la altura de la pantalla (1080p = 16px).
+   - Los reinicios van en :where() (especificidad 0) para no pisar estilos propios.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+:root {
+  /* Noche (superficies) */
+  --px-bg: #05070f;
+  --px-s1: #0b0f1d;          /* panel */
+  --px-s2: #111729;          /* tarjeta */
+  --px-s3: #182038;          /* tarjeta elevada / hover */
+  --px-s4: #212b4a;          /* activo */
+  --px-scrim: rgba(3, 5, 12, .62);
+  --px-line: rgba(150, 172, 255, .10);
+  --px-line-2: rgba(150, 172, 255, .20);
+
+  /* Texto */
+  --px-text: #f2f5ff;
+  --px-text-2: #aab4d4;
+  --px-text-3: #6e799f;
+
+  /* Marca */
+  --px-star: #5ce1ff;        /* acento principal (información, foco) */
+  --px-nova: #ff4fd8;        /* acción principal */
+  --px-nova-2: #d63bf0;
+  --px-gold: #ffc857;        /* premium / Plus / tienda */
+  --px-grad: linear-gradient(120deg, #5ce1ff 0%, #9b7bff 48%, #ff4fd8 100%);
+  --px-grad-cta: linear-gradient(135deg, #ff5fdc 0%, #c43bf2 100%);
+
+  /* Estado */
+  --px-ok: #3fe08f;
+  --px-warn: #ffb547;
+  --px-danger: #ff5472;
+  --px-info: #5ce1ff;
+
+  /* Necesidades (HUD) */
+  --px-health: #ff5472;
+  --px-armor: #5c8dff;
+  --px-food: #ffb547;
+  --px-water: #5ce1ff;
+  --px-stress: #c06bff;
+  --px-oxygen: #9ef0ff;
+
+  /* Forma */
+  --px-r-xs: 6px;
+  --px-r-s: 9px;
+  --px-r-m: 12px;
+  --px-r-l: 16px;
+  --px-r-xl: 22px;
+  --px-shadow: 0 18px 50px rgba(0, 0, 0, .55);
+  --px-shadow-s: 0 6px 18px rgba(0, 0, 0, .45);
+
+  /* Tipografía */
+  --px-font: 'Inter', 'Segoe UI', Roboto, Arial, sans-serif;
+  --px-display: 'Sora', 'Inter', 'Segoe UI', Arial, sans-serif;
+  --px-fs-xs: .72rem;
+  --px-fs-s: .84rem;
+  --px-fs-m: 1rem;
+  --px-fs-l: 1.2rem;
+  --px-fs-xl: 1.6rem;
+  --px-fs-2xl: 2.2rem;
+  --px-fs-3xl: 3.4rem;
+
+  /* Movimiento */
+  --px-ease: cubic-bezier(.2, .8, .2, 1);
+}
+
+/* 16px a 1080p, proporcional a la altura (mínimo legible en 720p). */
+html.px { font-size: clamp(13px, 1.48vh, 22px); }
+:where(.px), :where(.px) * { box-sizing: border-box; }
+:where(.px) body, :where(body.px) {
+  margin: 0;
+  font-family: var(--px-font);
+  color: var(--px-text);
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: 'cv11', 'ss01';
+}
+:where(.px) button { font: inherit; color: inherit; cursor: pointer; border: 0; background: none; }
+:where(.px) svg.px-ico { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+
+/* Barras de desplazamiento discretas */
+.px ::-webkit-scrollbar { width: 8px; height: 8px; }
+.px ::-webkit-scrollbar-thumb { background: var(--px-s4); border-radius: 8px; }
+.px ::-webkit-scrollbar-track { background: transparent; }
+
+/* ── Texto ─────────────────────────────────────────────────────────────── */
+.px-eyebrow { margin: 0; font-size: var(--px-fs-xs); font-weight: 800; letter-spacing: .2em; text-transform: uppercase; color: var(--px-star); }
+.px-title { margin: 0; font-family: var(--px-display); font-weight: 800; letter-spacing: -.01em; line-height: 1.1; }
+.px-title--xl { font-size: var(--px-fs-3xl); text-transform: uppercase; }
+.px-title--l { font-size: var(--px-fs-2xl); }
+.px-title--m { font-size: var(--px-fs-xl); }
+.px-muted { color: var(--px-text-2); }
+.px-dim { color: var(--px-text-3); }
+.px-num { font-variant-numeric: tabular-nums; }
+
+/* ── Superficies ───────────────────────────────────────────────────────── */
+.px-scrim { position: fixed; inset: 0; background: radial-gradient(120% 90% at 50% 40%, rgba(5, 7, 15, .35), var(--px-scrim)); }
+.px-panel { background: var(--px-s1); border: 1px solid var(--px-line); border-radius: var(--px-r-xl); box-shadow: var(--px-shadow); }
+.px-card { background: var(--px-s2); border: 1px solid var(--px-line); border-radius: var(--px-r-l); }
+.px-card--hover { transition: background .15s, border-color .15s, transform .15s var(--px-ease); }
+.px-card--hover:hover { background: var(--px-s3); border-color: var(--px-line-2); }
+.px-card.is-active { background: var(--px-s4); border-color: rgba(255, 79, 216, .55); box-shadow: inset 0 0 0 1px rgba(255, 79, 216, .25); }
+.px-divider { height: 1px; background: var(--px-line); border: 0; margin: 0; }
+
+/* ── Botones ───────────────────────────────────────────────────────────── */
+.px-btn { display: inline-flex; align-items: center; justify-content: center; gap: .55em; min-height: 2.6rem; padding: 0 1.15rem; border-radius: var(--px-r-m);
+  font-weight: 700; font-size: var(--px-fs-s); letter-spacing: .02em; white-space: nowrap; transition: filter .15s, transform .1s, background .15s, border-color .15s; }
+.px-btn:active { transform: translateY(1px); }
+.px-btn:disabled { opacity: .45; cursor: not-allowed; }
+.px-btn--primary { background: var(--px-grad-cta); color: #fff; box-shadow: 0 8px 24px rgba(255, 79, 216, .28); }
+.px-btn--primary:hover { filter: brightness(1.08); }
+.px-btn--secondary { background: var(--px-s3); color: var(--px-text); border: 1px solid var(--px-line-2); }
+.px-btn--secondary:hover { background: var(--px-s4); }
+.px-btn--ghost { color: var(--px-text-2); border: 1px solid var(--px-line); }
+.px-btn--ghost:hover { color: var(--px-text); background: var(--px-s2); }
+.px-btn--gold { background: linear-gradient(135deg, #ffd978, var(--px-gold) 60%, #f0a92a); color: #1d1404; box-shadow: 0 8px 22px rgba(255, 200, 87, .25); }
+.px-btn--danger { background: rgba(255, 84, 114, .14); color: #ff8aa0; border: 1px solid rgba(255, 84, 114, .4); }
+.px-btn--xl { min-height: 3.4rem; padding: 0 2rem; font-size: var(--px-fs-l); font-family: var(--px-display); letter-spacing: .14em; text-transform: uppercase; border-radius: var(--px-r-l); }
+.px-icon-btn { width: 2.4rem; height: 2.4rem; display: grid; place-items: center; border-radius: var(--px-r-m); background: var(--px-s2); border: 1px solid var(--px-line); color: var(--px-text-2); }
+.px-icon-btn:hover { color: var(--px-text); background: var(--px-s3); }
+
+/* Tecla (pistas de control) */
+.px-kbd { display: inline-grid; place-items: center; min-width: 1.7rem; height: 1.7rem; padding: 0 .45rem; border-radius: var(--px-r-xs);
+  background: var(--px-text); color: var(--px-bg); font-weight: 800; font-size: var(--px-fs-s); box-shadow: 0 2px 0 rgba(0, 0, 0, .5); }
+
+/* ── Insignias y chips ─────────────────────────────────────────────────── */
+.px-badge { display: inline-flex; align-items: center; gap: .35em; height: 1.45rem; padding: 0 .55rem; border-radius: 999px; font-size: var(--px-fs-xs); font-weight: 800; letter-spacing: .06em; text-transform: uppercase;
+  background: rgba(92, 225, 255, .12); color: var(--px-star); border: 1px solid rgba(92, 225, 255, .3); }
+.px-badge--nova { background: rgba(255, 79, 216, .14); color: #ff8ae6; border-color: rgba(255, 79, 216, .35); }
+.px-badge--gold { background: rgba(255, 200, 87, .14); color: var(--px-gold); border-color: rgba(255, 200, 87, .38); }
+.px-badge--ok { background: rgba(63, 224, 143, .12); color: var(--px-ok); border-color: rgba(63, 224, 143, .35); }
+.px-badge--muted { background: var(--px-s3); color: var(--px-text-2); border-color: var(--px-line-2); }
+.px-tag { display: inline-flex; align-items: center; height: 1.6rem; padding: 0 .6rem; border-radius: var(--px-r-xs); background: var(--px-s3); color: var(--px-text-2); font-size: var(--px-fs-xs); font-weight: 700; font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace; letter-spacing: .04em; }
+
+/* ── Barras de progreso ────────────────────────────────────────────────── */
+.px-bar { position: relative; height: .5rem; border-radius: 999px; background: rgba(150, 172, 255, .12); overflow: hidden; }
+.px-bar > i { position: absolute; inset: 0 auto 0 0; width: var(--v, 0%); border-radius: inherit; background: var(--c, var(--px-grad)); transition: width .4s var(--px-ease); }
+
+/* ── Campos ────────────────────────────────────────────────────────────── */
+.px-field { display: grid; gap: .4rem; }
+.px-label { font-size: var(--px-fs-xs); font-weight: 800; letter-spacing: .16em; text-transform: uppercase; color: var(--px-text-2); }
+.px-input { width: 100%; min-height: 2.75rem; padding: 0 .9rem; border-radius: var(--px-r-m); background: var(--px-bg); color: var(--px-text); border: 1px solid var(--px-line-2); font: inherit; font-size: var(--px-fs-m); outline: none; }
+.px-input:focus { border-color: var(--px-star); box-shadow: 0 0 0 3px rgba(92, 225, 255, .18); }
+.px-input.is-invalid { border-color: var(--px-danger); box-shadow: 0 0 0 3px rgba(255, 84, 114, .18); }
+
+/* ── Avisos (toasts) ───────────────────────────────────────────────────── */
+.px-toasts { position: fixed; top: 2.2rem; left: 50%; transform: translateX(-50%); display: grid; gap: .6rem; z-index: 100; pointer-events: none; }
+.px-toast { position: relative; display: flex; align-items: center; gap: .8rem; min-width: 20rem; max-width: 34rem; padding: .85rem 1.1rem .95rem; border-radius: var(--px-r-m);
+  background: var(--px-s1); border: 1px solid var(--px-line-2); box-shadow: var(--px-shadow-s); font-size: var(--px-fs-s); font-weight: 600; animation: px-drop .35s var(--px-ease); overflow: hidden; }
+.px-toast::after { content: ''; position: absolute; left: 0; bottom: 0; height: 3px; width: 100%; background: var(--c, var(--px-grad)); transform-origin: left; animation: px-shrink var(--t, 6s) linear forwards; }
+.px-toast__ico { width: 2rem; height: 2rem; border-radius: var(--px-r-s); display: grid; place-items: center; flex: none; background: rgba(92, 225, 255, .12); color: var(--px-star); }
+.px-toast--ok .px-toast__ico { background: rgba(63, 224, 143, .12); color: var(--px-ok); }
+.px-toast--error .px-toast__ico { background: rgba(255, 84, 114, .14); color: var(--px-danger); }
+.px-toast--ok { --c: var(--px-ok); }
+.px-toast--error { --c: var(--px-danger); }
+.px-toast b { display: block; font-size: var(--px-fs-m); }
+@keyframes px-drop { from { opacity: 0; transform: translateY(-10px); } }
+@keyframes px-shrink { to { transform: scaleX(0); } }
+@keyframes px-fade { from { opacity: 0; } }
+@keyframes px-rise { from { opacity: 0; transform: translateY(12px) scale(.985); } }
+
+/* Destello de 4 puntas (marca) */
+.px-star { width: 1em; height: 1em; fill: currentColor; color: var(--px-star); filter: drop-shadow(0 0 6px rgba(92, 225, 255, .7)); }
+
+/* Accesibilidad: menos movimiento */
+.px.reduce-motion *, .px.reduce-motion *::before, .px.reduce-motion *::after { animation: none !important; transition: none !important; }

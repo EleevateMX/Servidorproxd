@@ -331,8 +331,78 @@
     $('modal').classList.add('hidden');
   }
 
+  // ── Aparición / apartamento inicial ─────────────────
+  const BADGE = { last: ['Última ubicación', 'px-badge'], property: ['Tu casa', 'px-badge px-badge--gold'], point: ['Ciudad', 'px-badge px-badge--muted'], apartment: ['Gratis', 'px-badge px-badge--ok'] };
+  let spawnView = null;
+  let spawnSel = 0;
+  let spawnSending = false;
+
+  function renderSpawn() {
+    const list = $('spawn-list');
+    list.replaceChildren();
+    spawnView.options.forEach((o, i) => {
+      const li = document.createElement('li');
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'spawn__item' + (i === spawnSel ? ' is-active' : '');
+      btn.setAttribute('role', 'option');
+      btn.setAttribute('aria-selected', String(i === spawnSel));
+      const img = document.createElement('div');
+      img.className = 'spawn__img';
+      if (o.image && /^[\w./-]+\.(jpg|jpeg|png|webp)$/.test(o.image)) img.style.backgroundImage = `url("${o.image}")`;
+      const [label, cls] = BADGE[o.kind] || BADGE.point;
+      const badge = document.createElement('span');
+      badge.className = cls;
+      badge.textContent = label;
+      const body = document.createElement('div');
+      body.className = 'spawn__body';
+      const b = document.createElement('b'); b.textContent = o.label || '';
+      const d = document.createElement('span'); d.textContent = o.detail || '';
+      body.append(b, d);
+      btn.append(img, badge, body);
+      btn.addEventListener('click', () => { if (spawnSel === i) chooseSpawn(); else { spawnSel = i; renderSpawn(); } });
+      li.appendChild(btn);
+      list.appendChild(li);
+    });
+    const active = list.querySelector('.is-active');
+    if (active && active.scrollIntoView) active.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  }
+
+  function openSpawn(view) {
+    spawnView = view;
+    spawnView.options = Array.isArray(view.options) ? view.options : [];
+    spawnSel = 0;
+    spawnSending = false;
+    $('spawn-kicker').textContent = view.kicker || '';
+    $('spawn-title').textContent = view.title || '';
+    $('spawn-text').textContent = view.text || '';
+    $('spawn-confirm').textContent = view.confirm || 'Aparecer';
+    $('app').classList.add('hidden');
+    $('spawn').classList.remove('hidden');
+    renderSpawn();
+  }
+
+  async function chooseSpawn() {
+    if (!spawnView || spawnSending) return;
+    const opt = spawnView.options[spawnSel];
+    if (!opt) return;
+    spawnSending = true;
+    const res = await post('spawnChoose', { id: opt.id });
+    if (!res || !res.ok) spawnSending = false;
+  }
+
+  $('spawn-go').addEventListener('click', chooseSpawn);
+  document.addEventListener('keydown', (e) => {
+    if (!spawnView || $('spawn').classList.contains('hidden')) return;
+    if (e.key === 'ArrowRight') { spawnSel = Math.min(spawnView.options.length - 1, spawnSel + 1); renderSpawn(); }
+    else if (e.key === 'ArrowLeft') { spawnSel = Math.max(0, spawnSel - 1); renderSpawn(); }
+    else if (e.key === 'Enter') chooseSpawn();
+  });
+
   window.addEventListener('message', (e) => {
     const msg = e.data || {};
+    if (msg.action === 'spawn' && msg.data) openSpawn(msg.data);
+    else if (msg.action === 'spawnClose') { $('spawn').classList.add('hidden'); spawnView = null; }
     if (msg.action === 'open' && msg.data) open(msg.data);
     else if (msg.action === 'close') close();
     else if (msg.action === 'busy') setBusy(msg.value);
@@ -379,6 +449,7 @@
   function demoPost(name, body) {
     if (name === 'create') return { ok: false, field: 'firstname', error: 'Demostración: aquí se crearía el personaje.' };
     if (name === 'delete') return { ok: true };
+    if (name === 'spawnChoose') return { ok: true };
     return { ok: true, body };
   }
 
@@ -408,7 +479,20 @@
       dateMax: '2006-12-31',
     });
     const view = params.get('view');
-    if (view === 'create') select(2);
+    if (view === 'spawn') openSpawn({ mode: 'spawn', kicker: '¿Dónde apareces?', title: 'Elige dónde empezar', text: 'Vuelve donde lo dejaste, a tu casa o a un punto de la ciudad.', confirm: 'Aparecer', options: [
+      { id: 'last', kind: 'last', label: 'Última ubicación', detail: 'Donde lo dejaste', image: 'img/spawn-ultima.jpg' },
+      { id: 'property:1', kind: 'property', label: 'Del Perro Heights 12', detail: 'Tu casa', image: 'img/spawn-casa.jpg' },
+      { id: 'point:1', kind: 'point', label: 'Plaza Legion', detail: 'Centro de la ciudad', image: 'img/spawn-centro.jpg' },
+      { id: 'point:2', kind: 'point', label: 'Paleto Bay', detail: 'Pueblo del norte, junto al mar', image: 'img/spawn-paleto.jpg' },
+      { id: 'point:3', kind: 'point', label: 'Motel', detail: 'Habitaciones baratas para empezar', image: 'img/spawn-motel.jpg' },
+    ] });
+    else if (view === 'apartment') openSpawn({ mode: 'apartment', kicker: 'Tu primer hogar', title: 'Elige tu apartamento', text: 'Es gratis y será tu casa en la ciudad: ahí guardas tus cosas y te cambias de ropa.', confirm: 'Mudarme aquí', options: [
+      { id: 'apt:1', kind: 'apartment', label: 'Del Perro Heights', detail: 'Vistas al mar, lejos del ruido de la playa.', image: 'img/spawn-casa.jpg' },
+      { id: 'apt:3', kind: 'apartment', label: '4 Integrity Way', detail: 'En pleno centro, rodeado de rascacielos.', image: 'img/spawn-casa.jpg' },
+      { id: 'apt:5', kind: 'apartment', label: 'Richard Majestic', detail: 'Condominio de lujo junto a los estudios de música.', image: 'img/spawn-casa.jpg' },
+      { id: 'apt:6', kind: 'apartment', label: 'Tinsel Towers', detail: 'Torre residencial en Rockford Hills.', image: 'img/spawn-casa.jpg' },
+    ] });
+    else if (view === 'create') select(2);
     else if (view === 'locked') select(3);
     else if (view === 'delete') openDelete();
   }

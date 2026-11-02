@@ -15,6 +15,20 @@ do -- el punto de aparición por defecto de qbx_core (config/shared.lua), si se 
     if ok and type(cfg) == 'table' and cfg.defaultSpawn then defaultSpawn = cfg.defaultSpawn end
 end
 
+-- ¿qbx_core da apartamento inicial? (characters.startingApartment, true por defecto)
+local qbxStartingApartment = PXDChar.qbxStartingApartment(LoadResourceFile('qbx_core', 'config/client.lua'))
+
+-- Apartamentos iniciales de qbx_properties (config/shared.lua → apartmentOptions).
+-- Si no se pueden leer, se usa su pizarra original.
+local function apartmentOptions()
+    local text = LoadResourceFile('qbx_properties', 'config/shared.lua')
+    local chunk = text and load(text, '@qbx_properties/config/shared.lua', 't', { vec3 = vec3, vector3 = vector3, vec4 = vec4, vector4 = vector4, joaat = joaat })
+    local ok, cfg = false, nil
+    if chunk then ok, cfg = pcall(chunk) end
+    if not ok or type(cfg) ~= 'table' or type(cfg.apartmentOptions) ~= 'table' then return nil end
+    return cfg.apartmentOptions
+end
+
 -- Aspectos por defecto al crear (los mismos que usa qbx_core).
 local defaultPeds = {
     [0] = {
@@ -188,6 +202,99 @@ RegisterNetEvent('qbx_core:client:spawnNoApartments', function()
     TriggerEvent('qb-clothes:client:CreateFirstCharacter')
 end)
 
+-- ── Pantalla de aparición propia ───────────────────────────────────────
+local pickerChoice -- promise mientras la pantalla está abierta
+local pickerIds = {}
+
+--- Abre la pantalla de elección y espera. view: { mode, kicker, title, text, confirm, options }
+local function pick(view, ids)
+    pickerIds = ids
+    pickerChoice = promise.new()
+    SetNuiFocus(true, true)
+    SendNUIMessage({ action = 'spawn', data = view })
+    local id = Citizen.Await(pickerChoice)
+    pickerChoice = nil
+    SetNuiFocus(false, false)
+    SendNUIMessage({ action = 'spawnClose' })
+    return id
+end
+
+RegisterNUICallback('spawnChoose', function(data, cb)
+    local id = type(data) == 'table' and data.id
+    if not pickerChoice or type(id) ~= 'string' or not pickerIds[id] then return cb({ ok = false }) end
+    cb({ ok = true })
+    pickerChoice:resolve(id)
+end)
+
+--- Elegir y crear el apartamento inicial (como qbx_properties/client/apartmentselect.lua,
+--- inputConfirm). Devuelve false si no se pudo usar nuestra pantalla.
+local function chooseApartment()
+    local options = apartmentOptions()
+    if not options or #options == 0 then return false end
+    local list, ids = {}, {}
+    for i, a in ipairs(options) do
+        local t = Config.apartmentTexts[a.interior] or {}
+        local id = 'apt:' .. i
+        ids[id] = i
+        list[#list + 1] = { id = id, kind = 'apartment', label = t.label or a.label, detail = t.detail or a.description, image = Config.spawnImages.apartment }
+    end
+    local id = pick({ mode = 'apartment', kicker = 'Tu primer hogar', title = 'Elige tu apartamento',
+        text = 'Es gratis y será tu casa en la ciudad: ahí guardas tus cosas y te cambias de ropa.', confirm = 'Mudarme aquí', options = list }, ids)
+    local index = ids[id]
+    local apt = options[index]
+    DoScreenFadeOut(500)
+    while not IsScreenFadedOut() do Wait(0) end
+    destroyPreviewCam()
+    FreezeEntityPosition(cache.ped, false)
+    SetEntityCoords(cache.ped, apt.enter.x, apt.enter.y, apt.enter.z - 2.0, false, false, false, false)
+    Wait(0)
+    TriggerServerEvent('qbx_properties:server:apartmentSelect', index)
+    Wait(1000) -- como qbx_properties: deja que el servidor coloque al jugador antes de cargar
+    TriggerServerEvent('QBCore:Server:OnPlayerLoaded')
+    TriggerEvent('QBCore:Client:OnPlayerLoaded')
+    -- Por si nada vuelve a mostrar la pantalla (qbx_properties la abre al entrar).
+    SetTimeout(6000, function() if IsScreenFadedOut() then DoScreenFadeIn(500) end end)
+    return true
+end
+
+--- Elegir dónde aparecer un personaje existente (como qbx_spawn/client/main.lua).
+local function chooseSpawn()
+    local last, properties
+    if GetResourceState('qbx_spawn'):find('start') then
+        local coords, propertyId = lib.callback.await('qbx_spawn:server:getLastLocation')
+        if coords then last = { coords = coords, propertyId = propertyId } end
+        properties = lib.callback.await('qbx_spawn:server:getProperties') or {}
+    else
+        local data = exports.qbx_core:GetPlayerData()
+        if data and data.position then last = { coords = data.position } end
+    end
+    if last then last.image = Config.spawnImages.last end
+    for _, p in ipairs(properties or {}) do p.image = Config.spawnImages.property end
+    local list, byId = PXDChar.buildSpawnOptions(last, properties, Config.spawnPoints)
+    if #list == 0 then return spawnAt(defaultSpawn) end
+    local id = pick({ mode = 'spawn', kicker = '¿Dónde apareces?', title = 'Elige dónde empezar',
+        text = 'Vuelve donde lo dejaste, a tu casa o a un punto de la ciudad.', confirm = 'Aparecer', options = list }, byId)
+    local opt = byId[id]
+    DoScreenFadeOut(500)
+    while not IsScreenFadedOut() do Wait(0) end
+    destroyPreviewCam()
+    TriggerServerEvent('QBCore:Server:OnPlayerLoaded')
+    TriggerEvent('QBCore:Client:OnPlayerLoaded')
+    FreezeEntityPosition(cache.ped, false)
+    DisplayRadar(true)
+    if opt.propertyId then
+        TriggerServerEvent('qbx_properties:server:enterProperty', { id = opt.propertyId, isSpawn = true })
+    else
+        SetEntityCoords(cache.ped, opt.coords.x, opt.coords.y, opt.coords.z, false, false, false, false)
+        SetEntityHeading(cache.ped, opt.coords.w or 0.0)
+    end
+    DoScreenFadeIn(800)
+end
+
+local function apartmentsEnabled()
+    return qbxStartingApartment and GetResourceState('qbx_properties'):find('start') ~= nil
+end
+
 -- ── Pantalla de personajes ─────────────────────────────────────────────
 local chooseCharacter
 
@@ -282,7 +389,14 @@ RegisterNUICallback('play', function(data, cb)
     setUi(false)
     DoScreenFadeOut(10)
     lib.callback.await('qbx_core:server:loadCharacter', false, data.citizenid)
-    if GetResourceState('qbx_apartments'):find('start') then
+    if Config.spawnPicker then
+        DoScreenFadeIn(300)
+        if apartmentsEnabled() and lib.callback.await('pxd_multichar:server:needsApartment', false) and chooseApartment() then
+            -- ya colocado en su apartamento nuevo
+        else
+            chooseSpawn()
+        end
+    elseif GetResourceState('qbx_apartments'):find('start') then
         TriggerEvent('apartments:client:setupSpawnUI', data.citizenid)
     elseif GetResourceState('qbx_spawn'):find('start') then
         TriggerEvent('qb-spawn:client:setupSpawns', data.citizenid)
@@ -317,7 +431,12 @@ RegisterNUICallback('create', function(data, cb)
         SendNUIMessage({ action = 'toast', text = 'No se pudo crear el personaje. Inténtalo de nuevo.' })
         return
     end
-    if GetResourceState('qbx_spawn') == 'missing' then
+    if Config.spawnPicker and apartmentsEnabled() then
+        DoScreenFadeIn(300)
+        if not chooseApartment() then
+            TriggerEvent('apartments:client:setupSpawnUI', newData) -- su pizarra, si no pudimos leer su config
+        end
+    elseif GetResourceState('qbx_spawn') == 'missing' then
         spawnDefault()
     elseif Config.startingApartment and GetResourceState('qbx_apartments'):find('start') then
         TriggerEvent('apartments:client:setupSpawnUI', newData)
