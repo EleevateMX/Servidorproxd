@@ -111,6 +111,37 @@
    "sha256": "5714951f38c6d24ee4b569d55b9571d4c31cc9d44508ef4c58f2ea92edca716b"
   },
   {
+   "resource": "pxd_jobs",
+   "path": "client/main.lua",
+   "size": 7449,
+   "sha256": "c5687716fa39f296ad9c78e401df7a279f1229f340d97f09790bb77ac790214f"
+  },
+  {
+   "resource": "pxd_jobs",
+   "path": "config.lua",
+   "size": 4693,
+   "sha256": "af4125182f5dc38d67742eb8d64766e9b4079ba394f41779baeb68de4dc325bf",
+   "config": true
+  },
+  {
+   "resource": "pxd_jobs",
+   "path": "fxmanifest.lua",
+   "size": 301,
+   "sha256": "83b3557950e1e0f574aa7d65d90f86717e4a716b9a1726f3e5e8e8f06807514e"
+  },
+  {
+   "resource": "pxd_jobs",
+   "path": "server/main.lua",
+   "size": 9001,
+   "sha256": "93e9f3fbc4f30bdab535f806e8e910e7663d70334a0dd95d7dd4615b1b1f3518"
+  },
+  {
+   "resource": "pxd_jobs",
+   "path": "shared/jobs.lua",
+   "size": 9599,
+   "sha256": "9d4b49cd3bc0825aa8b2b1fca4005c581827798b95086c8b09ecc28cde459c99"
+  },
+  {
    "resource": "pxd_loadscreen",
    "path": "client.lua",
    "size": 1496,
@@ -491,6 +522,7 @@
   "autostart": [
    "pxd_progress",
    "pxd_restart",
+   "pxd_jobs",
    "pxd_multichar"
   ],
   "replaces": {},

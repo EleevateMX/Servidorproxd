@@ -20,13 +20,15 @@ Idea: crecer poco a poco. Primero lo que ya existe y funciona (Qbox y sus recurs
 
 ## Fase 2 — Trabajos legales
 
-Ya existen en la receta completa de Qbox; se activan uno a uno, configurados y probados:
+**En marcha** — ver `docs/15-trabajos.md`. En `recipe-qbox.yaml` ya van los trabajos oficiales de Qbox y las casas; lo que Qbox no trae lo hace `pxd_jobs`:
 
-| Prioridad | Trabajos |
-|---|---|
-| 1 | Policía, EMS, mecánico |
-| 2 | Taxi, camionero, grúa, basurero |
-| 3 | Autobús, noticias, reciclaje, buceo, viñedo |
+| Prioridad | Trabajos | Estado |
+|---|---|---|
+| 1 | Policía, EMS, mecánico | Oficiales de Qbox (en la receta) |
+| 2 | Taxi, camionero, grúa, basurero, autobús | Oficiales de Qbox (en la receta; se cogen en el ayuntamiento) |
+| 3 | Periodista, reciclaje, buceo, viñedo, desguace | Oficiales de Qbox (en la receta) |
+| Propios | Minero, leñador, pescador, repartidor | `pxd_jobs` (hay que revisar los puntos en el juego) |
+| Casas | `qbx_properties` | Oficial de Qbox (en la receta) |
 
 Con cada trabajo: sus escenarios (comisaría, hospital, taller) con el editor de props o blueprints, y MLO si hacen falta.
 
