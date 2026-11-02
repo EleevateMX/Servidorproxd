@@ -15,7 +15,7 @@ $engine: 3
 $onesync: on
 name: Próxima RP + Qbox
 author: Próxima RP (basada en Qbox Lean de The Community)
-description: Próxima RP sobre Qbox Lean (qbx_core, ox, voz, teléfono, policía, EMS, concesionario, ayuntamiento) + trabajos (mecánico, grúa, taxi, camionero, basurero, autobús, periodista, minero, leñador, pescador, repartidor…) y casas con modos de juego, editor de props, login y pantalla de carga propios. Requiere base de datos.
+description: Próxima RP sobre Qbox Lean (qbx_core, ox, voz, teléfono, policía, EMS, concesionario, ayuntamiento) + trabajos (mecánico, grúa, taxi, camionero, basurero, autobús, periodista, minero, leñador, pescador, repartidor…) y casas con modos de juego, editor de props, login y pantalla de carga propios. HUD, panel (TAB) y selección de personaje propios. Requiere base de datos.
 
 tasks:  #  Download Base Files
   - action: download_github
@@ -241,12 +241,7 @@ tasks:  #  Download Base Files
   - action: query_database
     file: ./resources/[qbx]/qbx_vehicleshop/vehshop.sql
 
-  - action: download_file
-    path: ./tmp/qbx_hud.zip
-    url: https://github.com/qbox-project/qbx_hud/releases/latest/download/qbx_hud.zip
-  - action: unzip
-    dest: ./resources/[qbx]
-    src: ./tmp/qbx_hud.zip
+  # qbx_hud no se instala: lo sustituye pxd_hud (Próxima).
 
   - action: download_github
     dest: ./resources/[qbx]/qbx_seatbelt
@@ -496,6 +491,11 @@ tasks:  #  Download Base Files
     src: ./resources/[npwd]/qbx_npwd/config.json
     dest: ./resources/[npwd]/npwd/config.json
     overwrite: true
+
+  - action: replace_string # teléfono en español
+    file: ./resources/[npwd]/npwd/config.json
+    search: '"defaultLanguage": "en"'
+    replace: '"defaultLanguage": "es"'
 
   - action: download_file
     path: ./tmp/npwd_qbx_garages.zip

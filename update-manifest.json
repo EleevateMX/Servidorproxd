@@ -111,6 +111,67 @@
    "sha256": "5714951f38c6d24ee4b569d55b9571d4c31cc9d44508ef4c58f2ea92edca716b"
   },
   {
+   "resource": "pxd_hud",
+   "path": "client/main.lua",
+   "size": 9692,
+   "sha256": "d239d9cbad73836e2eb0ea1fe5522ecc2e45fec15f3c69f66a30f586b17b1e39"
+  },
+  {
+   "resource": "pxd_hud",
+   "path": "config.lua",
+   "size": 1761,
+   "sha256": "2962b9fa96d1ea249b01798cb03b259803de46327e39aed71fb419c8fa3c3d16",
+   "config": true
+  },
+  {
+   "resource": "pxd_hud",
+   "path": "fxmanifest.lua",
+   "size": 453,
+   "sha256": "748e6fca5f4558235d63f005fee08565f360d4799ff662dcc4fe4a0853ca2136"
+  },
+  {
+   "resource": "pxd_hud",
+   "path": "html/app.js",
+   "size": 7184,
+   "sha256": "3bfe87981a2dc0fa15498270cd309b52385722b52fa5154c79f5c3ab5c185080"
+  },
+  {
+   "resource": "pxd_hud",
+   "path": "html/index.html",
+   "size": 5933,
+   "sha256": "8d25eefe1f288a8cf0cc170af6cfbf61d1f768c80931851fa1c3ec1ae11ad212"
+  },
+  {
+   "resource": "pxd_hud",
+   "path": "html/style.css",
+   "size": 9392,
+   "sha256": "3f0eb7443056c39c9f6b2d98e9875464ba051d0ab19ff6367e63e53bed236097"
+  },
+  {
+   "resource": "pxd_hud",
+   "path": "npwd/config.json",
+   "size": 2811,
+   "sha256": "4b0edde276da24a98f4bd77fbeb12f5379905fb56cba727282b6c8a304a75b48"
+  },
+  {
+   "resource": "pxd_hud",
+   "path": "npwd/fondo-proxima.svg",
+   "size": 25250,
+   "sha256": "7e026d410d2c944aca90db70fcfaac2c4230cdcf9089928021e84a1672e4f5df"
+  },
+  {
+   "resource": "pxd_hud",
+   "path": "server/main.lua",
+   "size": 2041,
+   "sha256": "15ccbdbb47abcf7bdba9fb38673c1c21cd80def53c7adea27cdb42a12384ecf1"
+  },
+  {
+   "resource": "pxd_hud",
+   "path": "shared/hud.lua",
+   "size": 3915,
+   "sha256": "8d20bfedf9ecab363d9cd2b558a849e114a61142e99e353a6c8783b9713d364f"
+  },
+  {
    "resource": "pxd_jobs",
    "path": "client/main.lua",
    "size": 7449,
@@ -293,6 +354,67 @@
    "path": "shared/multichar.lua",
    "size": 9994,
    "sha256": "f672efd4c79fb413303723f106b915d815af6c344bf1e40c2b10d38619d237ea"
+  },
+  {
+   "resource": "pxd_panel",
+   "path": "client/main.lua",
+   "size": 2385,
+   "sha256": "e53aa0d55fc6f245ed03840932321bf7af98add8332e3ef430e848e32b79eb62"
+  },
+  {
+   "resource": "pxd_panel",
+   "path": "config.lua",
+   "size": 3125,
+   "sha256": "adc00b829c639f6244f09051e5fc2ad6d0efa02fa7bd407c5377b45a22c5c014",
+   "config": true
+  },
+  {
+   "resource": "pxd_panel",
+   "path": "fxmanifest.lua",
+   "size": 549,
+   "sha256": "b9343d787436c876bbcbea1be70478be0c8d553812e7f7796a48237b4979f93c"
+  },
+  {
+   "resource": "pxd_panel",
+   "path": "html/app.js",
+   "size": 43003,
+   "sha256": "783b8be639c807c750647fe9f6e2f9b4e6f63856e46445e33d962b4fbedb152a"
+  },
+  {
+   "resource": "pxd_panel",
+   "path": "html/index.html",
+   "size": 2415,
+   "sha256": "4ee3a732e8f3944fc7e62b562f09e13d5b2caad431af4d34e28c9cdd5ff8c54c"
+  },
+  {
+   "resource": "pxd_panel",
+   "path": "html/logo.svg",
+   "size": 1335,
+   "sha256": "7a98455a0e55f769f346a8977fca200177c322b15cf60579109cc79f7d9d7c35"
+  },
+  {
+   "resource": "pxd_panel",
+   "path": "html/style.css",
+   "size": 26681,
+   "sha256": "e6d6576383b9cff7e97d0cdb0fb46201e21e1b8fe8bea045e2c60b4bb41b2a69"
+  },
+  {
+   "resource": "pxd_panel",
+   "path": "server/main.lua",
+   "size": 4726,
+   "sha256": "d6c4d9048a2b2c07e440ee16381a849b90ffaffd4f387826610464c0ad26c9f9"
+  },
+  {
+   "resource": "pxd_panel",
+   "path": "shared/panel.lua",
+   "size": 9233,
+   "sha256": "1c5ae9b5a979d929030a0a237dd3310b52e4459fc99b28a4e255498c7d36964a"
+  },
+  {
+   "resource": "pxd_panel",
+   "path": "shared/rules.lua",
+   "size": 8519,
+   "sha256": "db8cb58ed6fa91ebc94b4b201249f2e7082f17136ef3e43b41b320180f1b49c3"
   },
   {
    "resource": "pxd_progress",
@@ -523,9 +645,15 @@
    "pxd_progress",
    "pxd_restart",
    "pxd_jobs",
-   "pxd_multichar"
+   "pxd_panel",
+   "pxd_multichar",
+   "pxd_hud"
   ],
-  "replaces": {},
+  "replaces": {
+   "pxd_hud": [
+    "qbx_hud"
+   ]
+  },
   "patches": [
    {
     "resource": "qbx_core",
@@ -534,6 +662,14 @@
     "replace": "useExternalCharacters = true",
     "requires": "pxd_multichar",
     "why": "pantalla de personajes de Próxima"
+   },
+   {
+    "resource": "npwd",
+    "path": "config.json",
+    "find": "\"defaultLanguage\": \"en\"",
+    "replace": "\"defaultLanguage\": \"es\"",
+    "requires": "pxd_hud",
+    "why": "teléfono en español"
    }
   ],
   "external": [

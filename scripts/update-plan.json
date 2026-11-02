@@ -21,6 +21,14 @@
    "replace": "useExternalCharacters = true",
    "requires": "pxd_multichar",
    "why": "pantalla de personajes de Próxima"
+  },
+  {
+   "resource": "npwd",
+   "path": "config.json",
+   "find": "\"defaultLanguage\": \"en\"",
+   "replace": "\"defaultLanguage\": \"es\"",
+   "requires": "pxd_hud",
+   "why": "teléfono en español"
   }
  ]
 }
