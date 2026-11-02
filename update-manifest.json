@@ -285,8 +285,8 @@
   {
    "resource": "pxd_updater",
    "path": "server/main.lua",
-   "size": 6658,
-   "sha256": "f8748a18c577a5d4e642395aa6501c8b886b0da683a9d1a21eb84a7296b4b245"
+   "size": 7581,
+   "sha256": "92d14ff387f7a360abbdb7e51238bf5618588561d400c84064236a16991c7fe8"
   },
   {
    "resource": "pxd_updater",

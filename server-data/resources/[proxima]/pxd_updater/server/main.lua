@@ -113,17 +113,30 @@ local function run(src, mode)
         SaveResourceFile(RES, Config.stateFile, json.encode(state), -1)
 
         -- Reinicio de los recursos tocados (el propio actualizador, al final).
+        -- `ensure` ejecuta stop/start con los permisos de quien lo llama (ACE command.stop
+        -- y command.start); los natives StopResource/StartResource no los piden, pero no
+        -- permiten pararse a uno mismo. Por eso el propio actualizador usa `ensure`.
         ExecuteCommand('refresh')
         local self = false
         for _, res in ipairs(order) do
             if res == RES then self = true
-            elseif GetResourceState(res) == 'started' then ExecuteCommand('ensure ' .. res) end
+            elseif GetResourceState(res) == 'started' then
+                StopResource(res)
+                if not StartResource(res) then
+                    log(src, ('No se pudo reiniciar %s: escribe «ensure %s» en la consola.'):format(res, res))
+                end
+            end
         end
         log(src, ('Listo: %d archivo(s) en %d recurso(s).'):format(#staged, #order))
         if #newAssets > 0 then log(src, 'Hay arte nuevo por descargar: vuelve a ejecutar «pxd_update».') end
         if self then
             log(src, 'El actualizador también cambió: se reinicia ahora.')
             ExecuteCommand('ensure ' .. RES)
+            -- Si se reinició, este temporizador ya no existe. Si sigue aquí, faltan permisos.
+            SetTimeout(2000, function()
+                log(src, ('No pude reiniciarme solo. Escribe «ensure %s» en la consola y luego «pxd_update».'):format(RES))
+                log(src, ('Para que no vuelva a pasar, añade al server.cfg: add_ace resource.%s command.stop allow  y  add_ace resource.%s command.start allow'):format(RES, RES))
+            end)
         end
     end)
     running = false

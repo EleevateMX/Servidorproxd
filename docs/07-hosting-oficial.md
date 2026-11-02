@@ -107,6 +107,7 @@ En txAdmin → **Live Console**:
 
 - Los `config.lua` que edites se respetan (el actualizador recuerda la versión que instaló).
 - El arte (imágenes y vídeo) lo descarga `server/assets.js` con Node.js, porque las descargas de Lua cortan los archivos binarios. Si `pxd_update` dice que actualizó el propio `pxd_updater`, ejecútalo otra vez para bajar el arte.
+- Si sale «No pude reiniciarme solo», escribe `ensure pxd_updater` y repite `pxd_update`; para que no vuelva a pasar, añade las líneas `command.stop` y `command.start` de abajo.
 - Nunca toca `data/` (props guardados, jugadores).
 - Un recurso **nuevo** (que aún no existe en el servidor) hay que subirlo una vez a mano.
 - Necesita en el `server.cfg` (ya viene en las recetas nuevas):
@@ -114,5 +115,7 @@ En txAdmin → **Live Console**:
   ensure pxd_updater
   add_ace resource.pxd_updater command.refresh allow
   add_ace resource.pxd_updater command.ensure allow
+  add_ace resource.pxd_updater command.stop allow
+  add_ace resource.pxd_updater command.start allow
   add_ace group.admin pxd.update allow
   ```

@@ -39,6 +39,9 @@ function Fx.reset(opts)
     G.GetGameTimer = function() return math.floor(Fx.time * 1000) end
     G.GetCurrentResourceName = function() return Fx.resourceName end
     G.GetResourceState = function(name) return Fx.resourceStates[name] or 'missing' end
+    Fx.restarted = {}
+    G.StopResource = function(name) Fx.restarted[#Fx.restarted + 1] = 'stop ' .. name; return true end
+    G.StartResource = function(name) Fx.restarted[#Fx.restarted + 1] = 'start ' .. name; return true end
     G.GetConvar = function(k, d) local v = Fx.convars[k]; if v == nil then return d end return tostring(v) end
     G.GetConvarInt = function(k, d) return tonumber(Fx.convars[k]) or d end
     G.GetHashKey = function(s) local h = 0 for i = 1, #s do h = (h * 31 + s:byte(i)) % 4294967296 end return h end
