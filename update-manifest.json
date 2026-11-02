@@ -4,33 +4,36 @@
   {
    "resource": "pxd_admin",
    "path": "client/main.lua",
-   "size": 15260,
-   "sha256": "12d140c61035c66bdf977308db68001d97e3687e02d5e7a39f924e53b116f69f"
+   "size": 22311,
+   "sha256": "9222d0a474babbd051c2cc8454e80dcdc41935f79e6f7005b85872d0700f27ec"
   },
   {
    "resource": "pxd_admin",
    "path": "config.lua",
-   "size": 2638,
-   "sha256": "b06475e1e6c6069a1d993409e1bdbc06867fce56e5b08ad93cb0b35df48f3682",
-   "config": true
+   "size": 3510,
+   "sha256": "c14f4a2518b35059add98260e308b99aa5662b7fb45cbddae861f036cf0849e3",
+   "config": true,
+   "known": [
+    "b06475e1e6c6069a1d993409e1bdbc06867fce56e5b08ad93cb0b35df48f3682"
+   ]
   },
   {
    "resource": "pxd_admin",
    "path": "fxmanifest.lua",
-   "size": 425,
-   "sha256": "21a465ebf1ed5996c02410067d52b67452d483bb96b887d210744c4e392aeba0"
+   "size": 536,
+   "sha256": "be00c8904e003ad66ef18d935d5abe7a4c1fe4e1e007737c87ce5fbfbcff32c8"
   },
   {
    "resource": "pxd_admin",
    "path": "html/app.js",
-   "size": 27568,
-   "sha256": "01e45d6ea757bc1b08a1cb70cb3ec99ef12270f72bf18ef4e56b98489bc73d5a"
+   "size": 49771,
+   "sha256": "6ba93a953b0548177103d99e86759dde6c21886e688cf61296b5c077f30bfb93"
   },
   {
    "resource": "pxd_admin",
    "path": "html/index.html",
-   "size": 7218,
-   "sha256": "804c89f776d0d3735f6552afae4aef9cf62b26a72a0b2573458fa9e719e233c1"
+   "size": 15041,
+   "sha256": "b07e651aa6c1b28bfa2bf23bff99e10c1027e3b6af0e3c2d6221a4b21a51c3f8"
   },
   {
    "resource": "pxd_admin",
@@ -41,20 +44,20 @@
   {
    "resource": "pxd_admin",
    "path": "html/style.css",
-   "size": 14992,
-   "sha256": "b7fd173b8b63c59e1390af6c89804ce7962745c255de9c6e6e23b0713faf278f"
+   "size": 19070,
+   "sha256": "86d71b1b2926f271ae9c455b67563cdaf6bad009f52d8505b954ab549471515c"
   },
   {
    "resource": "pxd_admin",
    "path": "server/main.lua",
-   "size": 22872,
-   "sha256": "1a3804ddae9ac55e07b5a47a5b1a88fc34069f5281cb5a9d596cb7a48b14d708"
+   "size": 41488,
+   "sha256": "51a57167dc886b37d6383dad2afdc4b9200934f8332654c51f50e3d456ee1b3d"
   },
   {
    "resource": "pxd_admin",
    "path": "shared/admin.lua",
-   "size": 14600,
-   "sha256": "c8038abb57f0fe6a90309cff5448da68f1f9ff5d41291503857ac2564c474a8c"
+   "size": 22456,
+   "sha256": "2192bc05863d90941fab33b72c9fe09c4919dabbe839fb3ee5010a994c416a74"
   },
   {
    "resource": "pxd_audit",
@@ -1559,6 +1562,24 @@
     "requires": "pxd_inventory",
     "requiresVersion": "2.48.1",
     "why": "K deja de abrir el inventario secundario aunque el jugador la tenga guardada"
+   },
+   {
+    "resource": "qbx_adminmenu",
+    "path": "server/commands.lua",
+    "find": "lib.addCommand('admin', {",
+    "replace": "lib.addCommand('qbxadmin', { -- Próxima: /admin abre el panel de pxd_admin",
+    "requires": "pxd_admin",
+    "requiresVersion": "0.1.0",
+    "why": "/admin abre el centro de administración de Próxima; el menú de Qbox queda en /qbxadmin y en el panel"
+   },
+   {
+    "resource": "qbx_adminmenu",
+    "path": "server/commands.lua",
+    "find": "lib.addCommand('noclip', {",
+    "replace": "lib.addCommand('qbxnoclip', { -- Próxima: /noclip es el de pxd_admin",
+    "requires": "pxd_admin",
+    "requiresVersion": "0.1.0",
+    "why": "un solo noclip (pxd_admin)"
    }
   ],
   "external": []

@@ -236,6 +236,24 @@
    "requires": "pxd_inventory",
    "requiresVersion": "2.48.1",
    "why": "K deja de abrir el inventario secundario aunque el jugador la tenga guardada"
+  },
+  {
+   "resource": "qbx_adminmenu",
+   "path": "server/commands.lua",
+   "find": "lib.addCommand('admin', {",
+   "replace": "lib.addCommand('qbxadmin', { -- Próxima: /admin abre el panel de pxd_admin",
+   "requires": "pxd_admin",
+   "requiresVersion": "0.1.0",
+   "why": "/admin abre el centro de administración de Próxima; el menú de Qbox queda en /qbxadmin y en el panel"
+  },
+  {
+   "resource": "qbx_adminmenu",
+   "path": "server/commands.lua",
+   "find": "lib.addCommand('noclip', {",
+   "replace": "lib.addCommand('qbxnoclip', { -- Próxima: /noclip es el de pxd_admin",
+   "requires": "pxd_admin",
+   "requiresVersion": "0.1.0",
+   "why": "un solo noclip (pxd_admin)"
   }
  ],
  "_comment_overlays": "Archivos de pxd_* que se copian a recursos de terceros (solo con la versión indicada). Requieren add_filesystem_permission pxd_updater write <recurso> y reiniciar el servidor.",

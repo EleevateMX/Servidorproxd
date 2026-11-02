@@ -689,6 +689,18 @@ tasks:  #  Download Base Files
     search: "name = 'inv2',"
     replace: "name = 'pxd_inventario2', -- Próxima: nombre nuevo, la K guardada deja de abrir el inventario secundario (maletero con E)"
 
+  - action: replace_string # /admin y /noclip son de pxd_admin
+    file: ./resources/[qbx]/qbx_adminmenu/server/commands.lua
+    mode: literal
+    search: "lib\\.addCommand\\('admin', \\{"
+    replace: "lib.addCommand('qbxadmin', { -- Próxima: /admin abre el panel de pxd_admin"
+
+  - action: replace_string # /admin y /noclip son de pxd_admin
+    file: ./resources/[qbx]/qbx_adminmenu/server/commands.lua
+    mode: literal
+    search: "lib\\.addCommand\\('noclip', \\{"
+    replace: "lib.addCommand('qbxnoclip', { -- Próxima: /noclip es el de pxd_admin"
+
   # Clean up
   - action: remove_path
     path: ./tmp

@@ -63,6 +63,8 @@ Antes rellena `deploy/.env` (ver [docs/06-servidor-en-la-nube.md](docs/06-servid
 33. [Guía paso a paso en Nodecraft](docs/33-guia-nodecraft.md)
 34. [Auditoría común (pxd_audit)](docs/34-auditoria-comun.md)
 35. [Economía conectada: facturas y flujo de dinero](docs/35-economia.md)
+36. [Inventario propio (React + ox_inventory)](docs/36-inventario.md)
+37. [Centro administrativo (pxd_admin)](docs/37-administracion.md)
 
 ## Pruebas
 

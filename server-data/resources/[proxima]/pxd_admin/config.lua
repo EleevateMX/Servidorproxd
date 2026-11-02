@@ -3,11 +3,25 @@ Config = {}
 
 -- Teclas por defecto (cada jugador puede cambiarlas en Ajustes → Asignación de teclas → FiveM).
 -- Ojo: qbx_vehicleradio usa F9 para la radio del coche (solo dentro de vehículos).
+-- FiveM guarda la tecla de cada comando la primera vez: por eso el panel usa un nombre de
+-- comando nuevo (pxd_panel_admin) y no hereda asignaciones antiguas del comando «staff».
 Config.keySupport = 'F9'   -- soporte y reportes (todos)
-Config.keyStaff = 'F10'    -- panel de staff (solo con ACE pxd.admin)
+Config.keyStaff = 'F10'    -- panel de administración (permiso pxd.admin.panel)
 
--- ACE del staff. Expulsar pide además pxd.admin.kick (o pxd.admin.all).
-Config.ace = 'pxd.admin'
+-- Permisos: matriz de roles en shared/admin.lua (PXDAdmin.ROLES) y docs/37-administracion.md.
+-- ¿Hay que estar de servicio (/duty) para usar las herramientas sobre el mundo? false = no.
+Config.requireDuty = false
+
+-- Noclip
+Config.noclip = {
+    invisible = true,                          -- invisible para los demás mientras vuela
+    speeds = { 0.2, 0.5, 1.0, 2.0, 4.0, 8.0 }, -- metros por fotograma; la rueda del ratón cambia
+    defaultSpeed = 3,                          -- índice en speeds
+}
+
+-- Límites de las acciones sensibles
+Config.maxMoneyCorrection = 1000000   -- por corrección de dinero
+Config.maxBanHours = 87600            -- 10 años; 0 = permanente
 
 -- Categorías. kind = 'player' (reportar a alguien) o 'help' (pedir ayuda).
 Config.categories = {
@@ -46,5 +60,6 @@ Config.staffOutfit = {
     mp_f_freemode_01 = { { 11, 43, 0 }, { 8, 14, 0 }, { 3, 0, 0 }, { 4, 30, 0 }, { 6, 25, 0 } },
 }
 
--- Baneos: los gestiona txAdmin (Players → jugador → Ban). Esta URL se muestra en la ficha.
-Config.txAdminHint = 'Para banear, usa txAdmin → Players → busca al jugador → Ban.'
+-- Baneos: se guardan en la tabla «bans» de qbx_core (la misma que usa qbx_adminmenu), que
+-- qbx_core comprueba al conectar. txAdmin sigue teniendo sus propios baneos en su web.
+Config.banHint = 'Los baneos usan la lista de Qbox (tabla bans). Los de txAdmin se gestionan en su web.'

@@ -183,3 +183,50 @@ textarea { resize: vertical; min-height: 110px; line-height: 1.5; }
 .announce b { display: block; font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: var(--pxd-star); }
 .announce span { display: block; margin-top: 4px; font-size: 16px; font-weight: 600; line-height: 1.4; }
 @keyframes drop { from { opacity: 0; transform: translate(-50%, -12px); } }
+
+/* ── Centro de administración (0.2.0) ───────────────────────────────────── */
+.side__who { margin-top: -6px; }
+.side__who b { display: block; margin-top: 2px; font-size: 15px; background: linear-gradient(90deg, var(--pxd-star), var(--pxd-nova)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.status-row { display: flex; gap: 6px; }
+.badge { flex: 1; text-align: center; padding: 5px 8px; border-radius: 999px; border: 1px solid var(--pxd-line); color: var(--pxd-faint); font-size: 11px; font-weight: 700; letter-spacing: .06em; }
+.badge.is-on { color: var(--pxd-night-950); background: var(--pxd-star); border-color: var(--pxd-star); }
+.scroll { overflow: auto; padding-right: 6px; }
+.pane-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 14px; }
+.pane-head h2 { margin: 0; font-size: 20px; }
+.muted { color: var(--pxd-muted); font-size: 12px; line-height: 1.5; margin: 6px 0 0; }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 14px; margin-bottom: 14px; }
+.card { border: 1px solid var(--pxd-line); border-radius: var(--pxd-radius); background: rgba(5, 7, 15, .35); padding: 16px; margin-bottom: 14px; }
+.grid2 .card { margin-bottom: 0; }
+.card h3 { margin: 0 0 12px; font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: var(--pxd-star); }
+.card .reply + .chips { margin-top: 10px; }
+.kv { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; margin: 12px 0 0; font-size: 13px; }
+.kv:empty { display: none; }
+.kv dt { color: var(--pxd-muted); }
+.kv dd { margin: 0; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+select { width: 100%; background: rgba(5, 7, 15, .6); border: 1px solid var(--pxd-line-strong); border-radius: var(--pxd-radius-sm); padding: 10px 12px; color: var(--pxd-text); font: inherit; outline: none; }
+select:focus { border-color: var(--pxd-star); }
+.tabs--inner { padding: 14px 0 0; border-bottom: 1px solid var(--pxd-line); margin-bottom: 4px; }
+.group .actions { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.mini { display: inline-block; margin-right: 6px; padding: 1px 7px; border-radius: 999px; background: rgba(255, 79, 216, .16); color: #ff9be9; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
+.mini--bad { background: rgba(255, 107, 129, .16); color: #ffb3c0; }
+.tags { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.tag--bad { border-color: rgba(255, 107, 129, .45); color: #ffb3c0; }
+.link { border: 0; background: none; color: var(--pxd-star); font-size: 11px; margin-left: 6px; padding: 0; text-decoration: underline; }
+.btn--small { padding: 5px 10px; font-size: 12px; }
+b.bad { color: var(--pxd-bad); }
+.modal__card .field { margin-bottom: 14px; }
+.modal__card .form-row { grid-template-columns: 1fr 1.4fr; }
+.modal__card--warn { border-color: rgba(255, 200, 87, .5); box-shadow: 0 0 0 1px rgba(255, 200, 87, .15), var(--pxd-shadow); }
+.modal__card--warn h2 { margin-top: 6px; }
+.modal__card--warn #warning-text { color: var(--pxd-text); font-size: 15px; line-height: 1.5; margin: 12px 0 8px; }
+#dialog, #warning { z-index: 20; }
+.noclip-hud { position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%); padding: 9px 16px; border-radius: 999px; background: rgba(10, 15, 31, .88); border: 1px solid rgba(92, 225, 255, .45); font-size: 12px; font-weight: 600; color: var(--pxd-text); letter-spacing: .02em; }
+.chips--quick .chip { padding: 5px 10px; font-size: 12px; }
+@media (max-width: 1400px) {
+  .staff { grid-template-columns: 196px 1fr; }
+  .split { grid-template-columns: minmax(260px, 340px) 1fr; }
+  .stats { grid-template-columns: repeat(3, 1fr); }
+  .group .actions { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+.card .actions { grid-template-columns: repeat(auto-fit, minmax(118px, 1fr)); }

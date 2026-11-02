@@ -52,19 +52,29 @@
     </div>
   </section>
 
-  <!-- Panel de staff -->
-  <section class="shell staff hidden" id="staff" aria-label="Panel de staff">
+  <!-- Centro de administración -->
+  <section class="shell staff hidden" id="staff" aria-label="Centro de administración">
     <aside class="side">
       <img class="logo" src="logo.svg" alt="Próxima RP">
-      <p class="side__role">Panel de staff</p>
-      <nav class="side__nav">
-        <button class="nav is-on" data-view="players" type="button">Jugadores <span class="pill" id="players-count">0</span></button>
-        <button class="nav" data-view="reports" type="button">Reportes <span class="pill pill--alert" id="reports-open">0</span></button>
-        <button class="nav" data-view="tools" type="button">Herramientas</button>
-        <button class="nav" data-view="log" type="button">Registro</button>
-        <button class="nav" data-view="commands" type="button">Comandos</button>
+      <div class="side__who">
+        <p class="side__role">Administración</p>
+        <b id="my-role">Staff</b>
+      </div>
+      <nav class="side__nav" id="side-nav">
+        <button class="nav is-on" data-view="players" data-perm="panel" type="button">Jugadores <span class="pill" id="players-count">0</span></button>
+        <button class="nav" data-view="reports" data-perm="reports" type="button">Reportes <span class="pill pill--alert" id="reports-open">0</span></button>
+        <button class="nav" data-view="moderation" data-perm="players.ban" type="button">Moderación</button>
+        <button class="nav" data-view="vehicles" data-perm="vehicles.manage|vehicles.spawn" type="button">Vehículos</button>
+        <button class="nav" data-view="world" data-perm="noclip|world|announce|props|qbxmenu" type="button">Mundo</button>
+        <button class="nav" data-view="economy" data-perm="economy.view" type="button">Economía</button>
+        <button class="nav" data-view="log" data-perm="audit" type="button">Registro</button>
+        <button class="nav" data-view="commands" data-perm="panel" type="button">Comandos</button>
       </nav>
       <div class="side__foot">
+        <div class="status-row">
+          <span class="badge" id="noclip-badge">Noclip</span>
+          <span class="badge" id="spec-badge">Espectando</span>
+        </div>
         <button class="duty" id="duty" type="button"><span class="duty__dot"></span><span id="duty-label">Fuera de servicio</span></button>
         <button class="btn btn--ghost" id="refresh" type="button">Actualizar</button>
         <button class="btn btn--ghost" data-close type="button">Cerrar</button>
@@ -76,7 +86,7 @@
       <div class="view" data-pane="players">
         <div class="split">
           <div class="col">
-            <input class="search" id="player-search" placeholder="Buscar por ID, nombre, personaje, PROX-ID o trabajo">
+            <input class="search" id="player-search" placeholder="Buscar por ID, PROX-ID, nombre, personaje o trabajo">
             <ul class="list list--players" id="player-list"></ul>
           </div>
           <div class="col col--detail" id="player-detail">
@@ -103,50 +113,184 @@
         </div>
       </div>
 
-      <!-- Herramientas propias -->
-      <div class="view hidden" data-pane="tools">
-        <p class="section-title">Moverte</p>
-        <div class="actions">
-          <button class="btn" data-tool="noclip" type="button">Noclip</button>
-          <button class="btn" data-tool="invisible" type="button">Invisible</button>
-          <button class="btn" data-tool="tpm" type="button">Ir al marcador</button>
-          <button class="btn" data-tool="back" type="button">Volver</button>
+      <!-- Moderación -->
+      <div class="view hidden scroll" data-pane="moderation">
+        <div class="pane-head">
+          <div><h2>Baneos activos</h2><p class="muted" id="ban-hint"></p></div>
+          <button class="btn" id="bans-refresh" type="button">Actualizar</button>
         </div>
-        <p class="section-title">Vehículos</p>
-        <div class="reply">
-          <input id="car-model" maxlength="32" placeholder="Modelo (p. ej. sultan, police, adder)">
-          <button class="btn btn--primary" data-tool="car" type="button">Sacar</button>
-        </div>
-        <div class="actions actions--top">
-          <button class="btn" data-tool="repair" type="button">Reparar</button>
-          <button class="btn btn--danger" data-tool="dv" type="button">Borrar vehículo</button>
-        </div>
-        <p class="section-title">Ciudad</p>
-        <div class="reply">
-          <input id="announce-text" maxlength="240" placeholder="Anuncio para toda la ciudad">
-          <button class="btn btn--primary" data-tool="announce" type="button">Anunciar</button>
-        </div>
-        <p class="note">Casi todo pide estar de servicio (botón de abajo a la izquierda o /duty).</p>
+        <table class="table">
+          <thead><tr><th>#</th><th>Jugador</th><th>Motivo</th><th>Hasta</th><th>Por</th><th></th></tr></thead>
+          <tbody id="bans-body"></tbody>
+        </table>
+        <p class="note">Advertir, expulsar y banear se hace desde la ficha del jugador (Jugadores). Todo pide motivo y queda registrado.</p>
       </div>
 
-      <!-- Comandos -->
-      <div class="view hidden" data-pane="commands">
-        <table class="table">
-          <thead><tr><th>Comando</th><th>Qué hace</th><th>Servicio</th></tr></thead>
-          <tbody id="commands-body"></tbody>
-        </table>
+      <!-- Vehículos -->
+      <div class="view hidden scroll" data-pane="vehicles">
+        <div class="grid2">
+          <section class="card" data-perm="vehicles.spawn">
+            <h3>Vehículo de prueba</h3>
+            <div class="reply">
+              <input id="car-model" maxlength="32" placeholder="Modelo (p. ej. sultan, police, adder)">
+              <button class="btn btn--primary" id="car-spawn" type="button">Sacar</button>
+            </div>
+            <div class="chips chips--quick" id="car-quick"></div>
+          </section>
+          <section class="card" data-perm="vehicles.manage">
+            <h3>El vehículo más cercano</h3>
+            <div class="actions">
+              <button class="btn" data-act="repair" type="button">Reparar</button>
+              <button class="btn" data-act="clean" type="button">Limpiar</button>
+              <button class="btn" data-act="vehinfo" type="button">Información</button>
+              <button class="btn btn--danger" data-act="dv" type="button">Borrar</button>
+            </div>
+            <dl class="kv" id="veh-info"></dl>
+          </section>
+          <section class="card" data-perm="vehicles.manage">
+            <h3>Buscar por matrícula</h3>
+            <div class="reply">
+              <input id="plate-search" maxlength="8" placeholder="Matrícula">
+              <button class="btn" id="plate-go" type="button">Buscar</button>
+            </div>
+            <dl class="kv" id="plate-info"></dl>
+          </section>
+          <section class="card" data-perm="vehicles.owner">
+            <h3>Cambiar titularidad</h3>
+            <p class="muted">Solo superadministración. Pide motivo y queda en la auditoría.</p>
+            <div class="form-row">
+              <input id="own-plate" maxlength="8" placeholder="Matrícula">
+              <input id="own-cid" maxlength="16" placeholder="Citizen ID del nuevo titular">
+            </div>
+            <button class="btn btn--danger" id="own-go" type="button">Cambiar titular…</button>
+          </section>
+        </div>
+      </div>
+
+      <!-- Mundo -->
+      <div class="view hidden scroll" data-pane="world">
+        <div class="grid2">
+          <section class="card" data-perm="noclip">
+            <h3>Moverte</h3>
+            <div class="actions">
+              <button class="btn" data-act="noclip" type="button">Noclip</button>
+              <button class="btn" data-act="invisible" type="button">Invisible</button>
+              <button class="btn" data-act="tpm" type="button">Ir al marcador</button>
+              <button class="btn" data-act="back" type="button">Volver</button>
+            </div>
+            <p class="muted">Noclip: W/A/S/D, Espacio sube, X baja, Shift rápido, rueda del ratón cambia la velocidad.</p>
+          </section>
+          <section class="card" data-perm="world">
+            <h3>Posición</h3>
+            <div class="actions">
+              <button class="btn" id="coords-read" type="button">Leer posición</button>
+              <button class="btn" data-act="devtools" type="button">Datos en pantalla</button>
+            </div>
+            <dl class="kv" id="coords-info"></dl>
+            <div class="actions actions--top" id="coords-copy"></div>
+          </section>
+          <section class="card" data-perm="world">
+            <h3>Routing buckets</h3>
+            <button class="btn" id="buckets-go" type="button">Ver buckets</button>
+            <div id="buckets"></div>
+          </section>
+          <section class="card" data-perm="props|qbxmenu">
+            <h3>Herramientas</h3>
+            <div class="actions">
+              <button class="btn" data-act="props" data-perm="props" type="button">Editor de props</button>
+              <button class="btn" data-act="qbxmenu" data-perm="qbxmenu" id="qbx-menu" type="button">Menú avanzado Qbox</button>
+            </div>
+            <p class="muted">El menú de Qbox cambia trabajo, banda y datos del personaje con sus propios permisos.</p>
+          </section>
+          <section class="card" data-perm="announce">
+            <h3>Anuncio a la ciudad</h3>
+            <div class="reply">
+              <input id="announce-text" maxlength="240" placeholder="Texto del anuncio">
+              <button class="btn btn--primary" id="announce-go" type="button">Anunciar</button>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <!-- Economía -->
+      <div class="view hidden scroll" data-pane="economy">
+        <div class="pane-head">
+          <div><h2>Economía</h2><p class="muted">Flujo de dinero registrado por pxd_economy.</p></div>
+          <div class="chips" id="eco-hours">
+            <button class="chip is-on" data-hours="24" type="button">24 h</button>
+            <button class="chip" data-hours="168" type="button">7 días</button>
+            <button class="chip" data-hours="720" type="button">30 días</button>
+          </div>
+        </div>
+        <div class="stats" id="eco-stats"></div>
+        <div class="grid2">
+          <section class="card"><h3>Por categoría</h3><table class="table"><thead><tr><th>Categoría</th><th>Entra</th><th>Sale</th><th>Mov.</th></tr></thead><tbody id="eco-cats"></tbody></table></section>
+          <section class="card"><h3>Movimientos grandes</h3><table class="table"><thead><tr><th>Importe</th><th>Motivo</th><th>Personaje</th></tr></thead><tbody id="eco-large"></tbody></table></section>
+        </div>
+        <section class="card"><h3>Últimas facturas</h3><table class="table"><thead><tr><th>#</th><th>Empresa</th><th>Cliente</th><th>Concepto</th><th>Importe</th><th>Estado</th></tr></thead><tbody id="eco-invoices"></tbody></table></section>
+        <section class="card">
+          <h3>Multas y facturas de un personaje</h3>
+          <div class="reply">
+            <input id="eco-cid" maxlength="16" placeholder="Citizen ID">
+            <button class="btn" id="eco-fines" type="button">Multas</button>
+            <button class="btn" id="eco-inv" type="button">Facturas</button>
+          </div>
+          <table class="table"><tbody id="eco-person"></tbody></table>
+        </section>
       </div>
 
       <!-- Registro -->
-      <div class="view hidden" data-pane="log">
+      <div class="view hidden scroll" data-pane="log">
+        <div class="pane-head">
+          <div><h2>Registro del staff</h2><p class="muted">Responsable, objetivo, fecha y motivo de cada acción (auditoría común).</p></div>
+          <button class="btn" id="log-refresh" type="button">Actualizar</button>
+        </div>
         <table class="table">
-          <thead><tr><th>Cuándo</th><th>Staff</th><th>Acción</th><th>A quién</th><th>Detalle</th></tr></thead>
+          <thead><tr><th>Cuándo</th><th>Staff</th><th>Acción</th><th>Objetivo</th><th>Motivo / detalle</th></tr></thead>
           <tbody id="log-body"></tbody>
         </table>
+      </div>
+
+      <!-- Comandos -->
+      <div class="view hidden scroll" data-pane="commands">
+        <table class="table">
+          <thead><tr><th>Comando</th><th>Qué hace</th></tr></thead>
+          <tbody id="commands-body"></tbody>
+        </table>
+        <p class="note">F10 o /admin abre este panel · F9 soporte y reportes · el menú avanzado de Qbox está en Mundo → Herramientas.</p>
       </div>
     </main>
   </section>
 
+  <!-- Diálogo de motivo (acciones sensibles) -->
+  <div class="modal hidden" id="dialog" role="dialog" aria-modal="true">
+    <form class="modal__card" id="dialog-form" autocomplete="off">
+      <h2 id="dialog-title"></h2>
+      <p id="dialog-text"></p>
+      <div id="dialog-extra"></div>
+      <label class="field">
+        <span>Motivo (obligatorio)</span>
+        <textarea id="dialog-reason" maxlength="200" rows="3" placeholder="Qué pasó y por qué se hace"></textarea>
+      </label>
+      <div class="row-end">
+        <button class="btn btn--ghost" id="dialog-cancel" type="button">Cancelar</button>
+        <button class="btn btn--primary" id="dialog-ok" type="submit">Confirmar</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Advertencia a un jugador -->
+  <div class="modal hidden" id="warning" role="alertdialog" aria-modal="true">
+    <div class="modal__card modal__card--warn">
+      <p class="eyebrow">Advertencia del staff</p>
+      <h2>Has recibido una advertencia</h2>
+      <p id="warning-text"></p>
+      <small class="muted" id="warning-by"></small>
+      <div class="row-end"><button class="btn btn--primary" id="warning-ok" type="button">Entendido</button></div>
+    </div>
+  </div>
+
+  <div class="noclip-hud hidden" id="noclip-hud"></div>
   <div class="spectate hidden" id="spectate"></div>
   <div class="modal hidden" id="wounds" role="dialog" aria-label="Heridas"></div>
   <div class="announce hidden" id="announce" role="status">
