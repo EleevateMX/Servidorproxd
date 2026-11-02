@@ -53,11 +53,22 @@ local function throttled(src)
     return false
 end
 
-local function audit(fineId, action, actor, amount, detail)
+--- Audita una acción sobre una multa. Va a la auditoría común (pxd_audit, categoría 'fines',
+--- target 'fine:<id>'). Si pxd_audit no está en marcha o falla, se guarda como antes en
+--- pxd_fine_events, y `pxd_audit_migrar` la recoge después (docs/34).
+--- `citizenid` es la persona multada; `extra` se añade a `data`.
+local function audit(fineId, action, actor, amount, detail, citizenid, extra)
     local cid, name = nil, 'consola'
     if type(actor) == 'table' then cid, name = actor.PlayerData.citizenid, fullName(actor)
     elseif type(actor) == 'string' then name = actor end
-    local ok, err = pcall(Store.event, fineId, action, cid, name, amount, detail and tostring(detail):sub(1, 255) or nil, now())
+    detail = detail and tostring(detail):sub(1, 255) or nil
+    if started('pxd_audit') then
+        local entry = F.auditEntry(fineId, action, cid, name, amount, detail, citizenid, extra)
+        local ok, id = pcall(function() return exports.pxd_audit:Log(entry) end)
+        if ok and id then return end
+        print(('[pxd_justice] ^3pxd_audit no registró %s #%s (%s): se guarda en pxd_fine_events.^7'):format(action, tostring(fineId), tostring(id)))
+    end
+    local ok, err = pcall(Store.event, fineId, action, cid, name, amount, detail, now())
     if not ok then print(('[pxd_justice] no se pudo auditar %s #%s: %s'):format(action, tostring(fineId), tostring(err))) end
 end
 
@@ -118,12 +129,12 @@ local function payFine(src, fineId, amount, method)
             Store.unpay(fineId, pay, now())
             step = 'none'
             player.Functions.AddMoney(method, pay, reason .. '-reembolso')
-            audit(fineId, 'pay_failed', player, pay, 'banco de la sociedad no disponible')
+            audit(fineId, 'pay_failed', player, pay, 'banco de la sociedad no disponible', row.citizenid)
             return false, MSG.banco
         end
         step = 'deposited'
 
-        audit(fineId, 'pay', player, pay, method)
+        audit(fineId, 'pay', player, pay, method, row.citizenid)
         local left = math.max(0, F.outstanding(row) - pay)
         refresh(row.citizenid, fineId, 'pay')
         if left == 0 then return true, ('Multa #%d pagada.'):format(fineId) end
@@ -176,7 +187,7 @@ local function issueFine(officerSrc, targetSrc, reason, amount, notes, opts)
         society = opts.society or Config.society, record_ref = opts.recordRef,
     }, now())
     if not id then return nil, MSG.sin_servicio end
-    audit(id, 'issue', officer or (opts.issuerName or 'consola'), amount, reason)
+    audit(id, 'issue', officer or (opts.issuerName or 'consola'), amount, reason, cid)
 
     local total = refresh(cid, id, 'issue')
     notify(targetSrc, ('Has recibido una multa de %s: %s. Págala desde el panel (TAB → Multas).'):format(money(amount), reason), 'inform')
@@ -186,6 +197,56 @@ local function issueFine(officerSrc, targetSrc, reason, amount, notes, opts)
     if Config.autoChargeIfFunds then
         local ok, bank = pcall(function() return target.Functions.GetMoney('bank') end)
         if ok and (tonumber(bank) or 0) >= amount then payFine(targetSrc, id, amount, 'bank') end
+    end
+    return id, total
+end
+
+-- ── Multas del sistema (radares y otros automatismos) ─────
+-- No hay agente: el autor es 'system'. La multa queda PENDIENTE como cualquier otra.
+-- Hoy no la usa nada: los radares de qbx_police siguen cobrando en el acto (Config.radar.mode
+-- = 'instant' y su parche NO está aplicado; texto preparado en docs/30).
+local systemLast = {}
+
+local function radarMode()
+    local m = Config.radar and Config.radar.mode
+    return (m == 'pending') and 'pending' or 'instant'
+end
+
+--- Emite una multa del sistema a un citizenid. meta = { source?, issuerName?, notes?, recordRef?, … }.
+--- Devuelve id, total pendiente o nil, mensaje.
+local function issueSystemFine(citizenid, reason, amount, meta)
+    if not ready then return nil, MSG.sin_servicio end
+    meta = type(meta) == 'table' and meta or {}
+    if type(citizenid) ~= 'string' or #citizenid > 64 or not citizenid:find('^[%w_%-]+$') then
+        return nil, 'Ciudadano no válido.'
+    end
+    local okv, err = F.validateIssue(amount, reason, meta.notes, Config.maxFine)
+    if not okv then return nil, MSG[err] end
+    local origin = F.systemOrigin(meta.source)
+    if not origin then return nil, 'Origen no válido.' end
+    local issuer = type(meta.issuerName) == 'string' and meta.issuerName:find('%S') and meta.issuerName:sub(1, 128)
+        or Config.systemFine.issuerName
+    local recordRef = type(meta.recordRef) == 'string' and meta.recordRef:sub(1, 64) or nil
+
+    -- Enfriamiento por persona y origen (los radares los dispara el cliente).
+    local key, t = citizenid .. '|' .. origin, now()
+    if systemLast[key] and t - systemLast[key] < (Config.systemFine.cooldownSec or 0) then
+        return nil, 'Multa del sistema repetida: espera unos segundos.'
+    end
+    systemLast[key] = t
+
+    local id = Store.insert({
+        citizenid = citizenid, officer_citizenid = nil, officer_name = issuer,
+        reason = reason, notes = meta.notes, amount = amount,
+        society = Config.society, record_ref = recordRef,
+    }, t)
+    if not id then systemLast[key] = nil return nil, MSG.sin_servicio end
+    audit(id, 'issue', issuer, amount, reason, citizenid, { origin = origin, system = true })
+
+    local total = refresh(citizenid, id, 'issue')
+    local p = playerByCitizen(citizenid)
+    if p then
+        notify(p.PlayerData.source, ('Has recibido una multa de %s: %s. Págala desde el panel (TAB → Multas).'):format(money(amount), reason), 'inform')
     end
     return id, total
 end
@@ -271,7 +332,7 @@ local function cancelFine(src, fineId, reason)
     if not row then return false, MSG.no_existe end
     if busy[row.id] then return false, MSG.en_curso end
     if not Store.cancel(row.id, now()) then return false, MSG.cerrada end
-    audit(row.id, 'cancel', src > 0 and getPlayer(src) or 'consola', F.outstanding(row), reason)
+    audit(row.id, 'cancel', src > 0 and getPlayer(src) or 'consola', F.outstanding(row), reason, row.citizenid)
     refresh(row.citizenid, row.id, 'cancel')
     return true, ('Multa #%d cancelada. Lo ya pagado no se devuelve automáticamente.'):format(row.id)
 end
@@ -285,7 +346,7 @@ local function editFine(src, fineId, newAmount, reason)
     if busy[row.id] then return false, MSG.en_curso end
     if newAmount < (tonumber(row.paid) or 0) then return false, 'No puede ser menor que lo ya pagado.' end
     if not Store.edit(row.id, newAmount, now()) then return false, MSG.cerrada end
-    audit(row.id, 'edit', src > 0 and getPlayer(src) or 'consola', newAmount, ('%s → %s · %s'):format(row.amount, newAmount, reason or ''))
+    audit(row.id, 'edit', src > 0 and getPlayer(src) or 'consola', newAmount, ('%s → %s · %s'):format(row.amount, newAmount, reason or ''), row.citizenid)
     refresh(row.citizenid, row.id, 'edit')
     return true, ('Multa #%d corregida a %s.'):format(row.id, money(newAmount))
 end
@@ -319,7 +380,25 @@ exports('GetPlayerView', playerView)
 exports('SearchFines', searchFines)
 exports('CancelFine', cancelFine)
 exports('EditFine', editFine)
-exports('GetFineEvents', function(fineId) return ready and Store.events(tonumber(fineId) or -1) or {} end)
+exports('IssueSystemFine', function(citizenid, reason, amount, meta) return issueSystemFine(citizenid, reason, amount, meta) end)
+exports('GetRadarMode', radarMode)
+
+--- Historial de una multa: pxd_audit (categoría 'fines') + las filas antiguas de pxd_fine_events
+--- que aún no se han migrado, sin duplicados y en orden cronológico.
+local function getFineEvents(fineId)
+    if not ready then return {} end
+    fineId = math.tointeger(tonumber(fineId)) or -1
+    local okL, legacy = pcall(Store.events, fineId)
+    local audits = {}
+    if started('pxd_audit') then
+        local ok, rows = pcall(function()
+            return exports.pxd_audit:Query({ category = 'fines', target = 'fine:' .. fineId, limit = 500 })
+        end)
+        if ok and type(rows) == 'table' then audits = rows end
+    end
+    return F.mergeEvents(okL and legacy or {}, audits)
+end
+exports('GetFineEvents', getFineEvents)
 
 -- ── Arranque y estado de los jugadores ────────────────────
 AddEventHandler('QBCore:Server:PlayerLoaded', function(player)
@@ -342,4 +421,5 @@ end)
 
 PXDJustice = { pay = payFine, issue = issueFine, search = searchFines, view = playerView,
     cancel = cancelFine, edit = editFine, isReady = function() return ready end,
+    issueSystem = issueSystemFine, events = getFineEvents, radarMode = radarMode,
     PATCH_MARK = PATCH_MARK }   -- para pruebas

@@ -35,3 +35,16 @@ Config.ace = {
 
 -- Enfriamiento entre peticiones del mismo jugador (segundos).
 Config.cooldown = 1.0
+
+-- Radares de qbx_police (docs/30 §6 bis). NO cambia nada todavía:
+--   'instant' (actual): qbx_police cobra la multa del radar en el acto, como siempre.
+--   'pending': SOLO con el parche de radar de docs/30 aplicado, el radar deja una multa
+--              pendiente con exports.pxd_justice:IssueSystemFine. Sin el parche no tiene efecto.
+Config.radar = { mode = 'instant' }
+
+-- Multas del sistema (export IssueSystemFine): nombre del emisor que se muestra y espera
+-- mínima entre dos multas del mismo origen a la misma persona.
+Config.systemFine = {
+    issuerName = 'Sistema',
+    cooldownSec = 10,
+}

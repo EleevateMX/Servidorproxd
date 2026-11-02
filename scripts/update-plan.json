@@ -5,6 +5,7 @@
   "pxd_restart",
   "pxd_interact",
   "pxd_jobs",
+  "pxd_audit",
   "pxd_justice",
   "pxd_panel",
   "pxd_multichar",

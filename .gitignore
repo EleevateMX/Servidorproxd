@@ -23,3 +23,6 @@ tests/web/out/
 node_modules/
 deploy/.env
 proxima-paquete-instalacion.zip
+
+# Auditoría en JSON (respaldo sin base de datos)
+server-data/resources/[[]proxima]/pxd_audit/data/*.json

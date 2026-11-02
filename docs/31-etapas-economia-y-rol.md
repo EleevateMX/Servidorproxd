@@ -28,7 +28,7 @@ Las etapas se pueden **diseñar** a la vez, pero se **implementan** en este orde
 
 | # | Tarea | Depende de |
 |---|---|---|
-| X-1 | **Auditoría común** `pxd_audit`: export `Log(actor, accion, objetivo, datos)`, tabla `pxd_audit` y consulta en pxd_admin. La usan multas, hospital, economía, propiedades y organizaciones | — |
+| X-1 | ✔ implementado (docs/34) · **Auditoría común** `pxd_audit`: export `Log(actor, accion, objetivo, datos)`, tabla `pxd_audit` y consulta en pxd_admin. La usan multas, hospital, economía, propiedades y organizaciones | — |
 | X-2 | **API de avisos** `pxd_ui:notify` que use el estilo común (ox_lib con el tema de Próxima en cuanto se integre `wt/oxlib`) | Fase 3 (interfaces) |
 | X-3 | **Permisos**: tabla de ACE `pxd.*` y ayudante `HasPermission(src, perm)` | — |
 | X-4 | **Dinero seguro**: función común `Charge(src, importe, motivo, {cash, bank})` y `Pay(cuenta, importe, motivo)` con comprobación de resultados y reembolso si falla el segundo paso. Ya existe en pxd_justice: se convierte en librería común | Multas |

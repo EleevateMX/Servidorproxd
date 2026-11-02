@@ -35,7 +35,7 @@ local function fakeMySQL(Q)
             return id
         end
         if q == Q.event then
-            db.events[#db.events + 1] = { fine_id = p[1], action = p[2], actor_citizenid = p[3], actor_name = p[4], amount = p[5], detail = p[6] }
+            db.events[#db.events + 1] = { id = #db.events + 1, fine_id = p[1], action = p[2], actor_citizenid = p[3], actor_name = p[4], amount = p[5], detail = p[6], created_at = p[7] }
             return #db.events
         end
         error('insert no simulado: ' .. q)
@@ -86,6 +86,29 @@ local function fakeMySQL(Q)
     return M
 end
 
+-- ── pxd_audit simulado (contrato de docs/34: Log y Query) ──
+local auditLog, auditFail
+local function fakeAudit()
+    auditLog, auditFail = {}, false
+    return {
+        Log = function(e)
+            if auditFail then error('pxd_audit caído') end
+            local id = #auditLog + 1
+            auditLog[id] = { id = id, created_at = e.created_at or (5000 + id), category = e.category, action = e.action,
+                actor = e.actor or 'system', target = e.target, data = e.data, source = e.source, legacy_ref = e.legacy_ref }
+            return id
+        end,
+        Query = function(f)
+            local out = {}
+            for i = #auditLog, 1, -1 do
+                local r = auditLog[i]
+                if (not f.category or r.category == f.category) and (not f.target or r.target == f.target) then out[#out + 1] = r end
+            end
+            return out
+        end,
+    }
+end
+
 -- ── qbx_core y Renewed-Banking simulados ──
 local players, notes, society, bankOk, bankYield
 local function mkPlayer(src, cid, name, job, cash, bank)
@@ -120,8 +143,9 @@ local function boot(opts)
         handleTransaction = function() return {} end,
     }
     Fx.reset({ resourceName = 'pxd_justice',
-        resourceStates = { qbx_core = 'started', ['Renewed-Banking'] = 'started', qbx_police = 'started', pxd_interact = 'started' },
-        exports = { qbx_core = qbx, ['Renewed-Banking'] = rb,
+        resourceStates = { qbx_core = 'started', ['Renewed-Banking'] = 'started', qbx_police = 'started', pxd_interact = 'started',
+            pxd_audit = opts.audit and 'started' or nil },
+        exports = { qbx_core = qbx, ['Renewed-Banking'] = rb, pxd_audit = opts.audit and fakeAudit() or nil,
             pxd_interact = { GetSourceByPublicId = function(id) return id == 'PROX-7KQ2' and 2 or nil end } },
         files = { ['qbx_police/server/main.lua'] = opts.unpatched and '-- sin parche' or
             "RegisterNetEvent('police:server:IssueFine', function()\n    if GetResourceState('pxd_justice') == 'started' then return end -- Próxima\n" } })
@@ -337,6 +361,117 @@ T.describe('pxd_justice · servidor', function()
         T.eq(fine(id).status, 'paid'); T.eq(players[2].PlayerData.money.bank, 500)
         local id2 = run(function() return PXDJustice.issue(1, 2, 'Otra', 900) end)[1]
         T.eq(fine(id2).status, 'pending', 'sin saldo queda como deuda')
+    end)
+end)
+
+-- ── Auditoría común (pxd_audit) y preparación de los radares ──
+local function actionsOf(list) local a = {} for _, e in ipairs(list) do a[#a + 1] = e.action end return table.concat(a, ',') end
+
+T.describe('pxd_justice · auditoría en pxd_audit', function()
+    T.it('con pxd_audit en marcha, emitir y pagar se auditan allí (categoría fines) y no en pxd_fine_events', function()
+        boot({ audit = true })
+        local id = run(function() return PXDJustice.issue(1, 2, 'Exceso', 500) end)[1]
+        run(function() return PXDJustice.pay(2, id, 200, 'bank') end)
+        T.eq(#db.events, 0)
+        T.eq(actionsOf(auditLog), 'issue,pay')
+        local e = auditLog[1]
+        T.eq(e.category, 'fines'); T.eq(e.target, 'fine:' .. id); T.eq(e.actor, 'COP1'); T.eq(e.source, 'pxd_justice')
+        T.eq(e.data.citizenid, 'CIT2'); T.eq(e.data.actor_name, 'Ana Agente'); T.eq(e.data.amount, 500); T.eq(e.data.detail, 'Exceso')
+        T.eq(auditLog[2].actor, 'CIT2'); T.eq(auditLog[2].data.detail, 'bank')
+    end)
+
+    T.it('cancelar desde la consola queda como sistema', function()
+        boot({ audit = true })
+        local id = run(function() return PXDJustice.issue(1, 2, 'Exceso', 500) end)[1]
+        run(function() return PXDJustice.cancel(0, id, 'error') end)
+        T.eq(auditLog[2].action, 'cancel'); T.eq(auditLog[2].actor, 'system'); T.eq(auditLog[2].data.actor_name, 'consola')
+    end)
+
+    T.it('si pxd_audit falla, no se pierde: va a pxd_fine_events y avisa', function()
+        boot({ audit = true })
+        auditFail = true
+        run(function() return PXDJustice.issue(1, 2, 'Exceso', 500) end)
+        T.eq(db.events[1].action, 'issue')
+        local warned = false
+        for _, l in ipairs(Fx.logs) do if l:find('pxd_audit no registró issue') then warned = true end end
+        T.truthy(warned)
+    end)
+
+    T.it('GetFineEvents une pxd_fine_events y pxd_audit sin duplicar lo migrado', function()
+        boot({ audit = true })
+        local id = run(function() return PXDJustice.issue(1, 2, 'Exceso', 500) end)[1]   -- en pxd_audit
+        -- Dos eventos antiguos de esa multa; el 1 ya se migró a pxd_audit.
+        db.events[1] = { id = 1, fine_id = id, action = 'edit', actor_name = 'consola', amount = 400, created_at = 100 }
+        db.events[2] = { id = 2, fine_id = id, action = 'pay', actor_citizenid = 'CIT2', amount = 50, created_at = 200 }
+        auditLog[#auditLog + 1] = { id = #auditLog + 1, created_at = 100, category = 'fines', action = 'edit', actor = 'system',
+            target = 'fine:' .. id, data = { fine_id = id, actor_name = 'consola', amount = 400 }, source = 'pxd_justice', legacy_ref = 'fine_event:1' }
+        local ev = run(function() return Fx.exports.pxd_justice.GetFineEvents(id) end)[1]
+        T.eq(actionsOf(ev), 'edit,pay,issue')
+        T.eq(ev[1].id, 1); T.eq(ev[1].actor_name, 'consola'); T.eq(ev[1].amount, 400)
+        T.eq(ev[2].id, 2); T.eq(ev[3].actor_citizenid, 'COP1'); T.eq(ev[3].fine_id, id)
+    end)
+
+    T.it('sin pxd_audit, GetFineEvents devuelve lo de siempre', function()
+        boot()
+        local id = run(function() return PXDJustice.issue(1, 2, 'Exceso', 500) end)[1]
+        local ev = run(function() return Fx.exports.pxd_justice.GetFineEvents(id) end)[1]
+        T.eq(actionsOf(ev), 'issue'); T.eq(ev[1].id, 1); T.eq(ev[1].actor_citizenid, 'COP1')
+    end)
+end)
+
+T.describe('pxd_justice · multas del sistema y radares (preparado, sin cambios)', function()
+    T.it('IssueSystemFine deja una multa pendiente, sin cobrar, con autor sistema', function()
+        boot({ audit = true })
+        local r = run(function() return Fx.exports.pxd_justice.IssueSystemFine('CIT2', 'Radar de velocidad', 250, { source = 'radar', fine = 3 }) end)
+        local id = r[1]
+        T.eq(fine(id).status, 'pending'); T.eq(fine(id).amount, 250); T.eq(fine(id).citizenid, 'CIT2')
+        T.eq(fine(id).officer_name, 'Sistema'); T.falsy(fine(id).officer_citizenid)
+        T.eq(r[2], 250, 'devuelve lo pendiente')
+        T.eq(players[2].PlayerData.money.bank, 1000, 'no cobra')
+        T.eq(Fx.playerStates[2].pxdFines, 250)
+        T.truthy(logged('Radar de velocidad'))
+        T.eq(auditLog[1].actor, 'system'); T.eq(auditLog[1].data.origin, 'radar'); T.eq(auditLog[1].data.system, true)
+        T.eq(auditLog[1].data.citizenid, 'CIT2')
+    end)
+
+    T.it('IssueSystemFine valida ciudadano, motivo, importe, notas y origen', function()
+        boot()
+        local function issue(...) local a = table.pack(...) return run(function() return PXDJustice.issueSystem(table.unpack(a, 1, a.n)) end) end
+        T.falsy(issue(nil, 'Radar', 100)[1])
+        T.falsy(issue("CIT2'; DROP", 'Radar', 100)[1])
+        T.falsy(issue(string.rep('A', 65), 'Radar', 100)[1])
+        T.falsy(issue('CIT2', '  ', 100)[1])
+        T.falsy(issue('CIT2', 'Radar', 0)[1])
+        T.falsy(issue('CIT2', 'Radar', 12.5)[1])
+        T.falsy(issue('CIT2', 'Radar', 100001)[1])
+        T.falsy(issue('CIT2', 'Radar', 100, { notes = string.rep('n', 1001) })[1])
+        T.falsy(issue('CIT2', 'Radar', 100, { source = 'radar móvil' })[1])
+        T.eq(db.nextId, 1, 'no se ha creado ninguna')
+        T.truthy(issue('OFFLINE9', 'Peaje', 30, { source = 'peaje' })[1], 'también sin estar conectado')
+        T.eq(fine(1).citizenid, 'OFFLINE9')
+    end)
+
+    T.it('IssueSystemFine no repite la misma multa del mismo origen en el enfriamiento', function()
+        boot()
+        T.truthy(run(function() return PXDJustice.issueSystem('CIT2', 'Radar', 50, { source = 'radar' }) end)[1])
+        local again = run(function() return PXDJustice.issueSystem('CIT2', 'Radar', 50, { source = 'radar' }) end)
+        T.falsy(again[1]); T.truthy(again[2]:find('espera'))
+        T.truthy(run(function() return PXDJustice.issueSystem('CIT2', 'Peaje', 50, { source = 'peaje' }) end)[1], 'otro origen sí')
+        Config.systemFine.cooldownSec = 0
+        T.truthy(run(function() return PXDJustice.issueSystem('CIT2', 'Radar', 50, { source = 'radar' }) end)[1])
+        T.eq(db.events[1].actor_name, 'Sistema', 'sin pxd_audit, auditado en pxd_fine_events')
+        T.falsy(db.events[1].actor_citizenid)
+    end)
+
+    T.it('los radares no cambian: modo instant y pxd_justice no atiende police:server:Radar', function()
+        boot()
+        T.eq(Config.radar.mode, 'instant')
+        T.eq(Fx.exports.pxd_justice.GetRadarMode(), 'instant')
+        T.falsy(Fx.handlers['police:server:Radar'])
+        Config.radar.mode = 'pending'
+        T.eq(Fx.exports.pxd_justice.GetRadarMode(), 'pending')
+        Config.radar.mode = 'cualquier cosa'
+        T.eq(Fx.exports.pxd_justice.GetRadarMode(), 'instant')
     end)
 end)
 

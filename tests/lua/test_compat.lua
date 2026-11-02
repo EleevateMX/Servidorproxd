@@ -58,7 +58,7 @@ end)
 
 -- ── Hospital y auditoría ────────────────────────────────────────────────────
 local inv, notified
-local function bootMedical(states, cfgFile)
+local function bootMedical(states, cfgFile, extraExports)
     inv = {
         [1] = { slot = 1, name = 'money', label = 'Dinero', count = 500 },
         [2] = { slot = 2, name = 'phone', label = 'Teléfono', count = 1 },
@@ -91,6 +91,7 @@ local function bootMedical(states, cfgFile)
             },
         },
     })
+    for k, v in pairs(extraExports or {}) do Fx.exports[k] = v end
     Config, PXDMedical, PXDAudit, PXDMedicalServer = nil, nil, nil, nil
     Fx.load(DIR, { 'config.lua', 'shared/medical.lua', 'server/audit.lua', 'server/medical.lua' })
 end
@@ -176,3 +177,69 @@ T.describe('pxd_compat · hospital', function()
     end)
 end)
 
+-- ── Delegación en la auditoría común (pxd_audit, docs/34) ───────────────────
+T.describe('pxd_compat · auditoría delegada en pxd_audit', function()
+    local logs, failLog
+    local fakeAudit = {
+        Log = function(e)
+            if failLog then error('pxd_audit caído') end
+            logs[#logs + 1] = e
+            return 100 + #logs
+        end,
+        Query = function(f)
+            local out = {}
+            for i = #logs, 1, -1 do
+                local e = logs[i]
+                if (not f.category or e.category == f.category) and (not f.target or e.target == f.target) then
+                    out[#out + 1] = { id = 100 + i, created_at = 1234, category = e.category, action = e.action,
+                        actor = e.actor or 'system', target = e.target, data = e.data, source = e.source }
+                end
+                if #out >= f.limit then break end
+            end
+            return out
+        end,
+    }
+    local function bootDelegated()
+        logs, failLog = {}, false
+        bootMedical({ ox_inventory = 'started', qbx_core = 'started', pxd_audit = 'started' }, nil, { pxd_audit = fakeAudit })
+    end
+
+    T.it('con pxd_audit en marcha, Audit escribe allí y no en su JSON', function()
+        bootDelegated()
+        TriggerEvent('qbx_medical:server:playerRespawned', 7)
+        T.eq(#logs, 3)
+        T.eq(logs[1].category, 'medical'); T.eq(logs[1].target, 'CID7'); T.eq(logs[1].source, 'pxd_compat')
+        T.eq(logs[1].data.item, 'WEAPON_PISTOL'); T.eq(logs[1].data.serial, 'ABC123')
+        T.falsy(Fx.files['data/audit.json'])
+    end)
+
+    T.it('GetAudit lee de pxd_audit con la forma de siempre (at, resource)', function()
+        bootDelegated()
+        TriggerEvent('qbx_medical:server:playerRespawned', 7)
+        local list = PXDAudit.get({ category = 'medical', target = 'CID7', limit = 2 })
+        T.eq(#list, 2)
+        T.eq(list[1].at, 1234); T.eq(list[1].resource, 'pxd_compat'); T.eq(list[1].id, 103)
+        T.eq(list[2].data.item, 'ammo-9')
+    end)
+
+    T.it('si pxd_audit falla, guarda en su JSON y avisa; sin pxd_audit, como antes', function()
+        bootDelegated()
+        failLog = true
+        T.eq(PXDAudit.audit({ category = 'medical', action = 'confiscate', target = 'CID1' }), 1)
+        T.eq(#Fx.json.decode(Fx.files['data/audit.json']).entries, 1)
+        local warned = false
+        for _, l in ipairs(Fx.logs) do if l:find('pxd_audit no aceptó') then warned = true end end
+        T.truthy(warned)
+        bootMedical(nil, nil, { pxd_audit = fakeAudit })   -- exportado pero sin arrancar
+        logs = {}
+        PXDAudit.audit({ category = 'medical', action = 'confiscate', target = 'CID1' })
+        T.eq(#logs, 0); T.truthy(Fx.files['data/audit.json'])
+    end)
+
+    T.it('Config.audit.delegate = false mantiene el JSON aunque pxd_audit esté en marcha', function()
+        bootDelegated()
+        Config.audit.delegate = false
+        PXDAudit.audit({ category = 'medical', action = 'confiscate', target = 'CID1' })
+        T.eq(#logs, 0); T.truthy(Fx.files['data/audit.json'])
+    end)
+end)
