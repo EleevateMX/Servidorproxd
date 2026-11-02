@@ -3,18 +3,24 @@ game 'gta5'
 lua54 'yes'
 
 name 'pxd_interact'
-description 'Próxima RP — interacción con E, ID público (PROX-XXXX) y presentarse'
-version '0.1.0'
+description 'Próxima RP — controles (E interacción, B recoger, Ctrl agacharse), ID público (PROX-XXXX) y presentarse'
+version '0.2.0'
 
 shared_scripts {
     'config.lua',
     'shared/interact.lua',
 }
-server_script 'server/main.lua'
+server_scripts {
+    'server/main.lua',
+    'server/pickup.lua',
+}
 client_scripts {
     'client/main.lua',
     'client/tags.lua',
     'client/builtin.lua',
+    'client/trunk.lua',
+    'client/pickup.lua',
+    'client/crouch.lua',
 }
 
 ui_page 'html/index.html'

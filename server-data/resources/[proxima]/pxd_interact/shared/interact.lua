@@ -116,4 +116,90 @@ function PXDInteract.charName(charinfo)
     return name:sub(1, 40)
 end
 
+-- ── Controles: E cede, B recoge, prioridades ────────────────────────────────
+
+--- Prioridades de las acciones con E (mayor = gana). Una pulsación = una acción.
+-- Las zonas (puntos que un recurso registra a propósito, p. ej. «Entregar el paquete»
+-- junto a tu furgoneta) van por delante del maletero, que se detecta en cualquier coche.
+PXDInteract.PRIORITY = { invite = 100, job = 40, npc = 35, zone = 30, trunk = 25, player = 10 }
+
+--- ¿Debe pxd_interact ceder la E a otro recurso en este momento?
+--- s = { textUI, door, sprinting, shift, pump }
+--- Cede si otro recurso muestra su aviso (ox_lib textUI: puertas de ox_doorlock,
+--- teletransportes…), si hay una puerta de ox_doorlock al alcance, si corres o
+--- esprintas (placaje de qbx_tackle), si mantienes Mayús (empujar vehículo) o si
+-- estás junto a un surtidor (ox_fuel reposta con E).
+function PXDInteract.shouldYield(s)
+    if type(s) ~= 'table' then return false end
+    return s.textUI == true or s.door == true or s.sprinting == true or s.shift == true or s.pump == true
+end
+
+--- Elige el objeto del suelo a recoger: el más cercano dentro de `maxDist`; si hay
+--- empate (diferencia ≤ `tie` m), el que está más de frente (producto escalar con
+--- la dirección del jugador). cands: { {id, x, y, z} }, pos/fwd: {x, y, z}.
+function PXDInteract.pickDrop(cands, pos, fwd, maxDist, tie)
+    tie = tie or 0.15
+    local best, bestD, bestDot
+    for _, c in ipairs(cands or {}) do
+        local dx, dy, dz = c.x - pos.x, c.y - pos.y, (c.z or pos.z) - pos.z
+        local d = math.sqrt(dx * dx + dy * dy + dz * dz)
+        if d <= (maxDist or 1.6) then
+            local len = math.sqrt(dx * dx + dy * dy)
+            local dot = len > 0 and (dx * fwd.x + dy * fwd.y) / len or 1
+            if not best or d < bestD - tie or (math.abs(d - bestD) <= tie and dot > bestDot) then
+                best, bestD, bestDot = c, d, dot
+            end
+        end
+    end
+    return best, bestD
+end
+
+--- Bloqueos con caducidad (para que dos jugadores no recojan lo mismo a la vez).
+function PXDInteract.tryLock(store, key, now, ttl)
+    local t = store[key]
+    if t and now < t then return false end
+    store[key] = now + (ttl or 5)
+    return true
+end
+function PXDInteract.unlock(store, key) store[key] = nil end
+
+local DROP_ID = '^[%w_]+%-%d+$'
+
+--- Valida una recogida en el servidor. Devuelve ok, motivo.
+--- p = { dropId, slot, inv = {type, coords, items}, playerPos, maxDist, canCarry, inVehicle, dead }
+function PXDInteract.validatePickup(p)
+    if type(p) ~= 'table' or type(p.dropId) ~= 'string' or not p.dropId:match(DROP_ID) then return false, 'invalid' end
+    if type(p.slot) ~= 'number' or p.slot < 1 or p.slot % 1 ~= 0 then return false, 'invalid' end
+    if p.dead or p.inVehicle then return false, 'state' end
+    local inv = p.inv
+    if type(inv) ~= 'table' or inv.type ~= 'drop' or type(inv.items) ~= 'table' then return false, 'gone' end
+    local item = inv.items[p.slot]
+    if type(item) ~= 'table' or type(item.name) ~= 'string' or (tonumber(item.count) or 0) < 1 then return false, 'gone' end
+    local c, pp = inv.coords, p.playerPos
+    if type(c) ~= 'table' and type(c) ~= 'vector3' or not pp then return false, 'gone' end
+    local dx, dy, dz = c.x - pp.x, c.y - pp.y, c.z - pp.z
+    if math.sqrt(dx * dx + dy * dy + dz * dz) > (p.maxDist or 3.0) then return false, 'far' end
+    if p.canCarry == false then return false, 'full' end
+    return true, item
+end
+
+--- Primer hueco ocupado de un drop (el objeto que se ofrece al acercarse).
+function PXDInteract.firstSlot(items)
+    local best
+    for slot, it in pairs(type(items) == 'table' and items or {}) do
+        if type(slot) == 'number' and type(it) == 'table' and (tonumber(it.count) or 0) > 0 then
+            if not best or slot < best then best = slot end
+        end
+    end
+    return best
+end
+
+--- Texto del aviso de recogida: «Recoger botella de agua» (+ « ×3»).
+function PXDInteract.pickupLabel(label, count)
+    label = type(label) == 'string' and label ~= '' and label or 'objeto'
+    count = tonumber(count) or 1
+    if count > 1 then return ('Recoger %s ×%d'):format(label, count) end
+    return 'Recoger ' .. label
+end
+
 return PXDInteract

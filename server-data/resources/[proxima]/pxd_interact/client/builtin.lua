@@ -1,5 +1,4 @@
--- Interacciones de serie: «Presentarse» con otros jugadores, invitaciones y
--- objetos tirados de ox_inventory («Recoger»).
+-- Interacciones de serie: «Presentarse» con otros jugadores e invitaciones.
 local API = PXDInteractAPI
 
 -- Presentarse ----------------------------------------------------------------
@@ -27,35 +26,7 @@ RegisterNetEvent('pxd_interact:invite', function(from, fromId, seconds)
     SendNUIMessage({ action = 'notify', text = ('%s quiere presentarse.'):format(tostring(fromId)) })
 end)
 
--- Objetos tirados (ox_inventory) -------------------------------------------------
--- ox_inventory avisa con los eventos createDrop/removeDrop/setPlayerInventory y abre
--- un drop con exports.ox_inventory:openInventory('drop', id) (client.lua de ox_inventory).
-if Config.drops.enabled then
-    local dropZones = {}
-
-    local function addDrop(dropId, data)
-        if type(data) ~= 'table' or not data.coords or dropZones[dropId] then return end
-        dropZones[dropId] = API.addZone({
-            coords = data.coords, radius = Config.drops.radius,
-            options = { { label = 'Recoger', icon = 'hand', onSelect = function()
-                if GetResourceState('ox_inventory') == 'started' then
-                    exports.ox_inventory:openInventory('drop', dropId)
-                end
-            end } },
-        })
-    end
-
-    local function removeDrop(dropId)
-        if dropZones[dropId] then API.removeZone(dropZones[dropId]) dropZones[dropId] = nil end
-    end
-
-    RegisterNetEvent('ox_inventory:createDrop', function(dropId, data) addDrop(dropId, data) end)
-    RegisterNetEvent('ox_inventory:removeDrop', function(dropId) removeDrop(dropId) end)
-    RegisterNetEvent('ox_inventory:setPlayerInventory', function(currentDrops)
-        for id in pairs(dropZones) do removeDrop(id) end
-        for id, data in pairs(type(currentDrops) == 'table' and currentDrops or {}) do addDrop(id, data) end
-    end)
-end
+-- Los objetos tirados (ox_inventory) se recogen con B: client/pickup.lua.
 
 -- Al cargar el personaje (o al iniciar el recurso) pide su ID y sus conocidos.
 RegisterNetEvent('QBCore:Client:OnPlayerLoaded', function() TriggerServerEvent('pxd_interact:ready') end)
