@@ -10,6 +10,7 @@
 | `pxd_props` | Editor de props en el juego (F6), dashboard web con mapa cenital y API para inyectar diseños |
 | `pxd_login` | Login al conectar: código de acceso opcional + normas; pantalla de bienvenida |
 | `pxd_loadscreen` | Pantalla de carga con progreso real, consejos, vídeo y voz de bienvenida |
+| `discord/` | Bot de Discord: monta el servidor (roles, canales, permisos), anuncios, verificación, tickets y contador de jugadores |
 | `scripts/pxd.mjs` | Comando para pasar de una idea a un escenario: blueprint → servidor, en vivo |
 
 ## Empezar
@@ -43,6 +44,7 @@ Antes rellena `deploy/.env` (ver [docs/06-servidor-en-la-nube.md](docs/06-servid
 8. [Kit de lanzamiento (portal, hosting, comandos)](docs/08-kit-lanzamiento.md)
 9. [Hoja de ruta: de servidor base a rol completo](docs/09-hoja-de-ruta.md)
 10. [Fase 1: Próxima RP + Qbox](docs/10-fase-1-qbox.md)
+11. [Servidor de Discord (bot)](docs/11-discord.md)
 
 ## Pruebas
 

@@ -21,6 +21,7 @@ node scripts/pxd.mjs …   # anchors | list | get | compile | apply | activate |
 | `recipe.yaml` + `server-data/server.hosting.cfg` | Instalación base en hostings con txAdmin («Remote URL Template») |
 | `recipe-qbox.yaml` + `server-data/server.qbox.cfg` | Fase 1: Próxima RP + Qbox (derivada de la receta oficial Qbox Lean; ver cabecera) |
 | `pxd_gamemodes/*/bridge.lua` | Puente con Qbox (buckets, revivir, inventario); sin Qbox no hace nada |
+| `discord/` | Bot de Discord (discord.js 14.28): plantilla del servidor en `src/template.js`, lógica pura en `template/plan/access/announce/stats/panels.js`, pegamento en `setup.js` y `bot.js` (ver docs/11) |
 | `deploy/` | Imagen Docker y compose para VPS Linux (secretos por variables de entorno) |
 | `tests/lua/fx_stub.lua` | Simulador mínimo de FXServer para probar `server/*.lua` |
 

@@ -11,3 +11,6 @@ server-data/cache
 server-data/resources/?cfx?
 server-data/resources/?proxima?/pxd_props/data/*.json
 server-data/resources/?proxima?/pxd_login/data/*.json
+discord/.env
+discord/data
+discord/node_modules

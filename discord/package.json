@@ -1,0 +1,14 @@
+{
+  "name": "proxima-rp-discord",
+  "private": true,
+  "description": "Bot de Discord de Próxima RP: monta el servidor (roles, canales, permisos), anuncios, verificación, tickets y contador de jugadores",
+  "type": "module",
+  "scripts": {
+    "start": "node src/bot.js",
+    "setup": "node src/setup.js"
+  },
+  "dependencies": {
+    "discord.js": "14.28.0"
+  },
+  "engines": { "node": ">=20.12" }
+}

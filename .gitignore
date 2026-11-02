@@ -22,3 +22,6 @@ server-data/resources/[proxima]/pxd_loadscreen/html/assets/*.mp4
 tests/web/out/
 node_modules/
 deploy/.env
+
+# Bot de Discord: ids de canales, mensajes y tickets
+discord/data/

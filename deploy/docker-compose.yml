@@ -1,6 +1,7 @@
 # Próxima RP en un VPS Linux. Desde la raíz del repo:
 #   cp deploy/.env.example deploy/.env   (y rellénalo)
 #   docker compose -f deploy/docker-compose.yml up -d --build
+# Bot de Discord (opcional, docs/11-discord.md): rellena discord/.env y añade --profile discord.
 services:
   fxserver:
     build:
@@ -17,6 +18,18 @@ services:
       - login-data:/srv/server-data/resources/[proxima]/pxd_login/data
     stdin_open: true
     tty: true
+  discord-bot:
+    profiles: ["discord"]
+    build:
+      context: ..
+      dockerfile: discord/Dockerfile
+    restart: unless-stopped
+    env_file:
+      - path: ../discord/.env
+        required: false
+    volumes:
+      - discord-data:/app/discord/data
 volumes:
   props-data:
   login-data:
+  discord-data:
