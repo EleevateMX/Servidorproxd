@@ -14,13 +14,7 @@ Sí: para que Próxima RP esté encendido 24/7 y entren otros jugadores, lo norm
 
 ## Opción A — Proveedor de hosting autorizado (lo más fácil)
 
-Cfx.re publica sus socios autorizados en [fivem.net/server-hosting](https://fivem.net/server-hosting). Te dan un panel (normalmente con txAdmin) y tú:
-
-1. Creas el servidor y pegas tu clave de licencia.
-2. Subes la carpeta `server-data/resources/[proxima]` y fusionas nuestro `server.cfg` y `permissions.cfg` con el suyo.
-3. Pones los secretos (`pxd_props_webToken`, `pxd_login_accessCode`) con `set` en su configuración.
-
-Precio y plazas dependen del proveedor (no los he comparado).
+Cfx.re publica sus socios autorizados en [fivem.net/server-hosting](https://fivem.net/server-hosting). Te dan un panel con txAdmin, y Próxima RP se instala con una sola URL (`recipe.yaml`). Paso a paso: **[docs/07-hosting-oficial.md](07-hosting-oficial.md)**.
 
 ## Opción B — VPS Linux con Docker (incluido en este repo)
 

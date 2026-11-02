@@ -5,7 +5,7 @@ Entorno de pruebas FiveM de **Próxima RP**: modos de juego, editor de props, lo
 ## Comandos
 
 ```bash
-npm test                 # Lua 5.4 (tests/lua) + Node (tests/js). Obligatorio antes de cada commit
+npm test                 # Lua 5.4 (tests/lua) + Node (tests/js, incluye coherencia de cfg/manifest/receta). Obligatorio antes de cada commit
 npm run test:web         # capturas de las 6 interfaces con Chromium (si tocas html/)
 node scripts/pxd.mjs …   # anchors | list | get | compile | apply | activate | remove (ver docs/04)
 ```
@@ -18,6 +18,7 @@ node scripts/pxd.mjs …   # anchors | list | get | compile | apply | activate |
 | `server-data/resources/[proxima]/pxd_*` | Recursos propios |
 | `tools/blueprint.mjs` | Compilador de blueprints (formas → layout) |
 | `blueprints/` | Diseños listos para inyectar |
+| `recipe.yaml` + `server-data/server.hosting.cfg` | Instalación en hostings con txAdmin («Remote URL Template») |
 | `deploy/` | Imagen Docker y compose para VPS Linux (secretos por variables de entorno) |
 | `tests/lua/fx_stub.lua` | Simulador mínimo de FXServer para probar `server/*.lua` |
 

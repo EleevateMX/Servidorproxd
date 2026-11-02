@@ -22,6 +22,9 @@
 ```
 En FiveM: F8 → `connect localhost:30120`. Guía completa: [docs/02-entorno-de-pruebas.md](docs/02-entorno-de-pruebas.md).
 
+**En un hosting oficial con txAdmin:** en el asistente elige «Remote URL Template» y pega
+`https://raw.githubusercontent.com/EleevateMX/Servidorproxd/HEAD/recipe.yaml` ([guía](docs/07-hosting-oficial.md)).
+
 **En la nube (VPS Linux con Docker):**
 ```bash
 docker compose -f deploy/docker-compose.yml up -d --build
@@ -36,6 +39,7 @@ Antes rellena `deploy/.env` (ver [docs/06-servidor-en-la-nube.md](docs/06-servid
 4. [Editor de props, dashboard y blueprints](docs/04-editor-de-props.md)
 5. [Login, pantalla de carga e identidad](docs/05-login-carga-y-marca.md)
 6. [Servidor en la nube](docs/06-servidor-en-la-nube.md)
+7. [Hosting oficial paso a paso](docs/07-hosting-oficial.md)
 
 ## Pruebas
 

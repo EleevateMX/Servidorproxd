@@ -1,0 +1,50 @@
+# Receta de txAdmin para Próxima RP.
+# En txAdmin (panel de tu hosting) → configuración inicial → «Remote URL Template» y pega:
+#   https://raw.githubusercontent.com/EleevateMX/Servidorproxd/HEAD/recipe.yaml
+# No necesita base de datos. Guía: docs/07-hosting-oficial.md
+$engine: 3
+$onesync: on
+name: Próxima RP
+author: Próxima RP
+description: Servidor Próxima RP con login, pantalla de carga, modos de juego (FFA, TDM, rey de la colina, carreras) y editor de props. Sin base de datos.
+
+tasks:
+  # Recursos base oficiales (mapmanager, chat, spawnmanager, baseevents...)
+  - action: download_github
+    src: https://github.com/citizenfx/cfx-server-data
+    subpath: resources
+    dest: ./resources/[cfx]
+
+  # Próxima RP
+  - action: download_github
+    src: https://github.com/EleevateMX/Servidorproxd
+    dest: ./tmp/proxima
+
+  - action: move_path
+    src: ./tmp/proxima/server-data/resources/[proxima]
+    dest: ./resources/[proxima]
+
+  - action: move_path
+    src: ./tmp/proxima/server-data/server.hosting.cfg
+    dest: ./server.cfg
+
+  - action: move_path
+    src: ./tmp/proxima/server-data/permissions.cfg
+    dest: ./permissions.cfg
+
+  # Arte de la marca generado con Kling (fondo y vídeo de la pantalla de carga)
+  - action: download_file
+    url: https://d2ol7oe51mr4n9.cloudfront.net/user_37Ov13C5FiPPOO8dlkIS8XYZnE7/f9847beb-648f-4a2b-80f9-8439aacd7b49.png
+    path: ./resources/[proxima]/pxd_loadscreen/html/assets/keyart.png
+
+  - action: download_file
+    url: https://d2ol7oe51mr4n9.cloudfront.net/user_37Ov13C5FiPPOO8dlkIS8XYZnE7/936ef4bd-4152-48c8-9d3c-52109244e823.mp4
+    path: ./resources/[proxima]/pxd_loadscreen/html/assets/background.mp4
+
+  - action: remove_path
+    path: ./tmp
+
+  # Rellena {{svLicense}}, {{maxClients}}, {{serverEndpoints}}, {{addPrincipalsMaster}}...
+  - action: replace_string
+    mode: all_vars
+    file: ./server.cfg
