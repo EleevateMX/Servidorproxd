@@ -27,6 +27,7 @@ end
 local function canCrouch(ped)
     return not IsPedInAnyVehicle(ped, false) and not IsPedDeadOrDying(ped, true) and not IsPedRagdoll(ped)
         and not IsPedSwimming(ped) and not IsPauseMenuActive() and not IsNuiFocused()
+        and not LocalPlayer.state.pxd_noclip -- en noclip de staff (pxd_admin) no se agacha
 end
 
 -- Mismo estado que qbx_crouch (no replicado, como él: el clipset del ped ya se sincroniza).

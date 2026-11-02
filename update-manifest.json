@@ -4,8 +4,8 @@
   {
    "resource": "pxd_admin",
    "path": "client/main.lua",
-   "size": 22311,
-   "sha256": "9222d0a474babbd051c2cc8454e80dcdc41935f79e6f7005b85872d0700f27ec"
+   "size": 22552,
+   "sha256": "89f86d87ceaa28f7eb03be4e61d127d8162bff39fd938e2acf6019e97b3bf7aa"
   },
   {
    "resource": "pxd_admin",
@@ -483,8 +483,8 @@
   {
    "resource": "pxd_interact",
    "path": "client/crouch.lua",
-   "size": 2749,
-   "sha256": "6c03290c5fd99b3b4adf38790810db147d52df05da67256a929589f5b7aaabcc"
+   "size": 2841,
+   "sha256": "41b07b9872d244c7f70a00d7d127d7c15e1ffd916afc9396087fe4ae3457500b"
   },
   {
    "resource": "pxd_interact",

@@ -211,6 +211,7 @@ end
 local function noclipStop(tellServer)
     if not nc.on then return end
     nc.on = false
+    LocalPlayer.state:set('pxd_noclip', false, false) -- lo lee pxd_interact (no agacharse en vuelo)
     local s = nc.saved or {}
     local ped = PlayerPedId()
     if s.ent and DoesEntityExist(s.ent) then
@@ -259,6 +260,8 @@ end
 
 local function noclipStart(opts)
     if nc.on then return end
+    LocalPlayer.state:set('pxd_noclip', true, false)
+    if LocalPlayer.state.crouch then LocalPlayer.state:set('crouch', false, false) end
     local ent, ped = ncTargets()
     nc.saved = { ent = ent, collisionDisabled = GetEntityCollisionDisabled(ent), visible = IsEntityVisible(ped),
         invincible = GetPlayerInvincible(PlayerId()) }
