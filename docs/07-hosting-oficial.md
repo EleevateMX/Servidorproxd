@@ -92,3 +92,26 @@ Con el token puesto:
 - **Aviso EOS/EOL**: pide al proveedor (o cambia en su panel) el build *recommended* más reciente.
 - **No se ve la pantalla de carga con vídeo**: la receta no pudo descargar el arte; funciona igual con el fondo animado.
 - **Los modos de juego no aíslan**: confirma `set onesync on` (algunos paneles tienen su propio interruptor de OneSync: actívalo).
+
+## Actualizar Próxima RP sin subir archivos (`pxd_update`)
+
+El recurso `pxd_updater` descarga desde GitHub lo que haya cambiado en los recursos `pxd_*` y los reinicia.
+
+En txAdmin → **Live Console**:
+
+| Comando | Qué hace |
+|---|---|
+| `pxd_update check` | Muestra qué cambiaría, sin tocar nada |
+| `pxd_update` | Aplica: descarga, comprueba la huella SHA-256 de cada archivo, escribe todo (o nada si algo falla) y reinicia los recursos tocados. También baja el arte que falte |
+| `pxd_update force` | Igual, pero sobrescribe también los `config.lua` que hayas editado a mano |
+
+- Los `config.lua` que edites se respetan (el actualizador recuerda la versión que instaló).
+- Nunca toca `data/` (props guardados, jugadores).
+- Un recurso **nuevo** (que aún no existe en el servidor) hay que subirlo una vez a mano.
+- Necesita en el `server.cfg` (ya viene en las recetas nuevas):
+  ```
+  ensure pxd_updater
+  add_ace resource.pxd_updater command.refresh allow
+  add_ace resource.pxd_updater command.ensure allow
+  add_ace group.admin pxd.update allow
+  ```

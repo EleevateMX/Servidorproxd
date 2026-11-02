@@ -5,7 +5,7 @@ local function close()
     if closed then return end
     closed = true
     SendLoadingScreenMessage(json.encode({ eventName = 'pxd:closing' }))
-    Wait(600) -- deja terminar el fundido de la página
+    Wait(1600) -- deja ver la transición (estrella girando) antes de cerrar
     ShutdownLoadingScreen()
     ShutdownLoadingScreenNui()
 end

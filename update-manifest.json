@@ -113,26 +113,33 @@
   {
    "resource": "pxd_loadscreen",
    "path": "client.lua",
-   "size": 1475,
-   "sha256": "9a811822736eb10250e87d09b9abe9101e50019efc31033c83317eac5685756e"
+   "size": 1496,
+   "sha256": "7d621e0ac22192435ad8b0d38f27ac35b1dd7e23b48a29f4ddb7c333cbfd20f9"
+  },
+  {
+   "resource": "pxd_loadscreen",
+   "path": "config.lua",
+   "size": 1232,
+   "sha256": "d6e8b9730ee86eaba1a9496b9e10532413d56a3ce7a1eefe077b86366980180e",
+   "config": true
   },
   {
    "resource": "pxd_loadscreen",
    "path": "fxmanifest.lua",
-   "size": 515,
-   "sha256": "ec0d023322f4293fc96d7cc5ca5d1d67caaed015fc29104a07f2e221574b32c1"
+   "size": 672,
+   "sha256": "e8cfce4a51a370ed8b830749a4f80c29199699c21e7ea8e70484dece08bb8f44"
   },
   {
    "resource": "pxd_loadscreen",
    "path": "html/app.js",
-   "size": 5171,
-   "sha256": "7e87f5052cbf5384609ab14c5fcd99e438a762cd9c020f759e9efc4afae9d9d7"
+   "size": 9168,
+   "sha256": "e401663dd106784858ce803101ad18a696c446bd54226da76461d6c2a52e90cc"
   },
   {
    "resource": "pxd_loadscreen",
    "path": "html/index.html",
-   "size": 2583,
-   "sha256": "63f55a974fbdc23bdd47aa2b654a80978b4817d4cddbe27dbfdd51abd5e3e901"
+   "size": 3525,
+   "sha256": "2d70a7528ae418a9760634e623dee5574a8bcd578456ecb26a5a665af5e97f66"
   },
   {
    "resource": "pxd_loadscreen",
@@ -143,8 +150,14 @@
   {
    "resource": "pxd_loadscreen",
    "path": "html/style.css",
-   "size": 4640,
-   "sha256": "b750d1ee3ef87f537ce48ccd81c77f92638adc7c74882b5714b9521754ff0f8a"
+   "size": 8781,
+   "sha256": "fae25ba0aeb67cd0e1c7c0daa45756c58bb82637923b1ad1595b428ba9a449ea"
+  },
+  {
+   "resource": "pxd_loadscreen",
+   "path": "server.lua",
+   "size": 595,
+   "sha256": "48839f558cc670beae1f81a7d4b4d7b5e35dc497288652f344735287c1c1f48b"
   },
   {
    "resource": "pxd_login",
@@ -266,14 +279,71 @@
   {
    "resource": "pxd_updater",
    "path": "server/main.lua",
-   "size": 5404,
-   "sha256": "961e8dc1dfa8becb42482235f569332bf9f90b4296082048edc19435f5ede09d"
+   "size": 7083,
+   "sha256": "c78550c27e250211e422a44cb2dd3428f05b432f88818dc8ff197cca8073b35b"
   },
   {
    "resource": "pxd_updater",
    "path": "shared/sha256.lua",
    "size": 2564,
    "sha256": "0fea6c8f79ccbacbb89f1273e03cca1c5b7e51fb1b1419f12f7531583371178e"
+  }
+ ],
+ "assets": [
+  {
+   "resource": "pxd_loadscreen",
+   "path": "html/assets/keyart.png",
+   "url": "https://d2ol7oe51mr4n9.cloudfront.net/user_37Ov13C5FiPPOO8dlkIS8XYZnE7/f9847beb-648f-4a2b-80f9-8439aacd7b49.png"
+  },
+  {
+   "resource": "pxd_loadscreen",
+   "path": "html/assets/keyart-alt.png",
+   "url": "https://d2ol7oe51mr4n9.cloudfront.net/user_37Ov13C5FiPPOO8dlkIS8XYZnE7/ddd95eaa-864b-452c-97fe-23be7d8f1cbe.png"
+  },
+  {
+   "resource": "pxd_loadscreen",
+   "path": "html/assets/background.mp4",
+   "url": "https://d2ol7oe51mr4n9.cloudfront.net/user_37Ov13C5FiPPOO8dlkIS8XYZnE7/936ef4bd-4152-48c8-9d3c-52109244e823.mp4"
+  },
+  {
+   "resource": "pxd_loadscreen",
+   "path": "html/assets/slide-policia.png",
+   "url": "https://d2ol7oe51mr4n9.cloudfront.net/user_37Ov13C5FiPPOO8dlkIS8XYZnE7/85c60a88-43d4-47b8-a6b8-a9dd25f7823f.png"
+  },
+  {
+   "resource": "pxd_loadscreen",
+   "path": "html/assets/slide-emergencias.png",
+   "url": "https://d2ol7oe51mr4n9.cloudfront.net/user_37Ov13C5FiPPOO8dlkIS8XYZnE7/bc7b1756-2c8a-43b5-93d5-d8c1642024e3.png"
+  },
+  {
+   "resource": "pxd_loadscreen",
+   "path": "html/assets/slide-taller.png",
+   "url": "https://d2ol7oe51mr4n9.cloudfront.net/user_37Ov13C5FiPPOO8dlkIS8XYZnE7/0dd6413f-3e43-4003-a7b2-e6abd6fffb20.png"
+  },
+  {
+   "resource": "pxd_loadscreen",
+   "path": "html/assets/slide-barrio.png",
+   "url": "https://d2ol7oe51mr4n9.cloudfront.net/user_37Ov13C5FiPPOO8dlkIS8XYZnE7/6f1fbcc9-9efc-49a7-b005-383c9bb4f30b.png"
+  },
+  {
+   "resource": "pxd_loadscreen",
+   "path": "html/assets/ciudad-1.png",
+   "url": "https://d2ol7oe51mr4n9.cloudfront.net/user_37Ov13C5FiPPOO8dlkIS8XYZnE7/ba4ea377-86ff-44b9-a9c8-831e236bbe46.png"
+  },
+  {
+   "resource": "pxd_loadscreen",
+   "path": "html/assets/ciudad-2.png",
+   "url": "https://d2ol7oe51mr4n9.cloudfront.net/user_37Ov13C5FiPPOO8dlkIS8XYZnE7/dba2d4e2-2095-4e21-a92a-617dd32d187c.png"
+  },
+  {
+   "resource": "pxd_loadscreen",
+   "path": "html/assets/ciudad-3.png",
+   "url": "https://d2ol7oe51mr4n9.cloudfront.net/user_37Ov13C5FiPPOO8dlkIS8XYZnE7/e368d36a-dde6-45fa-948f-3ae843767e58.png"
+  },
+  {
+   "resource": "pxd_loadscreen",
+   "path": "html/assets/ciudad-4.png",
+   "url": "https://d2ol7oe51mr4n9.cloudfront.net/user_37Ov13C5FiPPOO8dlkIS8XYZnE7/8897b50d-9f3e-4317-9d61-a6fdc8d47896.png"
   }
  ]
 }

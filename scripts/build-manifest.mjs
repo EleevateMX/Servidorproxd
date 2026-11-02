@@ -33,7 +33,10 @@ export function buildManifest() {
         config: rel === 'config.lua' || undefined });
     }
   }
-  return { format: 1, files };
+  // Arte (binario, en Higgsfield): se descarga solo si falta en el servidor.
+  const brand = JSON.parse(readFileSync(join(root, 'scripts/brand-assets.json'), 'utf8'));
+  const assets = brand.files.map((f) => ({ resource: 'pxd_loadscreen', path: `html/assets/${f.dest}`, url: f.url }));
+  return { format: 1, files, assets };
 }
 
 const out = join(root, 'update-manifest.json');

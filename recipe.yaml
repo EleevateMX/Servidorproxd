@@ -57,6 +57,22 @@ tasks:
     url: https://d2ol7oe51mr4n9.cloudfront.net/user_37Ov13C5FiPPOO8dlkIS8XYZnE7/6f1fbcc9-9efc-49a7-b005-383c9bb4f30b.png
     path: ./resources/[proxima]/pxd_loadscreen/html/assets/slide-barrio.png
 
+  - action: download_file
+    url: https://d2ol7oe51mr4n9.cloudfront.net/user_37Ov13C5FiPPOO8dlkIS8XYZnE7/ba4ea377-86ff-44b9-a9c8-831e236bbe46.png
+    path: ./resources/[proxima]/pxd_loadscreen/html/assets/ciudad-1.png
+
+  - action: download_file
+    url: https://d2ol7oe51mr4n9.cloudfront.net/user_37Ov13C5FiPPOO8dlkIS8XYZnE7/dba2d4e2-2095-4e21-a92a-617dd32d187c.png
+    path: ./resources/[proxima]/pxd_loadscreen/html/assets/ciudad-2.png
+
+  - action: download_file
+    url: https://d2ol7oe51mr4n9.cloudfront.net/user_37Ov13C5FiPPOO8dlkIS8XYZnE7/e368d36a-dde6-45fa-948f-3ae843767e58.png
+    path: ./resources/[proxima]/pxd_loadscreen/html/assets/ciudad-3.png
+
+  - action: download_file
+    url: https://d2ol7oe51mr4n9.cloudfront.net/user_37Ov13C5FiPPOO8dlkIS8XYZnE7/8897b50d-9f3e-4317-9d61-a6fdc8d47896.png
+    path: ./resources/[proxima]/pxd_loadscreen/html/assets/ciudad-4.png
+
   - action: remove_path
     path: ./tmp
 

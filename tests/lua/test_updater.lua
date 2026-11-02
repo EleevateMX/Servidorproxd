@@ -101,4 +101,21 @@ T.describe('pxd_updater', function()
         run()
         T.eq(Fx.executed[#Fx.executed], 'ensure pxd_updater')
     end)
+
+    T.it('descarga el arte que falte (y no el que ya existe)', function()
+        boot({}, { ['pxd_loadscreen/html/assets/keyart.png'] = 'ya-estaba' }, { pxd_loadscreen = 'started', pxd_updater = 'started' })
+        local img = string.rep('\137PNG', 400)
+        Fx.http['https://cdn.example/ciudad.png'] = { 200, img }
+        Fx.http['https://cdn.example/keyart.png'] = { 200, img }
+        Fx.http[BASE .. 'update-manifest.json'] = { 200, Fx.json.encode({ format = 1, files = {}, assets = {
+            { resource = 'pxd_loadscreen', path = 'html/assets/ciudad-1.png', url = 'https://cdn.example/ciudad.png' },
+            { resource = 'pxd_loadscreen', path = 'html/assets/keyart.png', url = 'https://cdn.example/keyart.png' },
+        } }) }
+        run('check')
+        T.falsy(Fx.files['pxd_loadscreen/html/assets/ciudad-1.png'], 'check no descarga')
+        run()
+        T.eq(Fx.files['pxd_loadscreen/html/assets/ciudad-1.png'], img)
+        T.eq(Fx.files['pxd_loadscreen/html/assets/keyart.png'], 'ya-estaba')
+        T.truthy(logged('Arte descargado: 1 de 1'))
+    end)
 end)

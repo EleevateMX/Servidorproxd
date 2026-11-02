@@ -19,15 +19,21 @@ Las imágenes y el vídeo no se suben a git por tamaño; los enlaces están en `
 
 ## Pantalla de carga (`pxd_loadscreen`)
 
-- `loadscreen 'html/index.html'` + `loadscreen_manual_shutdown 'yes'`.
-- Progreso real (`loadProgress`), fase de carga, última línea de log, consejos rotativos y nombre del jugador (`nuiHandoverData`).
-- Fondo: vídeo → imagen → cielo CSS, el primero que exista. Voz con fundido al cerrar; **M** silencia.
-- La cierra `pxd_login` cuando su bienvenida está lista (o ella misma si `pxd_login` no está; red de seguridad a los 20 s).
-- Vista previa: `html/index.html?demo=1`.
+Estilo «póster de ciudad» (inspirado en las pantallas de servidores grandes, con identidad propia):
+
+- **Fondo:** vídeo y carrusel de imágenes a pantalla completa con zoom lento (key art, «ciudad épica» con Eleevate e IsyConta, policía, emergencias, taller, barrio). Sin imágenes: cielo estrellado animado.
+- **Arriba a la izquierda:** logo y titular «Tu próxima vida empieza aquí.» con saludo al jugador.
+- **Abajo a la izquierda:** jugadores en línea, **carrusel de avisos** (clicables: normas, Discord, modos de juego…), **radio PRÓXIMA FM** (play/pausa y volumen; suena `assets/music.mp3` si existe, si no la voz de bienvenida), botón de **Discord** y redes.
+- **Abajo a la derecha:** progreso circular real, estado de carga, aviso de #media y consejos.
+- **Al cerrar:** transición con la estrella girando sobre una cuadrícula.
+
+Todo se configura en el servidor, en `pxd_loadscreen/config.lua` (Discord, redes, avisos, nombre de la radio, texto de #media). Cursor visible (`loadscreen_cursor`) para poder hacer clic.
+
+Vista previa: `html/index.html?demo=1` (y `&transition=1`).
 
 ## Login (`pxd_login`)
 
-Al conectar (`playerConnecting` + `deferrals.presentCard`):
+Al conectar (`playerConnecting` + `deferrals.presentCard`). Las tarjetas llevan el icono y el lema, se vuelven a mostrar mientras otros recursos (Qbox) envían mensajes de progreso que las taparían, tienen tiempo máximo y nunca dejan la conexión colgada:
 
 1. Sin licencia de Rockstar → no entra.
 2. **Código de acceso** opcional (`set pxd_login_accessCode "…"` en `secrets.cfg`): 3 intentos. Se recuerda por licencia; si cambias el código se vuelve a pedir.

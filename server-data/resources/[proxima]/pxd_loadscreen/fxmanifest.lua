@@ -9,8 +9,14 @@ version '0.1.0'
 loadscreen 'html/index.html'
 -- La cierra pxd_login (o este mismo recurso si pxd_login no está iniciado).
 loadscreen_manual_shutdown 'yes'
+-- Cursor visible: los avisos, la radio y los botones de redes son clicables.
+loadscreen_cursor 'yes'
 
 client_script 'client.lua'
+server_scripts {
+    'config.lua',
+    'server.lua',
+}
 
 files {
     'html/index.html',

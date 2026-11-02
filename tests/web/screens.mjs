@@ -17,6 +17,7 @@ const pages = [
   { name: 'modos-menu', file: 'pxd_gamemodes/html/index.html', query: '?demo=1', size: [1280, 720] },
   { name: 'modos-hud', file: 'pxd_gamemodes/html/index.html', query: '?demo=1&hud=1', size: [1280, 720] },
   { name: 'loadscreen', file: 'pxd_loadscreen/html/index.html', query: '?demo=1', size: [1920, 1080] },
+  { name: 'loadscreen-transicion', file: 'pxd_loadscreen/html/index.html', query: '?demo=1&transition=1', size: [1920, 1080] },
   { name: 'login', file: 'pxd_login/html/index.html', query: '?demo=1', size: [1280, 720] },
 ];
 
