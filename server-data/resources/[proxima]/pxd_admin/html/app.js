@@ -491,8 +491,8 @@
       { name: 'vida', action: 'heal', args: '[id]', desc: 'Salud y armadura al máximo y quita heridas.' },
       { name: 'llenarnecesidades', action: 'needs', args: '[id]', desc: 'Hambre y sed al 100 y estrés a 0.' },
       { name: 'wounds', action: 'wounds', args: '[id]', desc: 'Muestra heridas por zona, sangrado y estado.' },
-      { name: 'tp', action: 'goto', args: '<id>', desc: 'Ir con un jugador.' },
-      { name: 'noclip', action: 'noclip', args: '', desc: 'Volar atravesando paredes.' },
+      { name: 'ir', action: 'goto', args: '<id>', desc: 'Ir con un jugador.' },
+      { name: 'volar', action: 'noclip', args: '', desc: 'Volar atravesando paredes.' },
       { name: 'coche', action: 'car', args: '<modelo>', desc: 'Sacar un vehículo (p. ej. /coche sultan).' },
     ];
     if (params.has('staff')) {

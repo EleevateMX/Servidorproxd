@@ -9,8 +9,24 @@ local function now() return GetGameTimer() / 1000 end
 
 local function rnd(a, b) return math.random(a, b) end
 
+-- Lo ganado en la última hora va por CUENTA (licencia), no por conexión: así
+-- reconectar o cambiar de personaje no reinicia el tope. Dura lo que dure el servidor
+-- encendido (la ventana es de una hora, medida con el reloj del servidor).
+local ledgers = {}
+
+local function accountKey(src)
+    local id = GetPlayerIdentifierByType(src, 'license2') or GetPlayerIdentifierByType(src, 'license')
+    return id or ('src:' .. tostring(src))
+end
+
 local function st(src)
-    states[src] = states[src] or PXDJobs.newState()
+    if not states[src] then
+        local s = PXDJobs.newState()
+        local key = accountKey(src)
+        ledgers[key] = ledgers[key] or {}
+        s.earned = ledgers[key]
+        states[src] = s
+    end
     return states[src]
 end
 

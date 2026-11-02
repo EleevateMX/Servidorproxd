@@ -76,11 +76,14 @@ end
 
 --- Lo ganado en la última hora y cuánto se puede pagar de `amount` sin pasar el tope.
 function PXDJobs.capPay(st, amount, now, cap)
-    local kept, total = {}, 0
-    for _, e in ipairs(st.earned) do
+    -- Se modifica la lista en su sitio: el servidor la comparte entre sesiones del
+    -- mismo jugador (reconectar no reinicia el tope).
+    local list, kept, total = st.earned, {}, 0
+    for _, e in ipairs(list) do
         if now - e.t < HOUR then kept[#kept + 1] = e; total = total + e.amount end
     end
-    st.earned = kept
+    for i = #list, 1, -1 do list[i] = nil end
+    for i, e in ipairs(kept) do list[i] = e end
     local allowed = math.max(0, math.min(amount, (cap or math.huge) - total))
     allowed = math.floor(allowed)
     if allowed > 0 then st.earned[#st.earned + 1] = { t = now, amount = allowed } end

@@ -118,7 +118,9 @@ Config.achievements = {
         description = 'Vuelve a la ciudad día tras día.',
         items = {
             { id = 'c_7', label = 'Una semana', description = 'Reclama 7 días de la pista.', key = 'days_claimed', goal = 7, rewardXp = 150 },
-            { id = 'c_28', label = 'Temporada completa', description = 'Reclama 28 días de la pista.', key = 'days_claimed', goal = 28, rewardXp = 500 },
+            -- goal = 'season': tantos días como tenga la pista (Config.daily.days). El id no cambia
+            -- para no perder lo ya reclamado.
+            { id = 'c_28', label = 'Temporada completa', description = 'Reclama todos los días de la pista.', key = 'days_claimed', goal = 'season', rewardXp = 500 },
             { id = 'c_24h', label = 'Un día entero', description = 'Juega 24 horas.', key = 'playtime_h', goal = 24, rewardXp = 300 },
             { id = 'c_100h', label = 'Vecino de siempre', description = 'Juega 100 horas.', key = 'playtime_h', goal = 100, rewardXp = 1000 },
         },
@@ -130,7 +132,9 @@ Config.achievements = {
         description = 'Logros especiales del primer mes de Próxima RP.',
         image = nil, -- URL opcional de una imagen (https)
         items = {
-            { id = 'l_evento', label = 'Estuve ahí', description = 'Únete a un evento de la ciudad.', key = 'event_join', goal = 1, rewardXp = 150 },
+            -- disabled: nadie dispara aún Track(src, 'event_join') (no hay sistema de eventos).
+            -- Quita `disabled` cuando exista; mientras, no se muestra ni se puede reclamar.
+            { id = 'l_evento', label = 'Estuve ahí', description = 'Únete a un evento de la ciudad.', key = 'event_join', goal = 1, rewardXp = 150, disabled = true },
             { id = 'l_horas', label = 'Noches largas', description = 'Juega 10 horas durante el evento.', key = 'playtime_min', goal = 600, rewardXp = 300 },
         },
     },

@@ -15,8 +15,8 @@ Config.range = {
 Config.maxLength = 220
 Config.spam = { max = 4, window = 6 }
 
--- Anuncios a toda la ciudad (/anuncio): permiso ACE.
-Config.announceAce = 'pxd.chat.announce'
+-- Anuncios a toda la ciudad: el comando /anuncio lo gestiona pxd_admin (permiso
+-- pxd.admin de servicio, o pxd.chat.announce sin servicio). Aquí solo el título en el chat.
 Config.announceLabel = 'Anuncio de la ciudad'
 
 -- Cómo se ve el nombre de alguien a quien no conoces (pxd_interact).

@@ -35,7 +35,7 @@ No verificados (pendientes): `qbx_hotdogjob` (el trabajo `hotdog` existe en qbx_
 - **Recolección** (minero, leñador, pescador): darse de alta → ir a un punto de trabajo → la animación dura lo que diga la config → se acumula carga → vender en el punto de venta.
 - **Reparto**: darse de alta → recoger paquete en el depósito → seguir la ruta del mapa → entregar con **E**. Los destinos son las calles de la ruta oficial de basura de Qbox.
 - Con **ox_target** (viene con Qbox) se interactúa mirando el punto; sin él, marcador + **E**. `/dejartrabajo` cerca del punto de alta para darse de baja.
-- **El servidor valida todo:** que tengas el trabajo (principal en Qbox), la distancia a cada punto, que la tarea dure lo que tiene que durar, enfriamiento por punto, carga máxima, velocidad mínima de entrega (anti-teletransporte) y un **tope de 6000 $ por hora** (`Config.maxEarningsPerHour`).
+- **El servidor valida todo:** que tengas el trabajo (principal en Qbox), la distancia a cada punto, que la tarea dure lo que tiene que durar, enfriamiento por punto, carga máxima, velocidad mínima de entrega (anti-teletransporte) y un **tope de 6000 $ por hora** (`Config.maxEarningsPerHour`). El tope va por cuenta (licencia de FiveM), no por conexión: reconectar o cambiar de personaje no lo reinicia (dura mientras el servidor siga encendido).
 - Paga con `exports.qbx_core:AddMoney(src, 'cash', …)` y avisa a `pxd_progress` (`Track(src, 'job_task', 1)`) para misiones y logros.
 - Los trabajos se registran en Qbox al arrancar con `exports.qbx_core:CreateJobs(…, false)` (en memoria, sin tocar los archivos de qbx_core).
 

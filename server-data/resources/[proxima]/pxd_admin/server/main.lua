@@ -254,8 +254,24 @@ local function coordsOf(src)
     return { x = c.x, y = c.y, z = c.z, bucket = GetPlayerRoutingBucket(src) }
 end
 
+-- Cambiar de bucket con la función de Qbox (mantiene su estado `instance`); sin Qbox, el native.
+local function setBucket(src, bucket)
+    if GetResourceState('qbx_core') == 'started' then
+        local ok = pcall(function() exports.qbx_core:SetPlayerBucket(src, bucket) end)
+        if ok then return end
+    end
+    SetPlayerRoutingBucket(src, bucket)
+end
+
+-- Si está en una partida de pxd_gamemodes, sacarlo antes (si no, el lobby lo sigue contando).
+local function pullFromMatch(src, reason)
+    if GetResourceState('pxd_gamemodes') ~= 'started' then return false end
+    local ok, left = pcall(function() return exports.pxd_gamemodes:LeavePlayer(src, reason) end)
+    return ok and left == true
+end
+
 local function teleport(src, pos)
-    if pos.bucket ~= nil and GetPlayerRoutingBucket(src) ~= pos.bucket then SetPlayerRoutingBucket(src, pos.bucket) end
+    if pos.bucket ~= nil and GetPlayerRoutingBucket(src) ~= pos.bucket then setBucket(src, pos.bucket) end
     SetEntityCoords(GetPlayerPed(src), pos.x + 0.0, pos.y + 0.0, pos.z + 0.0, false, false, false, false)
 end
 
@@ -263,6 +279,7 @@ local ACTIONS = {}
 
 ACTIONS['goto'] = function(src, target)
     if target == src then return false, 'Ya estás aquí.' end
+    pullFromMatch(src)
     backPos[src] = coordsOf(src)
     local p = coordsOf(target)
     p.x = p.x + 1.0
@@ -272,6 +289,8 @@ end
 
 function ACTIONS.bring(src, target)
     if target == src then return false, 'No puedes traerte a ti mismo/a.' end
+    pullFromMatch(target, 'Un miembro del staff te ha sacado de la partida.')
+    pullFromMatch(src)
     backPos[target] = coordsOf(target)
     local p = coordsOf(src)
     p.x = p.x + 1.0
@@ -317,8 +336,11 @@ end
 
 function ACTIONS.spectate(src, target)
     if target == src then return false, 'No puedes espectarte a ti mismo/a.' end
-    if not spectating[src] then spectating[src] = { bucket = GetPlayerRoutingBucket(src) } end
-    SetPlayerRoutingBucket(src, GetPlayerRoutingBucket(target))
+    if not spectating[src] then
+        pullFromMatch(src)
+        spectating[src] = { bucket = GetPlayerRoutingBucket(src) }
+    end
+    setBucket(src, GetPlayerRoutingBucket(target))
     TriggerClientEvent('pxd_admin:client:spectate', src, target, coordsOf(target), GetPlayerName(target))
     return true, 'Espectando a ' .. GetPlayerName(target) .. '. Pulsa ' .. Config.keyStaff .. ' para salir.'
 end
@@ -384,6 +406,7 @@ function ACTIONS.announce(src, _, payload)
     local text = tostring(type(payload) == 'table' and payload.text or payload or ''):gsub('^%s+', ''):gsub('%s+$', ''):sub(1, 240)
     if #text < 3 then return false, 'Escribe el anuncio.' end
     TriggerClientEvent('pxd_admin:client:announce', -1, { text = text })
+    TriggerEvent('pxd_admin:server:announced', text)   -- pxd_chat lo pinta en el chat
     return true, 'Anuncio enviado.', text
 end
 
@@ -439,6 +462,13 @@ end)
 -- Comandos de chat: misma validación que el panel.
 for _, c in ipairs(PXDAdmin.COMMANDS) do
     RegisterCommand(c.name, function(src, args)
+        if c.action == 'announce' and PXDAdmin.announceBypass(src, function(ace) return IsPlayerAceAllowed(src, ace) end) then
+            -- Consola o ACE de compatibilidad pxd.chat.announce: sin modo servicio.
+            local ok, msg = ACTIONS.announce(src, nil, { text = table.concat(args, ' ') })
+            if src == 0 then return print('[pxd_admin] ' .. tostring(msg)) end
+            if ok then log(src, 'announce', nil, table.concat(args, ' ')) end
+            return notify(src, 'Staff', msg, ok and 'success' or 'error')
+        end
         if src == 0 then return print('[pxd_admin] Este comando se usa dentro del juego.') end
         if not isStaff(src) then return end
         local payload
@@ -455,7 +485,7 @@ RegisterNetEvent('pxd_admin:server:spectateEnd', function()
     local s = spectating[src]
     if not s then return end
     spectating[src] = nil
-    SetPlayerRoutingBucket(src, s.bucket)
+    setBucket(src, s.bucket)
 end)
 
 RegisterNetEvent('pxd_admin:server:refreshStaff', function()

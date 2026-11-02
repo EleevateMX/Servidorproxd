@@ -98,16 +98,21 @@ T.describe('pxd_chat · servidor', function()
         T.eq(#msgs(2), 1, 'el reinicio a nil no envía nada')
     end)
 
-    T.it('anti-spam y anuncio solo para staff', function()
+    T.it('anti-spam; /anuncio es de pxd_admin y aquí solo se pinta', function()
         local say = boot()
         for _ = 1, 5 do say(2, 'spam') end
         local last = msgs(2)[#msgs(2)]
         T.eq(last.templateId, 'pxd_system', 'el quinto mensaje se frena')
         Fx.clearSent()
-        Fx.commands['anuncio'](2, { 'hola' })
-        T.eq(msgs(2)[1].templateId, 'pxd_system')
-        T.eq(#Fx.sentTo(-1, 'chat:addMessage'), 0)
-        Fx.commands['anuncio'](1, { 'Evento', 'en', 'la', 'playa' })
-        T.eq(Fx.sentTo(-1, 'chat:addMessage')[1].args[1].templateId, 'pxd_announce')
+        T.falsy(Fx.commands['anuncio'], 'pxd_chat ya no registra /anuncio')
+        local invoker = 'otro_recurso'
+        GetInvokingResource = function() return invoker end
+        TriggerEvent('pxd_admin:server:announced', 'falso')
+        T.eq(#Fx.sentTo(-1, 'chat:addMessage'), 0, 'solo acepta avisos de pxd_admin')
+        invoker = 'pxd_admin'
+        TriggerEvent('pxd_admin:server:announced', 'Evento en la playa')
+        local m = Fx.sentTo(-1, 'chat:addMessage')[1].args[1]
+        T.eq(m.templateId, 'pxd_announce'); T.eq(m.args[2], 'Evento en la playa')
+        GetInvokingResource = nil
     end)
 end)

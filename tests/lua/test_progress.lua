@@ -141,6 +141,8 @@ T.describe('pxd_progress (lógica)', function()
 
     T.it('logros limitados: solo cuentan y se ven dentro de sus fechas', function()
         local P, C = fresh()
+        local _, ev = P.findAchievement('l_evento', C)
+        ev.disabled = nil   -- se activa aquí para probar las fechas
         local d = P.normalize(nil)
         local before = at('2026-10-20T18:00:00Z')
         P.track(d, 'event_join', 1, before, C)
@@ -156,6 +158,25 @@ T.describe('pxd_progress (lógica)', function()
         T.truthy(find(P.achievementsView(d, after, C), 'lanzamiento'), 'sigue visible si participaste')
         local ok, why = P.checkAchievement(d, 'l_evento', after, C)
         T.falsy(ok); T.truthy(why:find('ya no'))
+    end)
+
+    T.it('logro desactivado: no se ve ni se reclama; «Temporada completa» = días de la pista', function()
+        local P, C = fresh()
+        local d = P.normalize(nil)
+        local during = at('2026-11-05T18:00:00Z')
+        P.track(d, 'event_join', 1, during, C)
+        local ok, why = P.checkAchievement(d, 'l_evento', during, C)
+        T.falsy(ok); T.truthy(why:find('no existe'))
+        local seen = false
+        for _, c in ipairs(P.achievementsView(d, during, C)) do
+            for _, it in ipairs(c.items) do if it.id == 'l_evento' then seen = true end end
+            if c.id == 'constancia' then
+                for _, it in ipairs(c.items) do if it.id == 'c_28' then T.eq(it.goal, #C.daily.days) end end
+            end
+        end
+        T.falsy(seen, 'no aparece en la vista')
+        d.daily.total = #C.daily.days
+        T.truthy(P.checkAchievement(d, 'c_28', during, C), 'se completa con los días de la temporada')
     end)
 
     T.it('Plus: extiende desde el vencimiento o desde ahora', function()

@@ -286,6 +286,13 @@ local function valueFor(data, cat, key, now, cfg)
     return data.counters[key] or 0
 end
 
+--- Meta real de un logro: `goal = 'season'` = número de días de la pista configurada
+--- (así «Temporada completa» siempre coincide con la temporada).
+function P.goalOf(it, cfg)
+    if it.goal == 'season' then return #((cfg.daily or {}).days or {}) end
+    return tonumber(it.goal) or 0
+end
+
 --- Categorías visibles con su progreso. Las limitadas solo mientras están activas
 --- (o si ya tienes algo hecho en ellas).
 function P.achievementsView(data, now, cfg)
@@ -296,20 +303,23 @@ function P.achievementsView(data, now, cfg)
         if visible then
             local items, done = {}, 0
             for _, it in ipairs(cat.items) do
+              if not it.disabled then   -- desactivado: no se ve ni se puede reclamar
+                local goal = P.goalOf(it, cfg)
                 local have = valueFor(data, cat, it.key, now, cfg)
-                local isDone = have >= it.goal
+                local isDone = have >= goal
                 if isDone then done = done + 1 end
                 items[#items + 1] = {
                     id = it.id, label = it.label, description = it.description,
-                    progress = math.min(have, it.goal), goal = it.goal, done = isDone,
+                    progress = math.min(have, goal), goal = goal, done = isDone,
                     claimed = data.achievements[it.id] == true, rewardXp = it.rewardXp or 0,
                 }
+              end
             end
             out[#out + 1] = {
                 id = cat.id, label = cat.label, icon = cat.icon, description = cat.description, image = cat.image,
                 limited = cat.limited == true, active = not cat.limited or active,
                 endsAt = cat.limited and P.parseUtc(cat.endsAt) or nil,
-                items = items, done = done, total = #cat.items,
+                items = items, done = done, total = #items,
             }
         end
     end
@@ -328,10 +338,10 @@ end
 --- Comprueba si un logro se puede reclamar → logro o nil + motivo.
 function P.checkAchievement(data, id, now, cfg)
     local cat, it = P.findAchievement(id, cfg)
-    if not it then return nil, 'Ese logro no existe.' end
+    if not it or it.disabled then return nil, 'Ese logro no existe.' end
     if data.achievements[id] then return nil, 'Ya reclamaste este logro.' end
     if cat.limited and not activeWindow(cat, now) then return nil, 'Este logro ya no está disponible.' end
-    if valueFor(data, cat, it.key, now, cfg) < it.goal then return nil, 'Aún no completas este logro.' end
+    if valueFor(data, cat, it.key, now, cfg) < P.goalOf(it, cfg) then return nil, 'Aún no completas este logro.' end
     return it
 end
 

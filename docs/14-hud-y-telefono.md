@@ -30,6 +30,8 @@ Se oculta con el menú de pausa, al abrir el inventario y cuando el jugador no h
 
 Se mantiene el sistema de `qbx_hud` con los **mismos nombres de evento**, porque otros recursos lo usan: `hud:server:GainStress` (qbx_vehiclekeys al forzar coches) y `hud:server:RelieveStress` (qbx_medical). Sube al ir muy rápido sin cinturón y al disparar (probabilidad `Config.stress.chance`), con visión borrosa a partir de 50 y caídas al llegar a 100. Los trabajos de tipo `leo` no lo acumulan. El valor se guarda con `exports.qbx_core:SetMetadata(src, 'stress', valor)`, que también actualiza el state bag. Export de servidor: `exports.pxd_hud:ChangeStress(src, delta)`.
 
+**Límites anti-abuso** (`Config.stress.limits`): esos dos eventos son de red y cualquier cliente podría lanzarlos. El servidor recorta cada llamada y aplica enfriamiento y un tope por ventana: aliviar ≤ 100 por llamada, 1 llamada cada 2 s, ≤ 100 cada 120 s; ganar ≤ 10 por llamada, ≤ 40 por minuto. Son compatibles con qbx_medical (alivia 100 al curarte), qbx_ambulancejob (12-24), qbx_consumables (15-18) y qbx_vehiclekeys (1-4). Lo que el límite no evita: un cliente modificado aún puede bajar su estrés hasta 100 puntos cada 2 minutos.
+
 ### Qué no hace (todavía)
 
 - **Barra rápida (5 ranuras)**: es de ox_inventory. Su estilo va con el rediseño del inventario (tarea aparte).

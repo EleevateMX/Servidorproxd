@@ -245,8 +245,45 @@ T.describe('pxd_admin (servidor)', function()
         T.truthy(lastToast(1):find('Modelo'))
         Fx.commands['anuncio'](1, { 'Evento', 'a', 'las', '21h' })
         T.eq(Fx.lastTo(-1, 'pxd_admin:client:announce').args[1].text, 'Evento a las 21h')
-        Fx.commands['tp'](1, {})
+        Fx.commands['ir'](1, {})
         T.truthy(lastToast(1):find('ID'))
+        for _, taken in ipairs({ 'tp', 'tpm', 'noclip', 'dv' }) do
+            T.falsy(Fx.commands[taken], '/' .. taken .. ' es de qbx_core/qbx_adminmenu')
+        end
+    end)
+
+    T.it('traer: usa los buckets de Qbox y saca al jugador de su partida', function()
+        local calls = { buckets = {}, left = {} }
+        boot({ states = { qbx_core = 'started', pxd_gamemodes = 'started' }, exports = {
+            qbx_core = { SetPlayerBucket = function(src, b) calls.buckets[#calls.buckets + 1] = src .. ':' .. b; Fx.players[src].bucket = b end },
+            pxd_gamemodes = { LeavePlayer = function(src) calls.left[#calls.left + 1] = src
+                if src == 2 then Fx.players[2].bucket = 0; return true end
+                return false end },
+        } })
+        Fx.players[2].bucket = 60000                 -- Edy está en una partida
+        Fx.commands['duty'](1, {})
+        Fx.commands['traer'](1, { '2' })
+        T.eq(calls.left[1], 2, 'primero lo saca de la partida')
+        T.eq(Fx.players[2].bucket, 0)
+        Fx.players[3].bucket = 7
+        Fx.commands['ir'](1, { '3' })
+        T.eq(calls.buckets[#calls.buckets], '1:7', 'cambia de bucket con SetPlayerBucket de Qbox')
+    end)
+
+    T.it('/anuncio: único dueño; consola y ACE pxd.chat.announce sin servicio; avisa a pxd_chat', function()
+        boot()
+        local seen = {}
+        AddEventHandler('pxd_admin:server:announced', function(t) seen[#seen + 1] = t end)
+        Fx.commands['anuncio'](3, { 'hola', 'todos' })
+        T.eq(#seen, 0, 'sin permiso no anuncia')
+        Fx.commands['anuncio'](1, { 'sin', 'servicio' })
+        T.eq(#seen, 0, 'el staff necesita /duty')
+        Fx.commands['anuncio'](0, { 'Reinicio', 'en', '5', 'min' })
+        T.eq(seen[1], 'Reinicio en 5 min', 'la consola puede')
+        Fx.addPlayer(4, 'Alcaldía', { x = 0, y = 0, z = 0 }, { ['pxd.chat.announce'] = true }, { license = 'license:gob' })
+        Fx.commands['anuncio'](4, { 'Feria', 'mañana' })
+        T.eq(seen[2], 'Feria mañana', 'ACE de compatibilidad, sin servicio')
+        T.eq(Fx.lastTo(-1, 'pxd_admin:client:announce').args[1].text, 'Feria mañana')
     end)
 
     T.it('staff atiende un reporte: reclamar, responder y cerrar avisan al jugador', function()

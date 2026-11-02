@@ -113,14 +113,13 @@ else
     end)
 end
 
--- Anuncio a toda la ciudad (staff).
-RegisterCommand('anuncio', function(source, args)
-    if source > 0 and not IsPlayerAceAllowed(source, Config.announceAce) then
-        return system(source, 'No tienes permiso para hacer anuncios.')
-    end
-    local text = PXDChat.clean(table.concat(args, ' '), Config.maxLength)
+-- Anuncios a toda la ciudad: el comando /anuncio es de pxd_admin (un solo dueño).
+-- Aquí solo se pinta en el chat cuando pxd_admin avisa (evento de servidor local).
+AddEventHandler('pxd_admin:server:announced', function(text)
+    if GetInvokingResource() ~= 'pxd_admin' then return end
+    text = PXDChat.clean(tostring(text or ''), Config.maxLength)
     if not text then return end
     TriggerClientEvent('chat:addMessage', -1, { templateId = 'pxd_announce', args = { Config.announceLabel, text } })
-end, false)
+end)
 
 AddEventHandler('playerDropped', function() limiter.forget(source) end)

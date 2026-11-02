@@ -33,7 +33,11 @@ Armas (`WEAPON_PISTOL`, `WEAPON_SMG`, `WEAPON_PUMPSHOTGUN`, `WEAPON_CARBINERIFLE
 
 ## Seguridad y autoridad
 
-El servidor decide todo: puntos, checkpoints (valida la distancia real del jugador), inicio y fin. Los clientes solo informan. Las bajas llegan por `baseevents` desde el cliente de la víctima; el servidor descarta las de un asesino que no esté en la partida o esté a más de 600 m. Para un servidor público conviene reforzarlo con eventos de daño del servidor (pendiente).
+El servidor decide todo: puntos, checkpoints (valida la distancia real del jugador), inicio y fin. Los clientes solo informan. Las bajas llegan por `baseevents` desde el cliente de la víctima. El servidor solo acepta asesinos que estén en la misma partida, que esté en curso, en el bucket de la partida (los dos), a menos de `Config.maxKillDistance` (300 m) y sin superar `Config.killRate` (3 bajas cada 2 s); matarse a uno mismo no cuenta. Límite restante: una víctima con un cliente modificado aún podría «regalar» bajas a un compañero cercano; reforzarlo con eventos de daño del servidor sigue pendiente.
+
+- **Armas:** las da y las quita el **servidor** (natives RPC `GiveWeaponToPed`, `RemoveAllPedWeapons`, `SetPedArmour`). El cliente solo avisa de que ya está en el spawn (`pxd_gm:server:loadout`) y el servidor lo acepta una vez por cada spawn que envía: no se puede pedir munición extra.
+- **Crear partidas:** `Config.createAce` (nil = cualquiera; p. ej. `'pxd.gamemodes.create'` para limitarlo a un rol), una partida abierta por anfitrión (`Config.maxHostedPerPlayer`), 30 s entre creaciones (`Config.createCooldownSec`) y el total de `Config.maxMatches`.
+- **Export `LeavePlayer(src, motivo)`:** saca a un jugador de su partida y lo devuelve al mundo (lo usa pxd_admin antes de moverlo).
 
 ## Añadir un modo nuevo
 

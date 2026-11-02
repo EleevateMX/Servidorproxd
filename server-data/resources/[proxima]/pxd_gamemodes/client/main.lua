@@ -26,15 +26,12 @@ local function setAutoSpawn(enabled)
     end
 end
 
+-- Las armas y el chaleco los da el servidor (pxd_gm:server:loadout); aquí solo la vida.
 local function giveLoadout()
     if not current then return end
     local ped = PlayerPedId()
-    RemoveAllPedWeapons(ped, true)
-    for i, w in ipairs(current.loadout or {}) do
-        GiveWeaponToPed(ped, GetHashKey(w.weapon), w.ammo or 100, false, i == 1)
-    end
-    SetPedArmour(ped, current.armour or 0)
     SetEntityHealth(ped, GetEntityMaxHealth(ped))
+    TriggerServerEvent('pxd_gm:server:loadout')
 end
 
 local function teleport(p, resurrect)

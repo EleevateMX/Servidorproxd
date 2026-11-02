@@ -6,6 +6,7 @@ local vehicles = {}     -- [src] = vehículo de carrera
 local lastRespawnAt = {}
 local lastDeathAt = {}  -- evita contar dos veces la misma muerte (baseevents + Qbox)
 local awaitingRespawn = {} -- [src] = true mientras está muerto/caído en una partida
+local lastCreateAt = {}   -- espera entre partidas creadas por el mismo jugador
 
 local function now()
     return GetGameTimer() / 1000.0
@@ -110,9 +111,36 @@ end
 
 -- ── Entrar / salir ─────────────────────────────────────────────────────────
 
+-- Armas del modo: las da el SERVIDOR (natives RPC GiveWeaponToPed/RemoveAllPedWeapons/
+-- SetPedArmour, ext/natives/rpc_spec_natives.lua de citizenfx). El cliente solo avisa de
+-- que ya está en el spawn y solo se acepta una vez por cada spawn enviado.
+local pendingLoadout = {}
+
+local function giveLoadout(src, match)
+    local ped = GetPlayerPed(src)
+    if not ped or ped == 0 then return end
+    RemoveAllPedWeapons(ped, true)
+    for i, w in ipairs(match.mode.loadout or {}) do
+        if type(w.weapon) == 'string' then
+            GiveWeaponToPed(ped, GetHashKey(w.weapon), tonumber(w.ammo) or 100, false, i == 1)
+        end
+    end
+    SetPedArmour(ped, tonumber(match.mode.armour) or 0)
+end
+
+RegisterNetEvent('pxd_gm:server:loadout', function()
+    local src = source
+    if not pendingLoadout[src] then return end
+    pendingLoadout[src] = nil
+    local match = Lobby:findByPlayer(src)
+    if not match then return end
+    giveLoadout(src, match)
+end)
+
 local function sendSpawn(src, match)
     local p = match.players[src]
     if not p then return end
+    pendingLoadout[src] = true
     local list = match.mode.kind == 'race' and match.arena.grid or nil
     local spawn = list and list[(p.joinedSeq - 1) % #list + 1] or PXD.Arena.pickSpawn(match.arena, p.team, p.joinedSeq)
     TriggerClientEvent('pxd_gm:client:spawn', src, spawn, p.team)
@@ -137,6 +165,7 @@ local function respawnPlayer(src, match)
     local revived = Bridge.isDowned(src) and Bridge.revive(src)
     CreateThread(function()
         if revived then Wait(500) end -- deja que Qbox termine de revivir antes de mover al jugador
+        pendingLoadout[src] = true
         TriggerClientEvent('pxd_gm:client:spawn', src, spawn, p.team)
         if match.mode.kind == 'race' then spawnRaceVehicle(src, match, spawn) end
     end)
@@ -255,13 +284,23 @@ RegisterNetEvent('pxd_gm:server:create', function(modeId, arenaId)
     if not hasAce(src, Config.createAce) then
         return notify(src, 'No tienes permiso para crear partidas.', 'error')
     end
+    local t = now()
+    if lastCreateAt[src] and t - lastCreateAt[src] < (Config.createCooldownSec or 0) then
+        return notify(src, 'Espera un poco antes de crear otra partida.', 'error')
+    end
+    local hosted = 0
+    for _, m in pairs(Lobby.matches) do if m.host == src then hosted = hosted + 1 end end
+    if hosted >= (Config.maxHostedPerPlayer or math.huge) then
+        return notify(src, 'Ya tienes una partida abierta.', 'error')
+    end
     local arena = resolveArena(arenaId or Config.defaultArena[modeId])
     if not arena then return notify(src, 'Arena no encontrada.', 'error') end
     local match, err = Lobby:create(modeId, arena, src, now())
     if not match then return notify(src, err, 'error') end
     SetRoutingBucketPopulationEnabled(match.bucket, false)
     SetRoutingBucketEntityLockdownMode(match.bucket, Config.bucketLockdown)
-    if not joinPlayer(src, match) then removeMatch(match) end
+    if not joinPlayer(src, match) then return removeMatch(match) end
+    lastCreateAt[src] = t   -- solo cuenta si la partida se creó de verdad
 end)
 
 RegisterNetEvent('pxd_gm:server:join', function(matchId)
@@ -331,6 +370,25 @@ RegisterNetEvent('pxd_gm:server:respawnMe', function()
     respawnPlayer(src, match)
 end)
 
+-- Validación de la baja (las muertes las informa el cliente de la víctima, así que el
+-- servidor solo acepta asesinos que estén en la misma partida, en su bucket, a una
+-- distancia razonable y sin un ritmo de bajas imposible).
+local killLog = {}
+local function validKill(match, victim, killer, t)
+    if not match.players[killer] or match.state ~= PXD.Match.STATE.RUNNING then return false end
+    if GetPlayerRoutingBucket(killer) ~= match.bucket or GetPlayerRoutingBucket(victim) ~= match.bucket then return false end
+    local a, b = GetEntityCoords(GetPlayerPed(victim)), GetEntityCoords(GetPlayerPed(killer))
+    if PXD.Util.dist({ x = a.x, y = a.y, z = a.z }, { x = b.x, y = b.y, z = b.z }) > (Config.maxKillDistance or 300.0) then
+        return false
+    end
+    local rate, list, kept = Config.killRate or { max = 3, window = 2 }, killLog[killer] or {}, {}
+    for _, at in ipairs(list) do if t - at < rate.window then kept[#kept + 1] = at end end
+    if #kept >= rate.max then killLog[killer] = kept; return false end
+    kept[#kept + 1] = t
+    killLog[killer] = kept
+    return true
+end
+
 -- Muertes: baseevents (cfx-server-data) las envía desde el cliente de la víctima.
 local function onDeath(victim, killerId)
     local match = Lobby:findByPlayer(victim)
@@ -340,16 +398,8 @@ local function onDeath(victim, killerId)
     if lastDeathAt[victim] and t0 - lastDeathAt[victim] < 3 then return end
     lastDeathAt[victim] = t0
     if match.state == PXD.Match.STATE.RUNNING then awaitingRespawn[victim] = true end
-    local killer = (type(killerId) == 'number' and killerId > 0) and killerId or nil
-    if killer and match.players[killer] then
-        -- Comprobación básica contra eventos falsos: ambos cerca y en la misma partida.
-        local a, b = GetEntityCoords(GetPlayerPed(victim)), GetEntityCoords(GetPlayerPed(killer))
-        if PXD.Util.dist({ x = a.x, y = a.y, z = a.z }, { x = b.x, y = b.y, z = b.z }) > 600.0 then
-            killer = nil
-        end
-    elseif killer then
-        killer = nil
-    end
+    local killer = (type(killerId) == 'number' and killerId > 0 and killerId ~= victim) and killerId or nil
+    if killer and not validKill(match, victim, killer, t0) then killer = nil end
     local events, t = {}, now()
     local kind = match:registerDeath(victim, killer, t, events)
     if not kind then return end
@@ -377,6 +427,7 @@ AddEventHandler('playerDropped', function()
     local src = source
     leavePlayer(src, true)
     lastRespawnAt[src], lastDeathAt[src], awaitingRespawn[src] = nil, nil, nil
+    pendingLoadout[src], killLog[src], lastCreateAt[src] = nil, nil, nil
 end)
 
 -- ── Bucle principal (1 Hz) ─────────────────────────────────────────────────
@@ -447,3 +498,13 @@ exports('GetPlayerMatch', function(src)
     return m and m:summary() or nil
 end)
 exports('ListMatches', function() return Lobby:list() end)
+
+--- Saca a un jugador de su partida y lo devuelve al mundo RP (lo usa pxd_admin antes de
+--- moverlo, para que el lobby no lo siga contando). Devuelve true si estaba en una.
+exports('LeavePlayer', function(src, reason)
+    src = tonumber(src)
+    if not src or not Lobby:findByPlayer(src) then return false end
+    leavePlayer(src, false)
+    if type(reason) == 'string' and reason ~= '' then notify(src, reason, 'inform') end
+    return true
+end)
