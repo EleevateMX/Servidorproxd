@@ -78,3 +78,11 @@ for (const recipe of ['recipe.yaml', 'recipe-qbox.yaml']) test(`${recipe}: rutas
     assert.ok(existsSync(join(root, src)), `la receta mueve «${src}», que no existe en el repo`);
   }
 });
+
+test('proxima.cfg: cada ajuste coincide con server.qbox.cfg (misma fuente)', () => {
+  const extra = readFileSync(join(root, 'server-data/proxima.cfg'), 'utf8');
+  const qbox = readFileSync(join(root, 'server-data/server.qbox.cfg'), 'utf8');
+  const lines = extra.split('\n').map((l) => l.trim()).filter((l) => /^(set|setr) /.test(l) && !l.includes('pxd_updater_ref') && !l.includes('qbx:motd'));
+  assert.ok(lines.length >= 9);
+  for (const l of lines) assert.ok(qbox.includes(l), `server.qbox.cfg no tiene: ${l}`);
+});

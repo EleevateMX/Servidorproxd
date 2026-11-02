@@ -1,6 +1,6 @@
 # 33. Guía paso a paso: instalación de prueba en Nodecraft (fases 0 y 1)
 
-- **Paquete:** `proxima-fase-0-1-228b90f.zip`. Está verificado: es idéntico al commit `228b90f9dc33…` (181 archivos), trae los 18 recursos pxd_* y no lleva datos persistentes; en las carpetas `data/` solo hay archivos `.gitkeep` vacíos.
+- **Paquete:** `proxima-fase-0-1-228b90f.zip` (recursos del commit `228b90f`; `proxima.cfg` añadido después). Está verificado: es idéntico al commit `228b90f9dc33…` (181 archivos), trae los 18 recursos pxd_*, `permissions.pxd.cfg` y `proxima.cfg`, y no lleva datos persistentes; en las carpetas `data/` solo hay archivos `.gitkeep` vacíos.
 - **Tipo de instalación:** **de prueba**, sin jugadores. No es para uso público.
 - **Si te detienes:** en cada «🛑 DETENTE» no sigas. Copia la consola o haz una captura y mándamela.
 
@@ -23,17 +23,22 @@
 3. Comprueba:
    - `resources/[proxima]` tiene **18 carpetas** (entre ellas `pxd_compat` y `pxd_justice`);
    - junto al `server.cfg` está `permissions.pxd.cfg` con fecha de hoy;
+   - junto al `server.cfg` está `proxima.cfg`;
    - existe `PROXIMA_VERSION.txt` y dice `228b90f`.
    - 🛑 DETENTE si faltan carpetas o los archivos quedaron dentro de otra subcarpeta.
 4. Borra el `.zip`.
 
-## Paso 2 · server.cfg (10 min)
+## Paso 2 · server.cfg: una sola línea (2 min)
 
-En **CFG Editor**, aplica **exactamente** la sección 4 de `docs/32-entrega-fase-0-1.md`:
-- cambia el idioma de illenium;
-- quita `ensure [assets]`, `qbx:motd`, `qbx_chat:*`, el antiguo `inventory:keys` y las `add_ace` duplicadas;
-- añade los bloques de voz, ox/teclas y chat;
-- añade `set pxd_updater_ref "228b90f9dc334b62fcf69e2c83c7e752cf4256d4"`.
+El paquete trae `proxima.cfg` con todos los ajustes (teclas, voz, chat, idioma de la ropa, versión fijada del actualizador).
+
+En **CFG Editor**, añade como **última línea** del archivo:
+```cfg
+exec proxima.cfg
+```
+Al ir al final, sus valores mandan sobre los anteriores (por ejemplo, el antiguo `inventory:keys ["F2", "K", "F1"]`). No hace falta borrar nada más.
+
+Opcional, solo para limpiar avisos: quita `ensure [assets]` (la carpeta no existe). La lista completa de cambios está en `docs/32` §4, por si prefieres editarlo a mano.
 
 Guarda. **Deberías ver:** «Saved» sin avisos del validador.
 - 🛑 DETENTE si el validador marca un error.

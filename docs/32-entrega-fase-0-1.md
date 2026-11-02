@@ -44,7 +44,7 @@ Procedimiento detallado en `docs/27-respaldo-y-restauracion.md`.
    - `permissions.pxd.cfg`, junto al `server.cfg`.
 
    No toca las carpetas `data/`: props, jugadores, progreso, auditoría y multas.
-2. **CFG Editor.** Haz exactamente los cambios de la sección 4 y guarda.
+2. **CFG Editor.** Añade `exec proxima.cfg` como última línea (sección 4) y guarda.
 3. **Reinicia el servidor.** Arrancan los pxd_* que ya tenías, con el código nuevo. Los nuevos se inician en el paso 5. Guía detallada con resultados esperados y cuándo detenerse: `docs/33-guia-nodecraft.md`.
 4. **Live Console:** `pxd_update check`.
    - Los archivos pxd_* deben estar «al día», porque el paquete es la misma versión.
@@ -56,6 +56,8 @@ Procedimiento detallado en `docs/27-respaldo-y-restauracion.md`.
 7. **`pxd_update backups`:** debe aparecer la copia de los parches. Anota su id: con él se vuelve atrás.
 
 ## 4. Cambios exactos en el `server.cfg` (CFG Editor)
+
+**Forma corta (recomendada):** añade `exec proxima.cfg` como última línea. `server-data/proxima.cfg` contiene todos los ajustes de abajo y, al ir al final, manda sobre los anteriores. Lo que sigue es la forma manual equivalente.
 
 Parten del cfg que pegaste en esta conversación. En el texto de abajo no repito ninguna clave secreta.
 
