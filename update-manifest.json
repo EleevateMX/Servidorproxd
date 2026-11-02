@@ -561,20 +561,26 @@
   {
    "resource": "pxd_updater",
    "path": "fxmanifest.lua",
-   "size": 292,
-   "sha256": "38850418db7fa78520817f1f623106a7a3c6ec74ed7b3dc5357387daf32b4a0e"
+   "size": 317,
+   "sha256": "ec4b5d8c746ad5967ff545640b03c5d14322dc7fc58b0b6fc4ee96e2261ae713"
   },
   {
    "resource": "pxd_updater",
    "path": "server/assets.js",
-   "size": 9621,
-   "sha256": "03b78cf1c0cbcb272c007c967233d410d5f3b2edd63034317be845bc3de6e16b"
+   "size": 3385,
+   "sha256": "85cb71088492c47b041c029911730e5fc960ccedba891abe9bf97138f1098cf5"
   },
   {
    "resource": "pxd_updater",
    "path": "server/main.lua",
-   "size": 15066,
-   "sha256": "e898f270d1fb811230c61b19ee3dc2992ad5e5f96eab1fa64035102143deb63d"
+   "size": 12811,
+   "sha256": "679e152c8b2d0d91d15ea02a014937e64377259b180714efdf327e7d82bb4033"
+  },
+  {
+   "resource": "pxd_updater",
+   "path": "shared/base64.lua",
+   "size": 1256,
+   "sha256": "4133b9e0e28db550df2084412848715a96048f7aaf667d1682a04364e32ad712"
   },
   {
    "resource": "pxd_updater",

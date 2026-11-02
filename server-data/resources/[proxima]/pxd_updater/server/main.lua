@@ -66,20 +66,15 @@ local function run(src, mode)
             end
         end
 
-        -- Recursos nuevos (aún no existen en el servidor): se instalan enteros.
+        -- Recursos nuevos: FXServer no deja a un recurso crear carpetas de otros,
+        -- así que se suben una vez con el paquete de instalación (docs/07).
         local installs = {}
-        for _, f in ipairs(manifest.files) do
-            if missing[f.resource] and f.resource:match('^pxd_[%w_]+$') then
-                if not installs[f.resource] then
-                    installs[f.resource] = {}
-                    installs[#installs + 1] = f.resource
-                end
-                local list = installs[f.resource]
-                list[#list + 1] = f
-            end
+        for name in pairs(missing) do
+            if name:match('^pxd_[%w_]+$') then installs[#installs + 1] = name end
         end
+        table.sort(installs)
         for _, name in ipairs(installs) do
-            log(src, (' + recurso nuevo: %s (%d archivos)'):format(name, #installs[name]))
+            log(src, ('Falta el recurso nuevo «%s»: viene en el paquete de instalación (docs/07).'):format(name))
         end
         state.plan = type(manifest.plan) == 'table' and manifest.plan or state.plan
         for _, key in ipairs(skipped) do
@@ -95,52 +90,19 @@ local function run(src, mode)
         end
         for _, a in ipairs(newAssets) do log(src, ' + arte: ' .. a.resource .. '/' .. a.path) end
         -- Recursos de terceros del plan (trabajos de Qbox…) que aún no estén.
-        local externals = {}
         local plan = type(manifest.plan) == 'table' and manifest.plan or {}
         for _, e in ipairs(type(plan.external) == 'table' and plan.external or {}) do
             if type(e) == 'table' and type(e.name) == 'string' and GetResourceState(e.name) == 'missing' then
-                externals[#externals + 1] = e
-                log(src, (' + recurso de terceros: %s (%s)'):format(e.name, tostring(e.repo)))
+                log(src, ('Falta «%s» (%s): viene en el paquete de instalación (docs/07).'):format(e.name, tostring(e.repo)))
             end
         end
-        if #changes == 0 and #installs == 0 and mode ~= 'check' then
+        if #changes == 0 and mode ~= 'check' then
             SaveResourceFile(RES, Config.stateFile, json.encode(state), -1)
             PXDUpdater.applyPatches(src)
             PXDUpdater.startPlanned(src)
         end
-        if #changes == 0 and #installs == 0 and #newAssets == 0 and #externals == 0 then return log(src, 'Todo está al día.') end
-        if #changes == 0 and #installs == 0 and #externals > 0 then
-            if mode == 'check' then
-                log(src, ('%d recurso(s) de terceros por instalar. Ejecuta «pxd_update» para instalarlos.'):format(#externals))
-            else
-                TriggerEvent('pxd_updater:installExternal', externals, src)
-                log(src, 'Descargando recursos de terceros desde GitHub… (los resultados aparecerán aquí)')
-            end
-            if #newAssets == 0 then return end
-        end
-        if #changes == 0 and #installs > 0 then
-            if mode == 'check' then
-                return log(src, ('%d recurso(s) nuevo(s) por instalar. Ejecuta «pxd_update» para instalarlos.'):format(#installs))
-            end
-            -- Descarga y verificación en Lua (son archivos de texto); la escritura de
-            -- carpetas nuevas la hace server/assets.js, porque SaveResourceFile solo
-            -- escribe en recursos que ya existen.
-            local packages = {}
-            for _, name in ipairs(installs) do
-                local files = {}
-                for _, f in ipairs(installs[name]) do
-                    local d = fetch('server-data/resources/[proxima]/' .. f.resource .. '/' .. f.path)
-                    if d.code ~= 200 or type(d.body) ~= 'string' or #d.body ~= f.size or PXDUpdater.sha256(d.body) ~= f.sha256 then
-                        return log(src, ('Descarga incorrecta de %s/%s (HTTP %s). No se ha instalado nada.'):format(f.resource, f.path, tostring(d.code)))
-                    end
-                    files[#files + 1] = { path = f.path, sha256 = f.sha256, body = d.body }
-                    state[f.resource .. '/' .. f.path] = f.sha256
-                end
-                packages[#packages + 1] = { name = name, files = files }
-            end
-            SaveResourceFile(RES, Config.stateFile, json.encode(state), -1)
-            TriggerEvent('pxd_updater:installResources', packages, src)
-            return log(src, 'Instalando recursos nuevos… (los resultados aparecerán aquí)')
+        if #changes == 0 and #newAssets == 0 then
+            return log(src, #installs > 0 and 'Lo demás está al día.' or 'Todo está al día.')
         end
         if mode == 'check' and #changes == 0 then
             return log(src, ('%d archivo(s) de arte por descargar. Ejecuta «pxd_update» para aplicarlos.'):format(#newAssets))
@@ -165,7 +127,7 @@ local function run(src, mode)
         local touched, order = {}, {}
         for _, s in ipairs(staged) do
             if not SaveResourceFile(s.f.resource, s.f.path, s.body, #s.body) then
-                return log(src, ('No se pudo escribir %s/%s.'):format(s.f.resource, s.f.path))
+                return PXDUpdater.writeDenied(src, s.f.resource, s.f.path)
             end
             state[s.f.resource .. '/' .. s.f.path] = s.f.sha256
             if not touched[s.f.resource] then touched[s.f.resource] = true; order[#order + 1] = s.f.resource end
@@ -188,7 +150,6 @@ local function run(src, mode)
             end
         end
         log(src, ('Listo: %d archivo(s) en %d recurso(s).'):format(#staged, #order))
-        if #installs > 0 then log(src, 'Hay recursos nuevos por instalar: vuelve a ejecutar «pxd_update».') end
         if #newAssets > 0 then log(src, 'Hay arte nuevo por descargar: vuelve a ejecutar «pxd_update».') end
         if self then
             log(src, 'El actualizador también cambió: se reinicia ahora.')
@@ -246,6 +207,8 @@ function PXDUpdater.applyPatches(src)
                     text = text:sub(1, i - 1) .. p.replace .. text:sub(j + 1)
                     if SaveResourceFile(p.resource, p.path, text, #text) then
                         log(src, ('Ajustado %s/%s (%s). Reinicia el servidor para aplicarlo.'):format(p.resource, p.path, p.why or 'configuración'))
+                    else
+                        PXDUpdater.writeDenied(src, p.resource, p.path)
                     end
                 end
             end
@@ -253,32 +216,27 @@ function PXDUpdater.applyPatches(src)
     end
 end
 
-AddEventHandler('pxd_updater:externalDone', function(src, results)
-    src = tonumber(src) or 0
-    ExecuteCommand('refresh')
-    local ok = 0
-    for _, r in ipairs(type(results) == 'table' and results or {}) do
-        if r.ok then
-            ok = ok + 1
-            if StartResource(r.name) then log(src, 'Instalado e iniciado ' .. r.name .. '.')
-            else log(src, ('Instalado %s, pero no se pudo iniciar: revisa la consola.'):format(r.name)) end
-        else
-            log(src, ('No se pudo instalar %s: %s'):format(tostring(r.name), tostring(r.message)))
-        end
-    end
-    log(src, ('Recursos de terceros instalados: %d. Al reiniciar el servidor arrancan solos.'):format(ok))
-end)
+--- FXServer solo deja a un recurso escribir en otro si el server.cfg lo permite
+--- (add_filesystem_permission, solo se puede poner antes de que termine de arrancar).
+function PXDUpdater.writeDenied(src, res, path)
+    log(src, ('No se pudo escribir %s/%s: falta el permiso. Añade al server.cfg y reinicia:'):format(res, path))
+    log(src, ('  add_filesystem_permission %s write %s'):format(RES, res))
+end
 
-AddEventHandler('pxd_updater:installDone', function(src, results)
+-- Arte descargado por server/assets.js (base64): se escribe aquí con SaveResourceFile.
+AddEventHandler('pxd_updater:writeAsset', function(src, res, path, b64, total, index)
     src = tonumber(src) or 0
-    ExecuteCommand('refresh')
-    local ok = 0
-    for _, r in ipairs(type(results) == 'table' and results or {}) do
-        if r.ok then ok = ok + 1 else log(src, ('No se pudo instalar %s: %s'):format(tostring(r.name), tostring(r.message))) end
-    end
-    log(src, ('Recursos nuevos instalados: %d.'):format(ok))
-    PXDUpdater.applyPatches(src)
-    PXDUpdater.startPlanned(src)
+    if type(res) ~= 'string' or not res:match('^pxd_[%w_]+$') or type(path) ~= 'string'
+        or not path:match('^html/assets/[%w%._%-]+$') or type(b64) ~= 'string' then return end
+    CreateThread(function()
+        local data = PXDUpdater.base64decode(b64, function() Wait(0) end)
+        if SaveResourceFile(res, path, data, #data) then
+            log(src, ('Arte guardado: %s (%d KB).'):format(path, #data // 1024))
+        else
+            PXDUpdater.writeDenied(src, res, path)
+        end
+        if index == total then log(src, 'Arte: terminado. Se verá al reconectar.') end
+    end)
 end)
 
 -- Al encender el servidor: arranca lo que el plan diga (con un pequeño margen para

@@ -22,3 +22,4 @@ server-data/resources/[proxima]/pxd_loadscreen/html/assets/*.mp4
 tests/web/out/
 node_modules/
 deploy/.env
+proxima-paquete-instalacion.zip

@@ -10,7 +10,7 @@ local function boot(remote, localFiles, states, extra)
     Fx.reset({ resourceName = 'pxd_updater', resourceStates = states or { pxd_login = 'started', pxd_props = 'started', pxd_updater = 'started' } })
     PXDUpdater = nil
     Config = nil
-    Fx.load(DIR, { 'config.lua', 'shared/sha256.lua', 'server/main.lua' })
+    Fx.load(DIR, { 'config.lua', 'shared/sha256.lua', 'shared/base64.lua', 'server/main.lua' })
     sha = PXDUpdater.sha256
     for k, v in pairs(localFiles or {}) do Fx.files[k] = v end
     local files = {}
@@ -115,28 +115,46 @@ T.describe('pxd_updater', function()
         T.truthy(logged('Arte descargado: 1 de 1'))
     end)
 
-    T.it('instala recursos nuevos enteros (vía assets.js) y no en modo check', function()
-        boot({ { 'pxd_nuevo', 'fxmanifest.lua', 'fx' }, { 'pxd_nuevo', 'server/main.lua', 'print(1)' } }, {},
-            { pxd_updater = 'started' })
-        local got
-        AddEventHandler('pxd_updater:installResources', function(packages) got = packages end)
-        run('check')
-        T.truthy(logged('recurso nuevo: pxd_nuevo %(2 archivos%)'))
-        T.falsy(got, 'check no instala')
+    T.it('recursos nuevos o de terceros que falten: avisa de que vienen en el paquete', function()
+        boot({ { 'pxd_nuevo', 'fxmanifest.lua', 'fx' } }, {}, { pxd_updater = 'started' },
+            { plan = { external = { { name = 'qbx_taxijob', repo = 'qbox-project/qbx_taxijob' } } } })
         run()
-        T.eq(#got, 1); T.eq(got[1].name, 'pxd_nuevo'); T.eq(#got[1].files, 2)
-        T.eq(got[1].files[2].body, 'print(1)'); T.eq(got[1].files[2].sha256, sha('print(1)'))
+        T.truthy(logged('Falta el recurso nuevo «pxd_nuevo»: viene en el paquete'))
+        T.truthy(logged('Falta «qbx_taxijob»'))
     end)
 
-    T.it('tras instalar: refresca y arranca lo del plan, parando lo que sustituye', function()
+    T.it('si FXServer no deja escribir en otro recurso, dice qué permiso falta', function()
+        boot({ { 'pxd_login', 'server/main.lua', 'nuevo' } }, { ['pxd_login/server/main.lua'] = 'viejo' })
+        Fx.readOnly = { ['pxd_login/server/main.lua'] = true }
+        run()
+        T.truthy(logged('add_filesystem_permission pxd_updater write pxd_login'))
+        T.eq(Fx.files['pxd_login/server/main.lua'], 'viejo')
+    end)
+
+    T.it('guarda el arte que llega en base64 desde assets.js (con bytes nulos)', function()
+        boot({}, {}, { pxd_updater = 'started', pxd_loadscreen = 'started' })
+        -- "\0\1\2PNG\255" en base64
+        TriggerEvent('pxd_updater:writeAsset', 0, 'pxd_loadscreen', 'html/assets/a.png', 'AAECUE5H/w==', 1, 1)
+        Fx.advance(0)
+        T.eq(Fx.files['pxd_loadscreen/html/assets/a.png'], '\0\1\2PNG\255')
+        T.truthy(logged('Arte: terminado'))
+        TriggerEvent('pxd_updater:writeAsset', 0, 'pxd_loadscreen', '../server.lua', 'AAEC', 1, 1)
+        Fx.advance(0)
+        T.falsy(Fx.files['pxd_loadscreen/../server.lua'], 'ruta fuera de html/assets: no se escribe')
+    end)
+
+    T.it('base64: decodifica igual que Node (con y sin relleno)', function()
+        boot({})
+        T.eq(PXDUpdater.base64decode('aG9sYSDDsQ=='), 'hola ñ')
+        T.eq(PXDUpdater.base64decode('YWJj'), 'abc')
+        T.eq(PXDUpdater.base64decode('YWI='), 'ab')
+    end)
+
+    T.it('arranca lo del plan, parando lo que sustituye', function()
         boot({}, {}, { pxd_updater = 'started', pxd_nuevo = 'stopped', qbx_hud = 'started' },
             { plan = { autostart = { 'pxd_nuevo' }, replaces = { pxd_nuevo = { 'qbx_hud' } }, patches = {} } })
         run()   -- nada que actualizar: guarda el plan y lo aplica
         T.eq(table.concat(Fx.restarted, ','), 'stop qbx_hud,start pxd_nuevo')
-        Fx.restarted = {}
-        TriggerEvent('pxd_updater:installDone', 0, { { name = 'pxd_nuevo', ok = true } })
-        T.eq(Fx.executed[#Fx.executed], 'refresh')
-        T.truthy(logged('Recursos nuevos instalados: 1'))
     end)
 
     T.it('ajusta la configuración de terceros solo si hace falta', function()
@@ -154,20 +172,4 @@ T.describe('pxd_updater', function()
         T.truthy(logged('Reinicia el servidor'))
     end)
 
-    T.it('instala de GitHub los recursos de terceros que falten y los arranca', function()
-        local ext = { { name = 'qbx_taxijob', category = '[qbx]', repo = 'qbox-project/qbx_taxijob', ref = 'main' },
-                      { name = 'qbx_busjob', category = '[qbx]', repo = 'qbox-project/qbx_busjob', ref = 'main' } }
-        boot({}, {}, { pxd_updater = 'started', qbx_busjob = 'started' }, { plan = { external = ext } })
-        local got
-        AddEventHandler('pxd_updater:installExternal', function(list) got = list end)
-        run('check')
-        T.falsy(got, 'check no instala')
-        T.truthy(logged('recurso de terceros: qbx_taxijob'))
-        run()
-        T.eq(#got, 1, 'qbx_busjob ya está'); T.eq(got[1].name, 'qbx_taxijob')
-        Fx.restarted = {}
-        TriggerEvent('pxd_updater:externalDone', 0, { { name = 'qbx_taxijob', ok = true } })
-        T.eq(table.concat(Fx.restarted, ','), 'start qbx_taxijob')
-        T.truthy(logged('Instalado e iniciado qbx_taxijob'))
-    end)
 end)

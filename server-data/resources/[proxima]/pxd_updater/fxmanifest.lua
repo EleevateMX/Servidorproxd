@@ -9,6 +9,7 @@ version '0.1.0'
 server_scripts {
     'config.lua',
     'shared/sha256.lua',
+    'shared/base64.lua',
     'server/main.lua',
     'server/assets.js',
 }
