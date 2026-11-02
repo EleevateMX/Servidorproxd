@@ -1,0 +1,15 @@
+/* Próxima RP — ajustes de la interfaz de ox_lib (LGPL-3.0, ox_lib de Overextended).
+ * El tema (colores, radios, sombras, componentes) va en un parche del bundle; aquí solo
+ * lo que el tema no alcanza: tipografía forzada (algunos estilos fijan Roboto),
+ * barras de desplazamiento y selección de texto. */
+:root {
+  --pxd-font: "Segoe UI", Inter, Roboto, "Helvetica Neue", Arial, sans-serif;
+  --pxd-star: #5ce1ff;
+  --pxd-nova: #ff4fd8;
+}
+body, body *:not(svg):not(path) { font-family: var(--pxd-font) !important; }
+::selection { background: rgba(92, 225, 255, 0.35); color: #fff; }
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(140, 170, 255, 0.25); border-radius: 6px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(92, 225, 255, 0.5); }

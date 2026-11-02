@@ -9,7 +9,8 @@ import { buildManifest } from '../../scripts/build-manifest.mjs';
 const res = fileURLToPath(new URL('../../server-data/resources/[proxima]/', import.meta.url));
 
 test('overlays: huella de la copia de pxd_inventory y versión de ox_inventory', () => {
-  const { overlays, plan } = buildManifest();
+  const { overlays: all, plan } = buildManifest();
+  const overlays = all.filter((o) => o.from.resource === 'pxd_inventory');
   assert.ok(overlays.length >= 2);
   for (const o of overlays) {
     assert.equal(o.resource, 'ox_inventory');

@@ -14,7 +14,8 @@
   "pxd_inventory",
   "pxd_chat",
   "pxd_compat",
-  "pxd_phone"
+  "pxd_phone",
+  "pxd_theme"
  ],
  "replaces": {
   "pxd_hud": [
@@ -182,6 +183,30 @@
    "replace": "<link rel=\"stylesheet\" href=\"./assets/index-b0f1ff4a.css\"> <link rel=\"stylesheet\" href=\"https://cfx-nui-pxd_phone/html/phone.css\"> <script src=\"https://cfx-nui-pxd_phone/html/phone.js\" defer></script>",
    "requires": "pxd_phone",
    "why": "teléfono con el diseño de Próxima (npwd 3.14.3)"
+  },
+  {
+   "resource": "ox_lib",
+   "path": "web/build/assets/index-Dqr00JhT.js",
+   "find": "colorScheme:\"dark\",fontFamily:\"Roboto\",shadows:{sm:\"1px 1px 3px rgba(0, 0, 0, 0.5)\"},components:{Button:{styles:{root:{border:\"none\"}}}}",
+   "replace": "colorScheme:\"dark\",fontFamily:'\"Segoe UI\",Inter,Roboto,\"Helvetica Neue\",Arial,sans-serif',headings:{fontFamily:'\"Segoe UI\",Inter,Roboto,\"Helvetica Neue\",Arial,sans-serif',fontWeight:800},defaultRadius:\"md\",radius:{xs:4,sm:8,md:12,lg:16,xl:22},colors:{dark:[\"#eef2ff\",\"#c9d1ea\",\"#9aa6c7\",\"#6b7699\",\"#2a3352\",\"#1c2440\",\"#141b33\",\"#0f1529\",\"#0a0f1f\",\"#05070f\"],cyan:[\"#e6fbff\",\"#c4f4ff\",\"#9aecff\",\"#74e5ff\",\"#5ce1ff\",\"#3fd6f7\",\"#22c8f0\",\"#14a9cf\",\"#0d86a6\",\"#08637c\"],blue:[\"#e6fbff\",\"#c4f4ff\",\"#9aecff\",\"#74e5ff\",\"#5ce1ff\",\"#3fd6f7\",\"#22c8f0\",\"#14a9cf\",\"#0d86a6\",\"#08637c\"],pink:[\"#ffe6f9\",\"#ffc7f1\",\"#ffa3e8\",\"#ff7fe0\",\"#ff63db\",\"#ff4fd8\",\"#e83cc2\",\"#c42ea3\",\"#9e2384\",\"#7a1a66\"],yellow:[\"#fff8e6\",\"#ffefc2\",\"#ffe499\",\"#ffd970\",\"#ffcf5c\",\"#ffc857\",\"#f0b43c\",\"#d69a26\",\"#b37d17\",\"#8f620e\"],red:[\"#ffe8eb\",\"#ffc9d0\",\"#ffa3af\",\"#ff7d8e\",\"#ff6a7d\",\"#ff5a6e\",\"#ec4258\",\"#cc3045\",\"#a82334\",\"#841926\"],teal:[\"#e3fbf1\",\"#bff3de\",\"#94eac8\",\"#69e0b2\",\"#4dd9a3\",\"#3ad296\",\"#2bbd84\",\"#20a06f\",\"#17805a\",\"#0f6045\"]},primaryColor:\"cyan\",primaryShade:5,shadows:{xs:\"0 1px 2px rgba(0, 0, 0, 0.6)\",sm:\"0 1px 2px rgba(0, 0, 0, 0.6)\",md:\"0 12px 32px rgba(0, 0, 0, 0.45)\",lg:\"0 18px 48px rgba(0, 0, 0, 0.5)\",xl:\"0 24px 64px rgba(0, 0, 0, 0.55)\"},components:{Button:{styles:(t,p)=>({root:{border:\"none\",fontWeight:700,letterSpacing:\"0.02em\",...(p.variant===\"filled\"||!p.variant?{color:\"#031018\",backgroundImage:\"linear-gradient(135deg, #5ce1ff, #22c8f0)\",boxShadow:\"0 6px 18px rgba(92, 225, 255, 0.25)\"}:{})}})},Modal:{styles:{modal:{backgroundColor:\"#0a0f1f\",backgroundImage:\"linear-gradient(180deg, rgba(92, 225, 255, 0.06), rgba(255, 79, 216, 0.03))\",border:\"1px solid rgba(140, 170, 255, 0.16)\",boxShadow:\"0 24px 64px rgba(0, 0, 0, 0.55)\"},title:{fontWeight:800,fontSize:18,color:\"#eef2ff\"},overlay:{backdropFilter:\"blur(3px)\"}}},Input:{styles:{input:{backgroundColor:\"#05070f\",borderColor:\"rgba(140, 170, 255, 0.18)\",color:\"#eef2ff\",\"&:focus\":{borderColor:\"#5ce1ff\"}}}},InputWrapper:{styles:{label:{color:\"#c9d1ea\",fontWeight:600,marginBottom:4},description:{color:\"#9aa6c7\"}}},Progress:{styles:{root:{backgroundColor:\"rgba(140, 170, 255, 0.14)\"}}},Tooltip:{styles:{tooltip:{backgroundColor:\"#0a0f1f\",border:\"1px solid rgba(140, 170, 255, 0.18)\",color:\"#eef2ff\"}}},Checkbox:{styles:{input:{backgroundColor:\"#05070f\",borderColor:\"rgba(140, 170, 255, 0.3)\"}}},Slider:{styles:{bar:{backgroundImage:\"linear-gradient(90deg, #5ce1ff, #ff4fd8)\"},thumb:{borderColor:\"#5ce1ff\",backgroundColor:\"#05070f\"}}}}",
+   "requires": "pxd_theme",
+   "why": "tema de Próxima en los menús, avisos y diálogos de ox_lib 3.42.0"
+  },
+  {
+   "resource": "ox_lib",
+   "path": "web/build/index.html",
+   "find": "</head>",
+   "replace": "<link rel=\"stylesheet\" href=\"./assets/pxd.css\"></head>",
+   "requires": "pxd_theme",
+   "why": "tipografía y detalles de Próxima en ox_lib"
+  },
+  {
+   "resource": "ox_target",
+   "path": "web/index.html",
+   "find": "<svg id=\"eyeSvg\" xmlns=\"http://www.w3.org/2000/svg\" height=\"36px\" viewBox=\"0 0 24 24\" width=\"36px\" fill=\"#000000\"><path d=\"M0 0h24v24H0V0z\" fill=\"none\"/><path d=\"M12 4C7 4 2.73 7.11 1 11.5 2.73 15.89 7 19 12 19s9.27-3.11 11-7.5C21.27 7.11 17 4 12 4zm0 12.5c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z\"/></svg>",
+   "replace": "<svg id=\"eyeSvg\" xmlns=\"http://www.w3.org/2000/svg\" height=\"36px\" viewBox=\"0 0 24 24\" width=\"36px\"><path d=\"M12 1.8C12.75 9.3 14.7 11.25 22.2 12C14.7 12.75 12.75 14.7 12 22.2C11.25 14.7 9.3 12.75 1.8 12C9.3 11.25 11.25 9.3 12 1.8Z\"/></svg>",
+   "requires": "pxd_theme",
+   "why": "destello de Próxima en la mirilla de ox_target"
   }
  ],
  "_comment_overlays": "Archivos de pxd_* que se copian a recursos de terceros (solo con la versión indicada). Requieren add_filesystem_permission pxd_updater write <recurso> y reiniciar el servidor.",
@@ -197,6 +222,18 @@
    "requiresVersion": "2.48.1",
    "path": "web/build/assets/pxd.js",
    "from": "pxd_inventory/overlay/ox_inventory/pxd.js"
+  },
+  {
+   "resource": "ox_lib",
+   "requiresVersion": "3.42.0",
+   "path": "web/build/assets/pxd.css",
+   "from": "pxd_theme/overlay/ox_lib/pxd.css"
+  },
+  {
+   "resource": "ox_target",
+   "requiresVersion": "1.18.1",
+   "path": "web/style.css",
+   "from": "pxd_theme/overlay/ox_target/style.css"
   }
  ]
 }
