@@ -49,6 +49,16 @@ add_principal identifier.license:XXXXXXXX group.admin
 ```
 El identificador aparece en txAdmin → Players al conectarse.
 
+## Tienda Tebex (única forma permitida de cobrar)
+
+Guía oficial: [Setting up a Tebex store](https://docs.fivem.net/docs/server-manual/setting-up-a-tebex-store/). Para conectar la tienda con el servidor:
+
+1. En creator.tebex.io → **Integrations → Game Servers → Connect Game Server → Plugin**, ponle nombre y copia la clave secreta.
+2. En txAdmin → CFG Editor → `server.cfg`, quita el `#` de la línea `sv_tebexSecret` y pega la clave.
+3. Reinicia el servidor y pulsa **Continue** en Tebex. Si no se activa, revisa la consola; Tebex permite **Skip**.
+
+La clave es secreta: nunca en git ni en capturas.
+
 ## Plan B: sin txAdmin (subida por FTP)
 
 1. En el panel del proveedor crea un servidor FiveM «vacío» o «CFX Default» y pon tu clave de licencia.
