@@ -132,14 +132,14 @@
   {
    "resource": "pxd_loadscreen",
    "path": "html/app.js",
-   "size": 9711,
-   "sha256": "1a3d8d5a97102ff2b6918b0db4ab42cbebd4b54c582cf68c25a28fa82d81cd1a"
+   "size": 10635,
+   "sha256": "832962624f0b1aad04d5ff96c415e8488bf779629ba62d51b40f5aed6f00e4c3"
   },
   {
    "resource": "pxd_loadscreen",
    "path": "html/index.html",
-   "size": 3732,
-   "sha256": "15721e1a228feecdeb19a80f330788a369429ecb0a3fbd138b343334f22225e1"
+   "size": 3704,
+   "sha256": "548d1ddf9bf761779a581f9c3be371546c7f38cc72aa44cee43fc30dfef79414"
   },
   {
    "resource": "pxd_loadscreen",
@@ -207,6 +207,61 @@
    "path": "shared/login.lua",
    "size": 3727,
    "sha256": "c46284e0d8873dbec99bff7b2ebace7067160ac832978a88d3a100b50ac403f4"
+  },
+  {
+   "resource": "pxd_multichar",
+   "path": "client/main.lua",
+   "size": 16060,
+   "sha256": "94b8286e1b6363e80ed010a77c02cdea372b759b48803fbed8d850ecf84b89a7"
+  },
+  {
+   "resource": "pxd_multichar",
+   "path": "config.lua",
+   "size": 2191,
+   "sha256": "d9efe5f46092c753edd1a06a5dfdb3b3ab870c7b4b44feb5c6692be70b86b4c8",
+   "config": true
+  },
+  {
+   "resource": "pxd_multichar",
+   "path": "fxmanifest.lua",
+   "size": 726,
+   "sha256": "ad166dfc3535962863ddd5e021b4db3a38120ab4882af12b65dd6c06cf6c4401"
+  },
+  {
+   "resource": "pxd_multichar",
+   "path": "html/app.js",
+   "size": 16771,
+   "sha256": "f75dc2c18beea147b6c7724ae72b2c0bd04fc29edbc8e920419e28252049be7e"
+  },
+  {
+   "resource": "pxd_multichar",
+   "path": "html/index.html",
+   "size": 6381,
+   "sha256": "395cce83614ad15d1f2aec5dcae08d38e2cdb5eac11d1477a55373be9a306143"
+  },
+  {
+   "resource": "pxd_multichar",
+   "path": "html/logo.svg",
+   "size": 1335,
+   "sha256": "7a98455a0e55f769f346a8977fca200177c322b15cf60579109cc79f7d9d7c35"
+  },
+  {
+   "resource": "pxd_multichar",
+   "path": "html/style.css",
+   "size": 12477,
+   "sha256": "a55932f47038d3d4f11d08111c18118e7d0f8fc2aebcf7fe104d3dd76de491e6"
+  },
+  {
+   "resource": "pxd_multichar",
+   "path": "server/main.lua",
+   "size": 3655,
+   "sha256": "c027a83020229818bc3956bfe032d736920b4e5043abe9112109b94d95278043"
+  },
+  {
+   "resource": "pxd_multichar",
+   "path": "shared/multichar.lua",
+   "size": 9994,
+   "sha256": "f672efd4c79fb413303723f106b915d815af6c344bf1e40c2b10d38619d237ea"
   },
   {
    "resource": "pxd_progress",
@@ -435,9 +490,19 @@
  "plan": {
   "autostart": [
    "pxd_progress",
-   "pxd_restart"
+   "pxd_restart",
+   "pxd_multichar"
   ],
   "replaces": {},
-  "patches": []
+  "patches": [
+   {
+    "resource": "qbx_core",
+    "path": "config/client.lua",
+    "find": "useExternalCharacters = false",
+    "replace": "useExternalCharacters = true",
+    "requires": "pxd_multichar",
+    "why": "pantalla de personajes de Próxima"
+   }
+  ]
  }
 }
