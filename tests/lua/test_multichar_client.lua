@@ -26,7 +26,7 @@ local function makeEnv(opts)
     }
     if opts.noApartmentConfig then files['qbx_properties/config/shared.lua'] = nil end
     G.LoadResourceFile = function(res, path) return files[res .. '/' .. path] end
-    local states = opts.states or { qbx_properties = 'started', qbx_spawn = 'started', ['illenium-appearance'] = 'started' }
+    local states = opts.states or { qbx_properties = 'started', qbx_spawn = 'started', ['illenium-appearance'] = 'started', pxd_hud = 'started' }
     G.GetResourceState = function(name) return states[name] or 'missing' end
 
     G.lib = { requestModel = function() end, callback = { await = function(name, _, ...)
@@ -36,17 +36,61 @@ local function makeEnv(opts)
         if type(r) == 'table' and r.multi then return table.unpack(r.multi) end
         return r
     end } }
-    G.exports = setmetatable({}, { __index = function(_, res)
-        return setmetatable({}, { __index = function(_, fn)
-            return function(_, ...) if res == 'qbx_core' and fn == 'GetPlayerData' then return opts.playerData end end
-        end })
-    end })
+    env.exported = {}
+    G.exports = setmetatable({}, {
+        __index = function(_, res)
+            return setmetatable({}, { __index = function(_, fn)
+                return function(_, ...)
+                    if res == 'qbx_core' and fn == 'GetPlayerData' then return opts.playerData end
+                    if res == 'illenium-appearance' then
+                        log[#log + 1] = 'illenium:' .. fn
+                        if fn == 'setPedAppearance' then env.lastApplied = select(2, ...) end
+                        if fn == 'getPedAppearance' then return opts.currentLook end
+                    end
+                    if res == 'pxd_hud' then log[#log + 1] = 'hud:' .. tostring((...)) end
+                end
+            end })
+        end,
+        __call = function(_, name, fn) env.exported[name] = fn end,
+    })
+    G.LocalPlayer = { state = { isLoggedIn = true } }
+    -- Rangos realistas del modelo (el editor sanea con ellos).
+    G.GetNumHairColors = function() return 64 end
+    G.GetNumMakeupColors = function() return 64 end
+    G.GetPedHairRgbColor = function(i) return i, i, i end
+    G.GetPedMakeupRgbColor = function(i) return i, 0, 0 end
+    G.GetPedHeadOverlayNum = function() return 20 end
+    G.GetNumberOfPedDrawableVariations = function() return 100 end
+    G.GetNumberOfPedTextureVariations = function() return 5 end
+    G.GetNumberOfPedPropDrawableVariations = function() return 40 end
+    G.GetNumberOfPedPropTextureVariations = function() return 3 end
+    G.GetOffsetFromEntityInWorldCoords = function(_, x, y, z) return vec(x, y, z) end
+    G.ClearPedDecorations = function() log[#log + 1] = 'clearDecorations' end
+    G.SetPedDefaultComponentVariation = function() log[#log + 1] = 'defaultComponents' end
+    G.SetPlayerModel = function(_, m) log[#log + 1] = 'model:' .. tostring(m) end
+    G.GetEntityCoords = function() return vec(1.0, 2.0, 3.0) end
+    G.json = { decode = function(t) return load('return ' .. t)() end }
 
     -- promesas y espera como en CfxLua (con corrutinas)
     G.promise = { new = function() local p = { done = false }; function p:resolve(v) self.done = true; self.value = v end; return p end }
     G.Citizen = { Await = function(p) while not p.done do coroutine.yield('await') end return p.value end }
     G.Wait = function() if coroutine.isyieldable() then coroutine.yield('wait') end end
-    G.CreateThread = function() end
+    G.CreateThread = function() end   -- al cargar: sin hilos (bucles de la sesión)
+    env.threads = {}
+    local function realThread(fn)
+        local co = coroutine.create(fn)
+        env.threads[#env.threads + 1] = co
+        local ok, err = coroutine.resume(co)
+        assert(ok, err)
+    end
+    --- Avanza todos los hilos vivos (esperas, Citizen.Await) unas cuantas vueltas.
+    env.pump = function(n)
+        for _ = 1, n or 30 do
+            for _, co in ipairs(env.threads) do
+                if coroutine.status(co) == 'suspended' then local ok, err = coroutine.resume(co); assert(ok, err) end
+            end
+        end
+    end
     G.SetTimeout = function(ms) log[#log + 1] = 'timeout:' .. ms end
 
     G.RegisterNUICallback = function(name, fn) nuiCb[name] = fn end
@@ -78,10 +122,13 @@ local function makeEnv(opts)
     end })
     env.restore = function() setmetatable(G, savedMt) end
 
-    Config, PXDChar = nil, nil
+    Config, PXDChar, PXDLook, PXDEditor = nil, nil, nil, nil
     dofile(DIR .. 'config.lua')
     dofile(DIR .. 'shared/multichar.lua')
+    dofile(DIR .. 'shared/appearance.lua')
+    dofile(DIR .. 'client/editor.lua')
     dofile(DIR .. 'client/main.lua')
+    G.CreateThread = realThread
     return env
 end
 
@@ -112,80 +159,137 @@ end
 local registration = { firstname = 'Ana', lastname = 'Lima', nationality = 'Mexican', gender = 1, birthdate = '1995-05-05' }
 
 T.describe('pxd_multichar · flujo en el cliente (simulado)', function()
-    T.it('crear con apartamentos: datos → elegir apartamento (nuestra pantalla) → qbx_properties → aspecto', function()
-        local env = makeEnv({ callbacks = {
+    local function createEnv(o)
+        o = o or {}
+        local cbs = {
             ['qbx_core:server:getCharacters'] = { multi = { {}, 3 } },
             ['pxd_multichar:server:setup'] = {},
-            ['pxd_multichar:server:checkRegistration'] = { ok = true, data = registration },
-            ['qbx_core:server:createCharacter'] = { citizenid = 'ABC' },
-        } })
-        env.handlers['qbx_core:client:playerLoggedOut']()   -- abre la selección (sin personajes)
-        local step = run(env, 'create', registration)
-        local s = step()
-        T.eq(s, 'await', 'espera a que el jugador elija apartamento')
+            ['pxd_multichar:server:checkRegistration'] = o.check or { ok = true, data = registration },
+            ['qbx_core:server:createCharacter'] = o.created == nil and { citizenid = 'ABC' } or o.created,
+            ['pxd_multichar:server:saveAppearance'] = o.save or { ok = true, citizenid = 'ABC' },
+            ['pxd_multichar:server:enterCreator'] = 70001,
+            ['pxd_multichar:server:leaveCreator'] = true,
+        }
+        for k, v in pairs(o.callbacks or {}) do cbs[k] = v end
+        local env = makeEnv({ startingApartment = o.startingApartment, noApartmentConfig = o.noApartmentConfig, callbacks = cbs })
+        env.handlers['qbx_core:client:playerLoggedOut']()
+        run(env, 'createStart', {})()
+        return env
+    end
+    local function finish(env, look, identity)
+        local r = run(env, 'editorFinish', { look = look or PXDLook.default(1), identity = identity or registration })
+        r(); env.pump()
+    end
+    local function count(env, item) local n = 0 for _, v in ipairs(env.log) do if v == item then n = n + 1 end end return n end
+
+    T.it('crear: abre NUESTRO editor en un bucket propio, sin el de illenium ni la pantalla de selección', function()
+        local env = createEnv()
+        local ed = lastNui(env, 'editor')
+        T.truthy(ed, 'se abre el editor')
+        T.eq(ed.data.mode, 'create'); T.eq(#ed.data.sections, 6); T.eq(ed.data.sections[1], 'identity')
+        T.eq(ed.data.look.model, 'mp_m_freemode_01', 'freemode desde cero')
+        T.truthy(ed.data.defaults and ed.data.defaults[1].model == 'mp_f_freemode_01', 'apariencia por defecto de cada sexo')
+        T.eq(#ed.data.palettes.hair, 64, 'paleta real de pelo (GetPedHairRgbColor)')
+        T.truthy(indexOf(env.log, 'cb:pxd_multichar:server:enterCreator'), 'bucket propio')
+        T.falsy(indexOf(env.log, 'illenium:startPlayerCustomization'), 'nunca el editor de illenium')
+        T.truthy(indexOf(env.log, 'hud:false'), 'HUD oculto')
+        T.eq(lastNui(env, 'close').action, 'close', 'la selección se cierra antes')
+        env.restore()
+    end)
+
+    T.it('crear con apartamentos: identidad → qbx_core → apariencia guardada → editor cerrado → bucket 0 → apartamento → carga', function()
+        local env = createEnv()
+        finish(env)
+        local L = env.log
+        local check, created = indexOf(L, 'cb:pxd_multichar:server:checkRegistration'), indexOf(L, 'cb:qbx_core:server:createCharacter')
+        local saved, left = indexOf(L, 'cb:pxd_multichar:server:saveAppearance'), indexOf(L, 'cb:pxd_multichar:server:leaveCreator')
+        T.truthy(check and created and saved and left, 'todos los pasos')
+        T.truthy(check < created and created < saved and saved < left, 'orden: validar → crear → apariencia → liberar bucket')
         local view = lastNui(env, 'spawn')
-        T.eq(view.data.mode, 'apartment'); T.eq(#view.data.options, 2)
-        T.eq(view.data.options[1].label, 'Del Perro Heights', 'textos en español de Config.apartmentTexts')
-        T.falsy(indexOf(env.log, 'ev:qb-clothes:client:CreateFirstCharacter'), 'el editor de ropa aún no se abre')
-        T.falsy(indexOf(env.log, 'sv:QBCore:Server:OnPlayerLoaded'), 'todavía no se carga (si no, qbx_properties enseñaría su pizarra)')
-
-        local choose = run(env, 'spawnChoose', { id = 'apt:2' })
-        T.eq(choose(), 'dead')
-        T.eq(step(), 'dead')
-        local sel = indexOf(env.log, 'sv:qbx_properties:server:apartmentSelect')
-        local loaded = indexOf(env.log, 'sv:QBCore:Server:OnPlayerLoaded')
-        T.truthy(sel and loaded and sel < loaded, 'primero el apartamento y después la carga (como qbx_properties)')
-        T.eq(env.serverArgs['qbx_properties:server:apartmentSelect'][1], 2, 'se envía el apartamento elegido')
-        T.falsy(indexOf(env.log, 'ev:apartments:client:setupSpawnUI'), 'nunca se abre su pizarra')
-        T.falsy(indexOf(env.log, 'ev:qb-clothes:client:CreateFirstCharacter'), 'el editor lo abre qbx_properties tras colocarte (una sola vez)')
-        T.truthy(indexOf(env.log, 'timeout:6000'), 'salida de emergencia por si la pantalla se queda en negro')
-        T.eq(lastNui(env, 'spawnClose').action, 'spawnClose')
+        T.eq(view.data.mode, 'apartment', 'después elige apartamento')
+        local closeIdx, spawnIdx
+        for i, m in ipairs(env.nui) do
+            if m.action == 'editorClose' then closeIdx = i end
+            if m.action == 'spawn' then spawnIdx = i end
+        end
+        T.truthy(closeIdx and spawnIdx and closeIdx < spawnIdx, 'el editor se cierra antes de enseñar el apartamento')
+        T.falsy(indexOf(L, 'sv:QBCore:Server:OnPlayerLoaded'), 'todavía no se carga')
+        run(env, 'spawnChoose', { id = 'apt:2' })()
+        env.pump()
+        local sel, loaded = indexOf(L, 'sv:qbx_properties:server:apartmentSelect'), indexOf(L, 'sv:QBCore:Server:OnPlayerLoaded')
+        T.truthy(left < sel and sel < loaded, 'bucket liberado antes de que qbx_properties lo coloque en su apartamento')
+        T.eq(env.serverArgs['qbx_properties:server:apartmentSelect'][1], 2)
+        T.falsy(indexOf(L, 'ev:qb-clothes:client:CreateFirstCharacter'), 'no se abre el editor de illenium después')
+        T.falsy(indexOf(L, 'ev:apartments:client:setupSpawnUI'), 'ni la pizarra de qbx_properties')
+        T.truthy(indexOf(L, 'hud:true'), 'HUD restaurado')
         env.restore()
     end)
 
-    T.it('si no se puede leer la config de qbx_properties, se usa su pizarra (una sola pantalla)', function()
-        local env = makeEnv({ noApartmentConfig = true, callbacks = {
-            ['qbx_core:server:getCharacters'] = { multi = { {}, 3 } },
-            ['pxd_multichar:server:setup'] = {},
-            ['pxd_multichar:server:checkRegistration'] = { ok = true, data = registration },
-            ['qbx_core:server:createCharacter'] = { citizenid = 'ABC' },
-        } })
-        env.handlers['qbx_core:client:playerLoggedOut']()
-        local step = run(env, 'create', registration)
-        T.eq(step(), 'dead')
-        T.truthy(indexOf(env.log, 'ev:apartments:client:setupSpawnUI'))
-        T.falsy(lastNui(env, 'spawn'), 'no se abre la nuestra a la vez')
+    T.it('registro rechazado por el servidor: no se crea nada y el editor sigue abierto con el error', function()
+        local env = createEnv({ check = { ok = false, error = 'El nombre es demasiado corto.', field = 'firstname' } })
+        finish(env)
+        T.falsy(indexOf(env.log, 'cb:qbx_core:server:createCharacter'))
+        T.falsy(lastNui(env, 'editorClose'), 'sigue abierto')
+        local err = lastNui(env, 'editorError')
+        T.eq(err.field, 'firstname'); T.eq(err.text, 'El nombre es demasiado corto.')
+        -- Se puede corregir y volver a intentar (no hay doble envío mientras tanto).
         env.restore()
     end)
 
-    T.it('crear sin apartamento inicial: aparece en el punto por defecto y abre el editor una vez', function()
-        local env = makeEnv({ startingApartment = false, callbacks = {
-            ['qbx_core:server:getCharacters'] = { multi = { {}, 3 } },
-            ['pxd_multichar:server:setup'] = {},
-            ['pxd_multichar:server:checkRegistration'] = { ok = true, data = registration },
-            ['qbx_core:server:createCharacter'] = { citizenid = 'ABC' },
-        } })
-        env.handlers['qbx_core:client:playerLoggedOut']()
-        local step = run(env, 'create', registration)
-        T.eq(step(), 'dead')
-        T.truthy(indexOf(env.log, 'ev:qbx_core:client:spawnNoApartments'))
-        T.falsy(lastNui(env, 'spawn'))
+    T.it('qbx_core rechaza la creación: sin personaje a medias, el editor sigue y se puede reintentar', function()
+        local tries = 0
+        local env = createEnv({ created = false, callbacks = { ['qbx_core:server:createCharacter'] = function() tries = tries + 1; if tries == 1 then return nil end return { citizenid = 'ABC' } end } })
+        finish(env)
+        T.falsy(indexOf(env.log, 'cb:pxd_multichar:server:saveAppearance'), 'sin apariencia de un personaje que no existe')
+        T.truthy(lastNui(env, 'editorError'))
+        T.falsy(lastNui(env, 'editorClose'))
+        finish(env)
+        T.eq(tries, 2, 'segundo intento')
+        T.truthy(indexOf(env.log, 'cb:pxd_multichar:server:saveAppearance'))
+        T.truthy(lastNui(env, 'editorClose'))
         env.restore()
     end)
 
-    T.it('crear rechazado por qbx_core: vuelve a la pantalla con aviso (no se queda en negro)', function()
-        local env = makeEnv({ callbacks = {
-            ['qbx_core:server:getCharacters'] = { multi = { {}, 3 } },
-            ['pxd_multichar:server:setup'] = {},
-            ['pxd_multichar:server:checkRegistration'] = { ok = true, data = registration },
-            ['qbx_core:server:createCharacter'] = false,
-        } })
-        env.handlers['qbx_core:client:playerLoggedOut']()
-        local step = run(env, 'create', registration)
-        T.eq(step(), 'dead')
-        T.truthy(indexOf(env.log, 'fadeIn'))
-        T.eq(lastNui(env, 'toast').action, 'toast')
-        T.falsy(indexOf(env.log, 'sv:QBCore:Server:OnPlayerLoaded'))
+    T.it('si falla guardar la apariencia, se reintenta 3 veces y el personaje sigue (se completará al volver a entrar)', function()
+        local env = createEnv({ save = { ok = false, error = 'x' } })
+        finish(env)
+        T.eq(count(env, 'cb:pxd_multichar:server:saveAppearance'), 3)
+        T.truthy(lastNui(env, 'editorClose'), 'continúa a la elección de apartamento')
+        env.restore()
+    end)
+
+    T.it('doble clic en «Crear personaje»: un solo envío', function()
+        local env = createEnv()
+        local r1 = run(env, 'editorFinish', { look = PXDLook.default(0), identity = registration })
+        local r2 = run(env, 'editorFinish', { look = PXDLook.default(0), identity = registration })
+        r1(); r2(); env.pump()
+        T.eq(count(env, 'cb:qbx_core:server:createCharacter'), 1)
+        env.restore()
+    end)
+
+    T.it('volver a la selección desde el editor: no se crea nada y se libera el bucket', function()
+        local env = createEnv()
+        run(env, 'editorCancel', {})()
+        env.pump()
+        -- En creación «Volver» está permitido: se cierra sin crear.
+        T.falsy(indexOf(env.log, 'cb:qbx_core:server:createCharacter'))
+        env.restore()
+    end)
+
+    T.it('el editor sanea lo que manda la NUI: modelo no freemode, valores fuera de rango', function()
+        local env = createEnv()
+        local bad = PXDLook.default(0)
+        bad.model = 'a_m_y_hipster_01'
+        bad.faceFeatures.noseWidth = 7
+        bad.hair.style = 999
+        bad.headOverlays.beard.opacity = 4
+        local res
+        local co = coroutine.create(function() env.nuiCb.editorLook({ look = bad }, function(r) res = r end) end)
+        coroutine.resume(co)
+        T.truthy(res.ok)
+        T.eq(res.look.model, 'mp_m_freemode_01', 'sigue siendo freemode')
+        T.eq(res.look.faceFeatures.noseWidth, 1); T.eq(res.look.hair.style, 99); T.eq(res.look.headOverlays.beard.opacity, 1)
+        T.truthy(indexOf(env.log, 'illenium:setPedAppearance'), 'se aplica al ped con illenium')
         env.restore()
     end)
 
@@ -277,24 +381,127 @@ T.describe('pxd_multichar · flujo en el cliente (simulado)', function()
 
     T.it('apartamento: espera a que qbx_properties lo guarde antes de cargar (no abre su pizarra encima)', function()
         local pending = 3
-        local env = makeEnv({ callbacks = {
-            ['qbx_core:server:getCharacters'] = { multi = { {}, 3 } },
-            ['pxd_multichar:server:setup'] = {},
-            ['pxd_multichar:server:checkRegistration'] = { ok = true, data = registration },
-            ['qbx_core:server:createCharacter'] = { citizenid = 'ABC' },
+        local env = createEnv({ callbacks = {
             ['pxd_multichar:server:needsApartment'] = function() pending = pending - 1; return pending > 0 end,
         } })
-        env.handlers['qbx_core:client:playerLoggedOut']()
-        local step = run(env, 'create', registration)
-        T.eq(step(), 'await')
+        finish(env)
         run(env, 'spawnChoose', { id = 'apt:1' })()
-        T.eq(step(), 'dead')
+        env.pump()
         local sel = indexOf(env.log, 'sv:qbx_properties:server:apartmentSelect')
         local loaded = indexOf(env.log, 'sv:QBCore:Server:OnPlayerLoaded')
         local checks = 0
         for i = sel, loaded do if env.log[i] == 'cb:pxd_multichar:server:needsApartment' then checks = checks + 1 end end
         T.eq(checks, 3, 'consulta hasta que el apartamento existe')
         T.eq(pending, 0)
+        env.restore()
+    end)
+
+    local played = { citizenid = 'XYZ', charinfo = { firstname = 'Ana', lastname = 'Lima', gender = 1 }, money = {}, job = {}, metadata = {} }
+    local function playEnv(extra)
+        local cbs = {
+            ['qbx_core:server:getCharacters'] = { multi = { { played }, 3 } },
+            ['pxd_multichar:server:setup'] = extra.setup or {},
+            ['qbx_core:server:loadCharacter'] = true,
+            ['pxd_multichar:server:needsApartment'] = false,
+            ['pxd_multichar:server:hasAppearance'] = extra.has,
+            ['pxd_multichar:server:saveAppearance'] = { ok = true },
+            ['qbx_spawn:server:getLastLocation'] = { multi = { nil, nil } },
+            ['qbx_spawn:server:getProperties'] = {},
+        }
+        local env = makeEnv({ callbacks = cbs, currentLook = extra.currentLook })
+        env.handlers['qbx_core:client:playerLoggedOut']()
+        return env
+    end
+
+    T.it('personaje sin apariencia guardada (creación interrumpida): se completa antes de aparecer, sin tocar la identidad', function()
+        local env = playEnv({ has = false })
+        local step = run(env, 'play', { citizenid = 'XYZ' })
+        T.eq(step(), 'await')
+        local ed = lastNui(env, 'editor')
+        T.eq(ed.data.mode, 'recover'); T.eq(ed.data.sections[1], 'heritage', 'la identidad no se edita')
+        T.eq(ed.data.look.model, 'mp_f_freemode_01', 'su sexo')
+        T.falsy(lastNui(env, 'spawn'), 'todavía no se elige dónde aparecer')
+        run(env, 'editorFinish', { look = PXDLook.default(1) })()
+        env.pump()
+        T.eq(step(), 'await', 'ahora sí, la pantalla de aparición')
+        T.truthy(lastNui(env, 'spawn'))
+        T.truthy(indexOf(env.log, 'cb:pxd_multichar:server:saveAppearance') < indexOf(env.log, 'cb:pxd_multichar:server:leaveCreator'))
+        env.restore()
+    end)
+
+    T.it('personaje con apariencia: entra directo (no se abre el editor); si el servidor no responde, tampoco', function()
+        for _, has in ipairs({ true, nil }) do
+            local env = playEnv({ has = has })
+            local step = run(env, 'play', { citizenid = 'XYZ' })
+            T.eq(step(), 'await')
+            T.falsy(lastNui(env, 'editor'))
+            T.eq(lastNui(env, 'spawn').data.mode, 'spawn')
+            env.restore()
+        end
+    end)
+
+    T.it('R.I.P.: no se puede jugar con un personaje fallecido', function()
+        local env = playEnv({ has = true, setup = { statuses = { XYZ = 'dead' } } })
+        local open = lastNui(env, 'open')
+        T.eq(open.data.characters[1].status, 'dead')
+        local step, res = run(env, 'play', { citizenid = 'XYZ' })
+        step()
+        T.falsy(res().ok); T.truthy(res().error:find('R.I.P.'))
+        T.falsy(indexOf(env.log, 'cb:qbx_core:server:loadCharacter'))
+        env.restore()
+    end)
+
+    T.it('cambiar de personaje en la selección: ped limpio cada vez y la apariencia de cada uno (sin mezclas)', function()
+        local a = { citizenid = 'AAA', charinfo = { firstname = 'Ana', lastname = 'Uno', gender = 1 }, money = {}, job = {}, metadata = {} }
+        local b = { citizenid = 'BBB', charinfo = { firstname = 'Bea', lastname = 'Dos', gender = 0 }, money = {}, job = {}, metadata = {} }
+        local skins = { AAA = { '{ model = "mp_f_freemode_01", eyeColor = 3 }', 'mp_f_freemode_01' }, BBB = { '{ model = "mp_m_freemode_01", eyeColor = 9 }', 'mp_m_freemode_01' } }
+        local env = makeEnv({ callbacks = {
+            ['qbx_core:server:getCharacters'] = { multi = { { a, b }, 3 } },
+            ['pxd_multichar:server:setup'] = {},
+            ['qbx_core:server:getPreviewPedData'] = function(cid) return table.unpack(skins[cid]) end,
+        } })
+        env.handlers['qbx_core:client:playerLoggedOut']()
+        local function pick(cid)
+            local n = #env.log
+            run(env, 'select', { citizenid = cid })()
+            local clean, applied
+            for i = n + 1, #env.log do
+                if env.log[i] == 'clearDecorations' then clean = i end
+                if env.log[i] == 'illenium:setPedAppearance' then applied = i end
+            end
+            T.truthy(clean and applied and clean < applied, 'se limpia antes de aplicar')
+            return env.lastApplied
+        end
+        T.eq(pick('BBB').eyeColor, 9)
+        T.eq(pick('AAA').eyeColor, 3)
+        T.eq(pick('BBB').eyeColor, 9)
+        env.restore()
+    end)
+
+    T.it('editor reutilizable (peluquería, tienda, clínica): nunca identidad ni herencia; gancho de cobro', function()
+        local saved
+        local env = makeEnv({ currentLook = PXDLook.default(0), callbacks = { ['pxd_multichar:server:saveAppearance'] = function(l, mode) saved = { look = l, mode = mode }; return { ok = true } end } })
+        local open = env.exported.OpenAppearanceEditor
+        T.truthy(open, 'export registrado')
+        T.eq(open({ sections = { 'identity', 'heritage' } }), false, 'sin secciones editables no abre')
+        local paid = false
+        T.eq(open({ sections = { 'identity', 'hair' }, title = 'Peluquería', price = 50, onSave = function() return paid end }), true)
+        local ed = lastNui(env, 'editor')
+        T.eq(#ed.data.sections, 1); T.eq(ed.data.sections[1], 'hair'); T.eq(ed.data.mode, 'edit'); T.eq(ed.data.price, 50)
+        T.eq(open({ sections = { 'hair' } }), false, 'no se abren dos a la vez')
+        -- Cobro rechazado: no se guarda y el editor sigue abierto.
+        local look = PXDLook.default(0); look.hair.style = 7; look.faceFeatures.noseWidth = 0.5; look.model = 'mp_f_freemode_01'
+        run(env, 'editorFinish', { look = look })(); env.pump()
+        T.falsy(indexOf(env.log, 'cb:pxd_multichar:server:saveAppearance'))
+        T.truthy(lastNui(env, 'editorError').text:find('pago'))
+        paid = true
+        run(env, 'editorFinish', { look = look })(); env.pump()
+        T.truthy(indexOf(env.log, 'cb:pxd_multichar:server:saveAppearance'))
+        T.eq(saved.mode, 'edit')
+        T.eq(saved.look.hair.style, 7, 'el cabello sí cambia')
+        T.eq(saved.look.model, 'mp_m_freemode_01', 'el modelo no')
+        T.eq(saved.look.faceFeatures.noseWidth, 0, 'ni los rasgos (no estaban permitidos)')
+        T.truthy(lastNui(env, 'editorClose'))
         env.restore()
     end)
 end)

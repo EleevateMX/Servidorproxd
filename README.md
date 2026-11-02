@@ -63,6 +63,7 @@ Antes rellena `deploy/.env` (ver [docs/06-servidor-en-la-nube.md](docs/06-servid
 33. [Guía paso a paso en Nodecraft](docs/33-guia-nodecraft.md)
 34. [Auditoría común (pxd_audit)](docs/34-auditoria-comun.md)
 35. [Economía conectada: facturas y flujo de dinero](docs/35-economia.md)
+38. [Personajes: selección, creador y editor de apariencia](docs/38-personajes.md)
 
 ## Pruebas
 

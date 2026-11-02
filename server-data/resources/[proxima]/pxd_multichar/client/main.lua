@@ -118,9 +118,16 @@ end
 
 -- ── Vista previa del personaje ─────────────────────────────────────────
 local function applyAppearance(model, appearance)
+    if type(model) == 'string' then model = joaat(model) end
     lib.requestModel(model, Config.loadingModelsTimeout)
     SetPlayerModel(cache.playerId, model)
-    pcall(function() exports['illenium-appearance']:setPedAppearance(PlayerPedId(), appearance) end)
+    -- Ped nuevo y limpio: sin ropa, tatuajes ni rasgos del personaje anterior.
+    local ped = PlayerPedId()
+    SetPedDefaultComponentVariation(ped)
+    ClearPedDecorations(ped)
+    if type(appearance) == 'table' then
+        pcall(function() exports['illenium-appearance']:setPedAppearance(ped, appearance) end)
+    end
     SetModelAsNoLongerNeeded(model)
 end
 
@@ -169,7 +176,6 @@ end
 
 local function spawnDefault()
     spawnAt(defaultSpawn)
-    TriggerEvent('qb-clothes:client:CreateFirstCharacter')
 end
 
 local function spawnLastLocation()
@@ -199,7 +205,6 @@ RegisterNetEvent('qbx_core:client:spawnNoApartments', function()
     TriggerServerEvent('qb-houses:server:SetInsideMeta', 0, false)
     TriggerServerEvent('qb-apartments:server:SetInsideMeta', 0, 0, false)
     TriggerEvent('qb-weathersync:client:EnableSync')
-    TriggerEvent('qb-clothes:client:CreateFirstCharacter')
 end)
 
 -- ── Escenario de la pantalla de aparición ──────────────────────────────
@@ -396,6 +401,20 @@ local function closeLoadingScreen()
     ShutdownLoadingScreenNui()
 end
 
+--- «Calle, Zona» de una posición (GetStreetNameAtCoord, GetStreetNameFromHashKey,
+--- GetNameOfZone, GetLabelText). nil si no hay posición.
+function placeName(pos)
+    if type(pos) ~= 'table' and type(pos) ~= 'vector3' and type(pos) ~= 'vector4' then return nil end
+    local x, y, z = tonumber(pos.x), tonumber(pos.y), tonumber(pos.z)
+    if not x or not y or not z then return nil end
+    local street = GetStreetNameAtCoord(x + 0.0, y + 0.0, z + 0.0)
+    local name = street and street ~= 0 and GetStreetNameFromHashKey(street) or nil
+    local zone = GetLabelText(GetNameOfZone(x + 0.0, y + 0.0, z + 0.0))
+    if zone == 'NULL' then zone = nil end
+    if name and name ~= '' and zone then return name .. ', ' .. zone end
+    return (name ~= '' and name) or zone
+end
+
 local function buildPayload(characters, amount)
     cards, cardsById = {}, {}
     allowedAmount = tonumber(amount) or 0
@@ -403,6 +422,8 @@ local function buildPayload(characters, amount)
     for i = 1, #characters do
         local card = PXDChar.toCard(characters[i], sums[characters[i].citizenid])
         if card and card.citizenid then
+            card.status = (setup.statuses or {})[card.citizenid] == 'dead' and 'dead' or 'active'
+            card.location = placeName(characters[i].position)
             cards[#cards + 1] = card
             cardsById[card.citizenid] = card
         end
@@ -471,13 +492,146 @@ RegisterNUICallback('select', function(data, cb)
     end
 end)
 
+-- ── Creación con el editor propio (React + adaptador client/editor.lua) ───
+-- Orden: identidad → apariencia → datos de Qbox → apariencia en illenium (verificada en el
+-- servidor) → liberar el bucket → apartamento o ubicación → aparecer. Si algo falla antes de
+-- crear en qbx_core, el editor sigue abierto con lo editado; si falla la apariencia después,
+-- el personaje se completa la próxima vez que se elija (pxd_multichar:server:hasAppearance).
+
+--- Guarda la apariencia (3 intentos). true si quedó guardada y comprobada.
+local function saveLook(look, mode)
+    for attempt = 1, 3 do
+        local r = lib.callback.await('pxd_multichar:server:saveAppearance', false, look, mode)
+        if r and r.ok then return true end
+        if attempt < 3 then Wait(1600) end
+    end
+    return false
+end
+
+local function leaveCreator()
+    lib.callback.await('pxd_multichar:server:leaveCreator', false)
+end
+
+local onCreatorDone
+
+local function afterCreate(newData)
+    if Config.spawnPicker and apartmentsEnabled() then
+        enterSpawnStage()
+        DoScreenFadeIn(300)
+        if not chooseApartment() then
+            TriggerEvent('apartments:client:setupSpawnUI', newData) -- su pizarra, si no pudimos leer su config
+        end
+    elseif GetResourceState('qbx_spawn') == 'missing' then
+        spawnDefault()
+    elseif Config.startingApartment and GetResourceState('qbx_apartments'):find('start') then
+        TriggerEvent('apartments:client:setupSpawnUI', newData)
+    else
+        TriggerEvent('qbx_core:client:spawnNoApartments')
+    end
+    destroyPreviewCam()
+    PXDEditor.restoreHud()
+    setBusy(false)
+end
+
+local function finalizeCreation(result)
+    local identity = type(result.identity) == 'table' and result.identity or {}
+    identity.gender = PXDLook.FREEMODE[result.look.model] or identity.gender
+    local check = lib.callback.await('pxd_multichar:server:checkRegistration', false, identity)
+    if not check or not check.ok then
+        PXDEditor.onDone(onCreatorDone)
+        return PXDEditor.fail(check and check.error or 'No se pudo comprobar el registro.', check and check.field or 'identity')
+    end
+    local newData = lib.callback.await('qbx_core:server:createCharacter', false, check.data)
+    if not newData then
+        PXDEditor.onDone(onCreatorDone)
+        return PXDEditor.fail('No se pudo crear el personaje (¿sin ranuras libres?). Inténtalo de nuevo.')
+    end
+    if not saveLook(result.look, 'create') then
+        -- El personaje ya existe en qbx_core: la próxima vez que se elija, se pedirá la apariencia.
+        print('^3[pxd_multichar] No se pudo guardar la apariencia del personaje nuevo; se pedirá al volver a entrar.^7')
+    end
+    DoScreenFadeOut(300)
+    while not IsScreenFadedOut() do Wait(0) end
+    PXDEditor.done()
+    leaveCreator()
+    afterCreate(newData)
+end
+
+onCreatorDone = function(result)
+    if result.ok then return CreateThread(function() finalizeCreation(result) end) end
+    -- «Volver a la selección» sin crear nada.
+    CreateThread(function()
+        DoScreenFadeOut(300)
+        while not IsScreenFadedOut() do Wait(0) end
+        leaveCreator()
+        PXDEditor.restoreHud()
+        chooseCharacter()
+    end)
+end
+
+local function startCreator()
+    setBusy(true)
+    setUi(false)
+    DoScreenFadeOut(300)
+    while not IsScreenFadedOut() do Wait(0) end
+    destroyPreviewCam()
+    lib.callback.await('pxd_multichar:server:enterCreator', false)
+    PXDEditor.open({
+        mode = 'create', title = 'Crear personaje', look = PXDLook.default(0), onDone = onCreatorDone,
+        identity = {
+            firstname = '', lastname = '', gender = 0, birthdate = '', nationality = Config.defaultNationality,
+            nationalities = setup.nationalities or {}, limitNationalities = setup.limitNationalities,
+            dateMin = Config.dateMin, dateMax = Config.dateMax,
+        },
+    })
+    DoScreenFadeIn(400)
+    setBusy(false)
+end
+
+RegisterNUICallback('createStart', function(_, cb)
+    if busy or PXDEditor.isOpen() then return cb({ ok = false }) end
+    if #cards >= allowedAmount then return cb({ ok = false, error = 'No te quedan ranuras libres.' }) end
+    cb({ ok = true })
+    CreateThread(startCreator)
+end)
+
+--- Personaje sin apariencia guardada (creación interrumpida): se completa antes de jugar.
+local function recoverAppearance(card)
+    destroyPreviewCam()
+    lib.callback.await('pxd_multichar:server:enterCreator', false)
+    local done = promise.new()
+    local function onDone(result)
+        if not result.ok then return end
+        CreateThread(function()
+            if saveLook(result.look, 'recover') then
+                PXDEditor.done()
+                done:resolve(true)
+            else
+                PXDEditor.onDone(onDone)
+                PXDEditor.fail('No se pudo guardar la apariencia. Inténtalo de nuevo.')
+            end
+        end)
+    end
+    PXDEditor.open({ mode = 'recover', title = 'Completa tu apariencia', onDone = onDone,
+        sections = { 'heritage', 'face', 'skin', 'hair', 'clothes' }, look = PXDLook.default(card and card.gender or 0) })
+    DoScreenFadeIn(300)
+    Citizen.Await(done)
+    DoScreenFadeOut(300)
+    while not IsScreenFadedOut() do Wait(0) end
+    leaveCreator()
+end
+
 RegisterNUICallback('play', function(data, cb)
     if busy or type(data) ~= 'table' or not cardsById[data.citizenid] then return cb({ ok = false }) end
+    if cardsById[data.citizenid].status == 'dead' then return cb({ ok = false, error = 'Este personaje ha fallecido (R.I.P.).' }) end
     cb({ ok = true })
     setBusy(true)
     setUi(false)
     DoScreenFadeOut(10)
     lib.callback.await('qbx_core:server:loadCharacter', false, data.citizenid)
+    if lib.callback.await('pxd_multichar:server:hasAppearance', false, data.citizenid) == false then
+        recoverAppearance(cardsById[data.citizenid])
+    end
     if Config.spawnPicker then
         enterSpawnStage()
         DoScreenFadeIn(300)
@@ -493,46 +647,6 @@ RegisterNUICallback('play', function(data, cb)
         TriggerEvent('qb-spawn:client:openUI', true)
     else
         spawnLastLocation()
-    end
-    destroyPreviewCam()
-    setBusy(false)
-end)
-
-RegisterNUICallback('create', function(data, cb)
-    if busy then return cb({ ok = false, error = 'Espera un momento…' }) end
-    if #cards >= allowedAmount then return cb({ ok = false, error = 'No te quedan ranuras libres.' }) end
-    setBusy(true)
-    local check = lib.callback.await('pxd_multichar:server:checkRegistration', false, data)
-    if not check or not check.ok then
-        setBusy(false)
-        return cb({ ok = false, error = check and check.error or 'No se pudo comprobar el registro.', field = check and check.field })
-    end
-    cb({ ok = true })
-    setUi(false)
-    DoScreenFadeOut(150)
-    local newData = lib.callback.await('qbx_core:server:createCharacter', false, check.data)
-    if not newData then
-        -- Límite alcanzado o datos rechazados por qbx_core: volvemos a la pantalla.
-        DoScreenFadeIn(250)
-        setBusy(false)
-        uiOpen = true
-        SetNuiFocus(true, true)
-        refresh()
-        SendNUIMessage({ action = 'toast', text = 'No se pudo crear el personaje. Inténtalo de nuevo.' })
-        return
-    end
-    if Config.spawnPicker and apartmentsEnabled() then
-        enterSpawnStage()
-        DoScreenFadeIn(300)
-        if not chooseApartment() then
-            TriggerEvent('apartments:client:setupSpawnUI', newData) -- su pizarra, si no pudimos leer su config
-        end
-    elseif GetResourceState('qbx_spawn') == 'missing' then
-        spawnDefault()
-    elseif Config.startingApartment and GetResourceState('qbx_apartments'):find('start') then
-        TriggerEvent('apartments:client:setupSpawnUI', newData)
-    else
-        TriggerEvent('qbx_core:client:spawnNoApartments')
     end
     destroyPreviewCam()
     setBusy(false)
@@ -581,5 +695,48 @@ AddEventHandler('onResourceStop', function(name)
     if name ~= GetCurrentResourceName() then return end
     if uiOpen or pickerChoice then SetNuiFocus(false, false) end
     leaveSpawnStage()
+    PXDEditor.close()
     destroyPreviewCam()
+end)
+
+
+-- ── Editor reutilizable: exports.pxd_multichar:OpenAppearanceEditor(opts) ──
+-- opts = { sections = { 'face' | 'skin' | 'hair' | 'clothes' }, title, price, onSave }
+-- · La identidad, el modelo y la herencia nunca se editan fuera de la creación.
+-- · onSave(look) (opcional) decide si se acepta: devuelve true para guardar, false/nil para
+--   rechazar (p. ej. sin fondos). Gancho para cobrar con pxd_economy (ChargeToAccount) cuando
+--   se habilite; sin onSave se guarda sin cobrar. Devuelve false si no se pudo abrir.
+local EDITABLE = { face = true, skin = true, hair = true, clothes = true }
+exports('OpenAppearanceEditor', function(opts)
+    opts = type(opts) == 'table' and opts or {}
+    if PXDEditor.isOpen() or uiOpen or pickerChoice or not LocalPlayer.state.isLoggedIn then return false end
+    local sections = {}
+    for _, sec in ipairs(type(opts.sections) == 'table' and opts.sections or {}) do
+        if EDITABLE[sec] then sections[#sections + 1] = sec end
+    end
+    if #sections == 0 then return false end
+    local ped = PlayerPedId()
+    local ok, current = pcall(function() return exports['illenium-appearance']:getPedAppearance(ped) end)
+    if not ok or type(current) ~= 'table' then return false end
+    local c, h = GetEntityCoords(ped), GetEntityHeading(ped)
+    local function unfreeze() FreezeEntityPosition(PlayerPedId(), false); PXDEditor.restoreHud() end
+    local function onDone(result)
+        if not result.ok then return unfreeze() end
+        CreateThread(function()
+            local accept = true
+            if type(opts.onSave) == 'function' or type(opts.onSave) == 'table' then
+                local okHook, r = pcall(opts.onSave, result.look)
+                accept = okHook and r == true
+            end
+            if accept and saveLook(result.look, 'edit') then
+                PXDEditor.done()
+                unfreeze()
+            else
+                PXDEditor.onDone(onDone)
+                PXDEditor.fail(accept and 'No se pudo guardar. Inténtalo de nuevo.' or 'No se ha podido completar el pago.')
+            end
+        end)
+    end
+    return PXDEditor.open({ mode = 'edit', title = type(opts.title) == 'string' and opts.title or 'Editar apariencia',
+        sections = sections, look = current, price = tonumber(opts.price), onDone = onDone, scene = vec4(c.x, c.y, c.z, h) })
 end)

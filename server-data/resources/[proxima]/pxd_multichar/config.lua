@@ -57,6 +57,26 @@ Config.apartmentTexts = {
     TinselTowersApt42 = { label = 'Tinsel Towers', detail = 'Torre residencial en Rockford Hills.' },
 }
 
+-- ── Editor de apariencia (creación, recuperación y futuras tiendas) ───────────
+-- scene: dónde se coloca al personaje (x, y, z, rumbo). Por defecto, la sala del creador
+-- de personajes de GTA Online (interior del juego, sin MLO). PENDIENTE de comprobar en el
+-- juego que la cámara no atraviesa paredes; si no convence, usa una de Config.scenes.
+-- bucketBase: routing bucket propio por jugador (base + id), fuera del rango de pxd_gamemodes.
+-- portraitsDict: diccionario de texturas de los retratos de los padres (https://nui-img/…);
+-- si no carga, la interfaz enseña solo el nombre.
+Config.creator = {
+    scene = vec4(402.86, -996.41, -99.0, 180.0),
+    interpMs = 500,
+    zoomMin = 0.6,
+    zoomMax = 1.5,
+    bucketBase = 70000,
+    portraitsDict = 'char_creator_portraits',
+}
+
+-- Conjuntos iniciales (por sexo: 0 hombre, 1 mujer). nil = los de qbx_core (PXDLook.STARTER_OUTFITS).
+-- Añade aquí solo valores comprobados en el juego.
+Config.starterOutfits = nil
+
 -- Fechas de nacimiento permitidas (formato AAAA-MM-DD).
 Config.dateMin = '1930-01-01'
 Config.dateMax = '2006-12-31'
