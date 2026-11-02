@@ -18,6 +18,7 @@ local suites = {
     'test_hud',
     'test_interact',
     'test_chat',
+    'test_blips',
     'test_multichar_client',
     'test_voice',
     'test_admin',
