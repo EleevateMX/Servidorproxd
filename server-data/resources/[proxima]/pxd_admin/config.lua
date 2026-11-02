@@ -46,6 +46,8 @@ Config.repliesPerMinute = 6        -- respuestas del jugador por minuto
 -- Guardado (dentro del propio recurso: data/ no se sube a git).
 Config.reportsFile = 'data/reports.json'
 Config.logFile = 'data/staff-log.json'
+-- Rangos dados con /darrango (se vuelven a aplicar en cada arranque). No se versiona.
+Config.rolesFile = 'data/staff-roles.json'
 Config.maxReports = 500
 Config.maxLog = 1000
 

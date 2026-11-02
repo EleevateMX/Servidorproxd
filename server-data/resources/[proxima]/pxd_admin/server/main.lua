@@ -926,3 +926,133 @@ end)
 load()
 PXDAdmin.server = { reports = function() return reports end, log = function() return staffLog end, onDuty = onDuty,
     noclip = noclipOn, run = runAction }   -- para pruebas
+
+-- ── Rangos desde el juego: /darrango, /quitarrango y /checkas ──────────────────
+-- Se guardan en data/staff-roles.json (licencia → rol) y se aplican con add_principal en cada
+-- arranque. Requiere en permissions.pxd.cfg:
+--   add_ace resource.pxd_admin command.add_principal allow
+--   add_ace resource.pxd_admin command.remove_principal allow
+local grants = {}
+
+local function loadGrants()
+    local raw = LoadResourceFile(RES, Config.rolesFile)
+    local ok, data = pcall(json.decode, raw or '')
+    grants = (ok and type(data) == 'table') and data or {}
+end
+
+local function saveGrants()
+    SaveResourceFile(RES, Config.rolesFile, json.encode(grants), -1)
+end
+
+local function principal(lic, group, on)
+    if type(lic) ~= 'string' or not lic:match('^license:%w+$') then return end
+    ExecuteCommand(('%s identifier.%s %s'):format(on and 'add_principal' or 'remove_principal', lic, group))
+end
+
+local function applyGrants()
+    for lic, g in pairs(grants) do
+        local role = PXDAdmin.roleById(g.role)
+        if role then principal(lic, role.group, true) end
+    end
+end
+
+local function reply(src, ok, text)
+    if src == 0 then return print('[pxd_admin] ' .. text) end
+    notify(src, 'Rangos', text, ok and 'success' or 'error')
+end
+
+--- Objetivo: id de jugador conectado o «license:…» (para quitar rangos a desconectados).
+local function resolveTarget(arg)
+    local id = online(arg)
+    if id then return license(id), id end
+    if type(arg) == 'string' and arg:match('^license:%w+$') then return arg, findByLicense(arg) end
+end
+
+RegisterCommand('darrango', function(src, args)
+    local role = PXDAdmin.resolveRole(args[2])
+    local lic, id = resolveTarget(args[1])
+    if not lic or not id or not role then
+        return reply(src, false, 'Uso: /darrango <id> <soporte|moderador|administrador|superadministrador|desarrollador> [motivo]')
+    end
+    local ok, why = PXDAdmin.canGrant(src == 0, has(src, 'staff.manage'), role.id)
+    if not ok then return reply(src, false, why) end
+    local reason = table.concat(args, ' ', 3)
+    local old = grants[lic] and PXDAdmin.roleById(grants[lic].role)
+    if old and old.group ~= role.group then principal(lic, old.group, false) end
+    principal(lic, role.group, true)
+    grants[lic] = { role = role.id, name = GetPlayerName(id), by = staffName(src), reason = reason ~= '' and reason or nil, at = now() }
+    saveGrants()
+    audit(src, 'rango_dar', id, { reason = reason ~= '' and reason or nil, detail = role.label })
+    notify(id, 'Rangos', ('Ahora eres %s. Abre el panel con F10 o /admin y revisa tus permisos con /checkas.'):format(role.label), 'success')
+    reply(src, true, ('%s ahora es %s.'):format(GetPlayerName(id) or lic, role.label))
+end, false)
+
+RegisterCommand('quitarrango', function(src, args)
+    local lic, id = resolveTarget(args[1])
+    if not lic then return reply(src, false, 'Uso: /quitarrango <id o license:…> [motivo]') end
+    local g = grants[lic]
+    if not g then
+        return reply(src, false, 'Esa persona no tiene un rango dado con /darrango. Si su rango está en server.cfg, quítalo allí.')
+    end
+    local ok, why = PXDAdmin.canRevoke(src == 0, has(src, 'staff.manage'), g.role, src ~= 0 and license(src) == lic)
+    if not ok then return reply(src, false, why) end
+    local role = PXDAdmin.roleById(g.role)
+    if role then principal(lic, role.group, false) end
+    grants[lic] = nil
+    saveGrants()
+    local reason = table.concat(args, ' ', 2)
+    audit(src, 'rango_quitar', id or { key = lic, label = g.name or lic }, { reason = reason ~= '' and reason or nil, detail = role and role.label })
+    if id then notify(id, 'Rangos', 'Ya no tienes rango de staff.', 'info') end
+    reply(src, true, ('Rango retirado a %s.'):format(g.name or lic))
+end, false)
+
+--- Lo que muestra /checkas: rol, permisos uno a uno y, al staff, la lista de rangos dados.
+local function checkData(viewer, target)
+    local hasAce = aceOf(target)
+    local pd = qbxPlayer(target)
+    local lic = license(target)
+    local perms = {}
+    for p, label in pairs(PXDAdmin.PERMS) do perms[#perms + 1] = { id = p, label = label, ok = PXDAdmin.has(p, hasAce) } end
+    table.sort(perms, function(a, b) if a.ok ~= b.ok then return a.ok end return a.id < b.id end)
+    local g = lic and grants[lic]
+    local out = {
+        name = GetPlayerName(target), id = target, publicId = publicId(target, pd),
+        role = PXDAdmin.roleLabel(hasAce) or 'Sin rango de staff',
+        origin = g and ('Dado con /darrango por %s'):format(g.by or '?') or (PXDAdmin.has('panel', hasAce) and 'server.cfg o txAdmin' or nil),
+        license = (viewer == target or has(viewer, 'players.identity')) and lic or nil,
+        perms = perms,
+    }
+    if has(viewer, 'panel') then
+        local list = {}
+        for l, e in pairs(grants) do
+            local r = PXDAdmin.roleById(e.role)
+            list[#list + 1] = { name = e.name or l, role = r and r.label or e.role, by = e.by, at = e.at, online = findByLicense(l) ~= nil }
+        end
+        table.sort(list, function(a, b) return (a.at or 0) > (b.at or 0) end)
+        out.staff = list
+    end
+    return out
+end
+
+RegisterCommand('checkas', function(src, args)
+    local target = args[1] and online(args[1]) or (src > 0 and src or nil)
+    if not target then return reply(src, false, 'Uso: checkas <id de jugador conectado>') end
+    if src > 0 and target ~= src and not has(src, 'panel') then
+        return reply(src, false, 'Solo el staff puede revisar los permisos de otra persona. Usa /checkas sin número para ver los tuyos.')
+    end
+    local data = checkData(src > 0 and src or target, target)
+    if src == 0 then
+        local okList = {}
+        for _, p in ipairs(data.perms) do if p.ok then okList[#okList + 1] = p.id end end
+        print(('[pxd_admin] %s (#%d) · %s · %s'):format(data.name or '?', target, data.role, data.origin or 'sin rango'))
+        return print('[pxd_admin] permisos: ' .. (#okList > 0 and table.concat(okList, ', ') or 'ninguno'))
+    end
+    TriggerClientEvent('pxd_admin:client:checkas', src, data)
+end, false)
+
+loadGrants()
+CreateThread(function()
+    Wait(1000)   -- tras leer el server.cfg
+    applyGrants()
+end)
+PXDAdmin.server.grants = function() return grants end

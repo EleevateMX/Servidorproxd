@@ -520,3 +520,49 @@ AddEventHandler('onResourceStop', function(name)
     if duty.on then SetPlayerInvincible(PlayerId(), false); SetEntityInvincible(PlayerPedId(), false) end
     if uiOpen then SetNuiFocus(false, false) end
 end)
+
+-- ── /checkas: rango y permisos dentro del juego (menú de ox_lib con el tema de Próxima) ──
+local function ago(at)
+    if not at then return '' end
+    local d = math.max(0, GetCloudTimeAsInt() - at)
+    if d < 3600 then return ('hace %d min'):format(d // 60) end
+    if d < 86400 then return ('hace %d h'):format(d // 3600) end
+    return ('hace %d días'):format(d // 86400)
+end
+
+RegisterNetEvent('pxd_admin:client:checkas', function(d)
+    if type(d) ~= 'table' then return end
+    local granted, total = 0, 0
+    for _, p in ipairs(d.perms or {}) do total = total + 1; if p.ok then granted = granted + 1 end end
+    local options = {
+        { title = d.role, icon = 'shield-halved', readOnly = true,
+          description = ('%s (#%s)%s · %d de %d permisos'):format(d.name or '?', tostring(d.id), d.publicId and (' · ' .. d.publicId) or '', granted, total),
+          metadata = { d.origin and ('Origen: ' .. d.origin) or 'Sin rango de staff', d.license and ('Licencia: ' .. d.license) or nil } },
+        { title = 'Permisos', icon = 'list-check', menu = 'pxd_checkas_perms', description = 'Qué puede y qué no puede hacer' },
+    }
+    local perms = {}
+    for _, p in ipairs(d.perms or {}) do
+        perms[#perms + 1] = { title = (p.ok and '✔ ' or '✖ ') .. p.label, description = 'pxd.admin.' .. p.id,
+            icon = p.ok and 'circle-check' or 'circle-xmark', iconColor = p.ok and '#4dd9a3' or '#6b7699', readOnly = true }
+    end
+    lib.registerContext({ id = 'pxd_checkas_perms', title = 'Permisos · ' .. (d.name or ''), menu = 'pxd_checkas', options = perms })
+    if d.staff then
+        local list = {}
+        if #d.staff == 0 then list[1] = { title = 'Nadie tiene rango dado con /darrango', readOnly = true } end
+        for _, s in ipairs(d.staff) do
+            list[#list + 1] = { title = ('%s · %s'):format(s.name or '?', s.role or '?'), readOnly = true,
+                icon = s.online and 'circle' or 'circle-dot', iconColor = s.online and '#4dd9a3' or '#6b7699',
+                description = ('Por %s %s%s'):format(s.by or '?', ago(s.at), s.online and ' · conectado' or '') }
+        end
+        lib.registerContext({ id = 'pxd_checkas_staff', title = 'Staff', menu = 'pxd_checkas', options = list })
+        options[#options + 1] = { title = 'Staff con rango', icon = 'users', menu = 'pxd_checkas_staff',
+            description = ('%d personas · /darrango <id> <rol> · /quitarrango <id>'):format(#d.staff) }
+    end
+    lib.registerContext({ id = 'pxd_checkas', title = '/checkas', options = options })
+    lib.showContext('pxd_checkas')
+end)
+
+TriggerEvent('chat:addSuggestion', '/checkas', 'Ver tu rango y permisos (staff: de otro jugador)', { { name = 'id', help = 'ID del jugador (opcional)' } })
+TriggerEvent('chat:addSuggestion', '/darrango', 'Dar rango de staff', {
+    { name = 'id', help = 'ID del jugador' }, { name = 'rol', help = 'soporte, moderador, administrador o desarrollador' }, { name = 'motivo', help = 'Opcional' } })
+TriggerEvent('chat:addSuggestion', '/quitarrango', 'Quitar rango de staff', { { name = 'id', help = 'ID o license:…' }, { name = 'motivo', help = 'Opcional' } })

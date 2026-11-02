@@ -135,3 +135,24 @@ Las dos búsquedas aparecen una sola vez en la fuente fijada, y el archivo resul
 - Información y titularidad de un vehículo.
 - Botón «Copiar» de coordenadas en el NUI de FiveM.
 - «Datos en pantalla», editor de props y menú Qbox desde el panel.
+
+## Rangos desde el juego
+
+| Comando | Quién | Qué hace |
+|---|---|---|
+| `/darrango <id> <rol> [motivo]` | Superadministrador (`pxd.admin.staff.manage`) o consola | Da `soporte`, `moderador` (`mod`), `administrador` (`admin`) o `desarrollador` (`dev`). `superadministrador` solo desde la consola |
+| `/quitarrango <id o license:…> [motivo]` | Igual | Retira un rango dado con `/darrango`. A un superadministrador solo lo quita la consola. Nadie se quita el suyo |
+| `/checkas [id]` | Cualquiera ve el suyo; el staff, el de otros | Menú con el rango, de dónde viene, cada permiso ✔/✖ y la lista del staff con rango |
+
+**Cómo funciona:**
+- Los rangos se guardan en `pxd_admin/data/staff-roles.json` (licencia → rol, quién lo dio, cuándo y por qué).
+- Se aplican con `add_principal identifier.license:… group.<rol>` al darlos y en cada arranque. Funcionan al momento, sin reiniciar.
+- Cada cambio queda en `pxd_audit` (`rango_dar`, `rango_quitar`).
+- Requiere en `permissions.pxd.cfg`:
+  ```
+  add_ace group.superadmin pxd.admin.staff.manage allow
+  add_ace resource.pxd_admin command.add_principal allow
+  add_ace resource.pxd_admin command.remove_principal allow
+  ```
+- **El primer superadministrador** (el dueño) se da desde la consola del servidor: `darrango <id> superadmin`.
+- Los rangos puestos a mano en `server.cfg` siguen funcionando. `/checkas` los muestra con el origen «server.cfg o txAdmin».

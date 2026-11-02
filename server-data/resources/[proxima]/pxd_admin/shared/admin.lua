@@ -189,6 +189,7 @@ PXDAdmin.PERMS = {
     ['qbxmenu'] = 'Menú avanzado de Qbox (trabajo, banda, datos)',
     ['economy.view'] = 'Consultar economía, multas y facturas',
     ['economy.correct'] = 'Corregir dinero de un jugador',
+    ['staff.manage'] = 'Dar y quitar rangos de staff (/darrango, /quitarrango)',
 }
 
 PXDAdmin.ROLES = {
@@ -200,7 +201,7 @@ PXDAdmin.ROLES = {
     { id = 'administrador', label = 'Administrador', group = 'group.admin', inherits = 'group.mod',
       perms = { 'players.ban', 'vehicles.spawn', 'world', 'props', 'economy.view', 'qbxmenu' } },
     { id = 'superadministrador', label = 'Superadministrador', group = 'group.superadmin', inherits = 'group.admin',
-      perms = { 'players.ip', 'vehicles.owner', 'economy.correct' } },
+      perms = { 'players.ip', 'vehicles.owner', 'economy.correct', 'staff.manage' } },
     { id = 'desarrollador', label = 'Desarrollador', group = 'group.dev',
       perms = { 'panel', 'players.goto', 'noclip', 'vehicles.spawn', 'vehicles.manage', 'world', 'props' } },
 }
@@ -445,6 +446,44 @@ function PXDAdmin.pushCapped(list, item, max)
     list[#list + 1] = item
     while #list > max do table.remove(list, 1) end
     return list
+end
+
+
+-- ── Rangos desde el juego (/darrango, /quitarrango, /checkas) ─────────────────
+PXDAdmin.ROLE_ALIASES = {
+    soporte = 'soporte', support = 'soporte',
+    mod = 'moderador', moderador = 'moderador',
+    admin = 'administrador', administrador = 'administrador',
+    superadmin = 'superadministrador', superadministrador = 'superadministrador',
+    dev = 'desarrollador', desarrollador = 'desarrollador',
+}
+
+function PXDAdmin.roleById(id)
+    for _, r in ipairs(PXDAdmin.ROLES) do if r.id == id then return r end end
+end
+
+--- Rol a partir de lo que escribe el staff («mod», «Admin»…). nil si no existe.
+function PXDAdmin.resolveRole(text)
+    if type(text) ~= 'string' then return nil end
+    local id = PXDAdmin.ROLE_ALIASES[text:lower()]
+    return id and PXDAdmin.roleById(id) or nil
+end
+
+--- ¿Puede dar este rol? Superadministrador solo desde la consola del servidor (el dueño).
+function PXDAdmin.canGrant(isConsole, canManage, roleId)
+    if isConsole then return true end
+    if not canManage then return false, 'Necesitas el rango de superadministrador para dar rangos.' end
+    if roleId == 'superadministrador' then return false, 'El rango de superadministrador solo se da desde la consola del servidor.' end
+    return true
+end
+
+--- ¿Puede quitar el rango que tiene ahora el objetivo?
+function PXDAdmin.canRevoke(isConsole, canManage, currentRoleId, isSelf)
+    if isConsole then return true end
+    if isSelf then return false, 'No puedes quitarte tu propio rango.' end
+    if not canManage then return false, 'Necesitas el rango de superadministrador para quitar rangos.' end
+    if currentRoleId == 'superadministrador' then return false, 'A un superadministrador solo se le quita el rango desde la consola.' end
+    return true
 end
 
 return PXDAdmin

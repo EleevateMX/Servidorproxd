@@ -4,24 +4,25 @@
   {
    "resource": "pxd_admin",
    "path": "client/main.lua",
-   "size": 22552,
-   "sha256": "89f86d87ceaa28f7eb03be4e61d127d8162bff39fd938e2acf6019e97b3bf7aa"
+   "size": 25709,
+   "sha256": "0581d22a3ca062d3364fa70d8f331fada658965e305d6249fcd0ab3c03ccbddb"
   },
   {
    "resource": "pxd_admin",
    "path": "config.lua",
-   "size": 3510,
-   "sha256": "c14f4a2518b35059add98260e308b99aa5662b7fb45cbddae861f036cf0849e3",
+   "size": 3640,
+   "sha256": "cdbb45fc7659bbb8889d5b7585647e723871cb220b5c5482fcfb3949dcd28338",
    "config": true,
    "known": [
-    "b06475e1e6c6069a1d993409e1bdbc06867fce56e5b08ad93cb0b35df48f3682"
+    "b06475e1e6c6069a1d993409e1bdbc06867fce56e5b08ad93cb0b35df48f3682",
+    "c14f4a2518b35059add98260e308b99aa5662b7fb45cbddae861f036cf0849e3"
    ]
   },
   {
    "resource": "pxd_admin",
    "path": "fxmanifest.lua",
-   "size": 536,
-   "sha256": "be00c8904e003ad66ef18d935d5abe7a4c1fe4e1e007737c87ce5fbfbcff32c8"
+   "size": 570,
+   "sha256": "e2dfc96ef53cdd63fa1a9e41d9c31d09e31ff52c576bcf1883b7259fa433aee5"
   },
   {
    "resource": "pxd_admin",
@@ -50,14 +51,14 @@
   {
    "resource": "pxd_admin",
    "path": "server/main.lua",
-   "size": 41488,
-   "sha256": "51a57167dc886b37d6383dad2afdc4b9200934f8332654c51f50e3d456ee1b3d"
+   "size": 47769,
+   "sha256": "449c4d3ca395511679fc3e99a804d017acb6e439944cc49447ea4374ca87515c"
   },
   {
    "resource": "pxd_admin",
    "path": "shared/admin.lua",
-   "size": 22456,
-   "sha256": "2192bc05863d90941fab33b72c9fe09c4919dabbe839fb3ee5010a994c416a74"
+   "size": 24349,
+   "sha256": "b5c65c378896905955746157247a8e7fd715c60fb7a66aac71d66f2706d73f70"
   },
   {
    "resource": "pxd_audit",

@@ -14,7 +14,10 @@ server_scripts {
     '@oxmysql/lib/MySQL.lua',
     'server/main.lua',
 }
-client_script 'client/main.lua'
+client_scripts {
+    '@ox_lib/init.lua',
+    'client/main.lua',
+}
 
 ui_page 'html/index.html'
 nui_callback_strict_mode 'true'
