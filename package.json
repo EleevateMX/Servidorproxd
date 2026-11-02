@@ -1,0 +1,15 @@
+{
+  "name": "proxima-rp",
+  "private": true,
+  "description": "Próxima RP — entorno de pruebas FiveM: modos de juego, editor de props, login y pantalla de carga",
+  "type": "module",
+  "scripts": {
+    "test": "npm run test:lua && npm run test:js",
+    "test:lua": "lua5.4 tests/lua/run.lua",
+    "test:js": "node --test tests/js/*.test.mjs",
+    "test:web": "node tests/web/screens.mjs",
+    "pxd": "node scripts/pxd.mjs",
+    "assets": "node scripts/fetch-brand-assets.mjs"
+  },
+  "engines": { "node": ">=20" }
+}

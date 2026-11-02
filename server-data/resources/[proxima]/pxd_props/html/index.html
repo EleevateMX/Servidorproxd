@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Próxima RP — Editor de props</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app" class="app hidden">
+    <header class="topbar">
+      <div class="brand"><span class="brand__star" aria-hidden="true"></span>PRÓXIMA <b>RP</b><small>Editor de props</small></div>
+      <nav class="tabs" role="tablist" aria-label="Secciones">
+        <button role="tab" data-tab="layouts" aria-selected="true">Layouts</button>
+        <button role="tab" data-tab="map">Mapa</button>
+        <button role="tab" data-tab="catalog">Catálogo</button>
+        <button role="tab" data-tab="edit">Edición</button>
+        <button role="tab" data-tab="points">Puntos</button>
+      </nav>
+      <div class="topbar__actions">
+        <button id="undo" class="icon-btn" title="Deshacer (Ctrl+Z)" aria-label="Deshacer">↶</button>
+        <button id="redo" class="icon-btn" title="Rehacer (Ctrl+Y)" aria-label="Rehacer">↷</button>
+        <button id="close" class="icon-btn nui-only" title="Cerrar (F6)" aria-label="Cerrar">✕</button>
+      </div>
+    </header>
+
+    <section class="region region--layouts" data-region="layouts">
+      <h2>Layouts</h2>
+      <form id="new-layout" class="inline-form">
+        <input id="new-layout-id" placeholder="id (ej. plaza_central)" pattern="[a-z0-9_\-]{2,40}" required aria-label="Id del nuevo layout">
+        <button class="btn btn--primary" type="submit">Crear</button>
+      </form>
+      <ul id="layout-list" class="list"></ul>
+      <div id="layout-actions" class="card hidden">
+        <label class="field">Nombre<input id="layout-name"></label>
+        <label class="check"><input type="checkbox" id="layout-active"> Visible en el mundo (para todos)</label>
+        <p class="muted small">Si no está visible, solo se ve mientras lo editas o cuando un modo de juego lo usa como arena.</p>
+        <div class="row wrap">
+          <button id="layout-export" class="btn btn--ghost">Exportar JSON</button>
+          <button id="layout-import" class="btn btn--ghost">Importar JSON</button>
+          <button id="layout-delete" class="btn btn--danger">Borrar</button>
+        </div>
+        <textarea id="json-box" class="json hidden" spellcheck="false" aria-label="JSON del layout"></textarea>
+        <div id="json-actions" class="row hidden">
+          <button id="json-apply" class="btn btn--primary">Importar como nuevo / sobrescribir</button>
+          <button id="json-cancel" class="btn btn--ghost">Cerrar</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="region region--map" data-region="map">
+      <div class="map-toolbar">
+        <button id="map-fit" class="btn btn--ghost btn--sm">Encajar</button>
+        <label class="field field--inline">Rejilla
+          <select id="grid-size"></select>
+        </label>
+        <label class="field field--inline">Giro
+          <select id="rot-step"></select>
+        </label>
+        <span id="map-cursor" class="muted small mono"></span>
+      </div>
+      <canvas id="map" aria-label="Mapa cenital del layout: arrastra para mover props"></canvas>
+      <p class="muted small map-help">Arrastra props o puntos para moverlos · rueda: zoom · flechas: mover (Shift ×10) · Q/E: girar · Supr: borrar</p>
+    </section>
+
+    <section class="region region--catalog" data-region="catalog">
+      <h2>Catálogo</h2>
+      <input id="catalog-search" type="search" placeholder="Buscar modelo…" aria-label="Buscar modelo">
+      <div id="catalog-cats" class="chips"></div>
+      <ul id="catalog-list" class="list list--models"></ul>
+      <form id="custom-model" class="inline-form">
+        <input id="custom-model-name" placeholder="otro modelo (ej. prop_xxx)" pattern="[A-Za-z0-9_]{3,64}" required aria-label="Nombre de modelo">
+        <button class="btn btn--ghost" type="submit">Usar</button>
+      </form>
+      <div class="card">
+        <label class="check"><input type="checkbox" id="opt-ground" checked> Ajustar al suelo</label>
+        <label class="check"><input type="checkbox" id="opt-continuous"> Colocación continua</label>
+        <button id="pick" class="btn btn--ghost nui-only">Seleccionar apuntando</button>
+        <p class="muted small web-only">En el navegador el prop se añade en el centro del mapa a la altura del prop más cercano. Ajusta Z en «Edición».</p>
+      </div>
+    </section>
+
+    <section class="region region--edit" data-region="edit">
+      <h2>Edición</h2>
+      <p id="edit-empty" class="muted">Selecciona un prop en el mapa, en la lista o apuntándolo.</p>
+      <div id="edit-form" class="hidden">
+        <p class="mono" id="edit-model"></p>
+        <div class="xyz">
+          <label>X<input type="number" step="0.01" data-field="x"></label>
+          <label>Y<input type="number" step="0.01" data-field="y"></label>
+          <label>Z<input type="number" step="0.01" data-field="z"></label>
+          <label>Pitch<input type="number" step="0.5" data-field="rx"></label>
+          <label>Roll<input type="number" step="0.5" data-field="ry"></label>
+          <label>Yaw<input type="number" step="0.5" data-field="rz"></label>
+        </div>
+        <div class="nudge" aria-label="Mover con precisión">
+          <span class="muted small">Mover</span>
+          <select id="nudge-step" aria-label="Paso">
+            <option value="0.01">1 cm</option><option value="0.05">5 cm</option>
+            <option value="0.1" selected>10 cm</option><option value="0.5">50 cm</option><option value="1">1 m</option>
+          </select>
+          <button data-nudge="x,-1">X−</button><button data-nudge="x,1">X+</button>
+          <button data-nudge="y,-1">Y−</button><button data-nudge="y,1">Y+</button>
+          <button data-nudge="z,-1">Z−</button><button data-nudge="z,1">Z+</button>
+        </div>
+        <label class="check"><input type="checkbox" data-field="frozen"> Congelado</label>
+        <label class="check"><input type="checkbox" data-field="collision"> Colisión</label>
+        <div class="row wrap">
+          <button id="edit-move" class="btn btn--primary nui-only">Recolocar</button>
+          <button id="edit-dup" class="btn btn--ghost">Duplicar</button>
+          <button id="edit-level" class="btn btn--ghost">Nivelar</button>
+          <button id="edit-tp" class="btn btn--ghost nui-only">Ir</button>
+          <button id="edit-delete" class="btn btn--danger">Borrar</button>
+        </div>
+      </div>
+      <h2 class="mt">Props del layout</h2>
+      <ul id="prop-list" class="list list--compact"></ul>
+    </section>
+
+    <section class="region region--points" data-region="points">
+      <h2>Puntos para modos de juego</h2>
+      <p class="muted small">Spawns, equipos, parrilla de salida, checkpoints (en orden) y zona. Úsalos en /modos como arena «layout».</p>
+      <div class="inline-form inline-form--wrap">
+        <select id="point-kind" aria-label="Tipo de punto">
+          <option value="spawn">Spawn</option><option value="team1">Spawn equipo azul</option>
+          <option value="team2">Spawn equipo rojo</option><option value="grid">Parrilla de salida</option>
+          <option value="checkpoint">Checkpoint</option><option value="zone">Zona (rey de la colina)</option>
+        </select>
+        <input id="point-radius" type="number" min="1" max="300" value="20" aria-label="Radio de la zona" title="Radio (solo zona)">
+        <button id="point-add" class="btn btn--primary"><span class="nui-only">Añadir aquí</span><span class="web-only">Añadir en el centro</span></button>
+      </div>
+      <ul id="point-list" class="list list--compact"></ul>
+    </section>
+  </div>
+
+  <!-- Acceso al dashboard web -->
+  <div id="gate" class="gate hidden">
+    <form id="gate-form" class="card gate__card">
+      <div class="brand"><span class="brand__star" aria-hidden="true"></span>PRÓXIMA <b>RP</b></div>
+      <h1>Dashboard de props</h1>
+      <p class="muted">Introduce el token definido en <code>pxd_props_webToken</code> (secrets.cfg).</p>
+      <input id="gate-token" type="password" autocomplete="current-password" placeholder="Token" required aria-label="Token">
+      <button class="btn btn--primary" type="submit">Entrar</button>
+      <p id="gate-error" class="error" role="alert"></p>
+    </form>
+  </div>
+
+  <div id="placing" class="placing hidden" aria-live="polite"></div>
+  <div id="toasts" class="toasts" aria-live="polite"></div>
+  <script src="app.js"></script>
+</body>
+</html>

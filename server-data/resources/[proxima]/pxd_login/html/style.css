@@ -1,0 +1,41 @@
+:root {
+  --night-950: #05070f;
+  --night-800: #121a33;
+  --line: rgba(140, 170, 255, 0.2);
+  --text: #eef2ff;
+  --muted: #9aa6c7;
+  --star: #5ce1ff;
+  --star-strong: #22c8f0;
+  --nova: #ff4fd8;
+  --font: "Segoe UI", "Inter", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; overflow: hidden; background: transparent; color: var(--text); font-family: var(--font); }
+.hidden { display: none !important; }
+.welcome { position: fixed; inset: 0; display: grid; place-items: center; animation: in .6s ease; }
+@keyframes in { from { opacity: 0; } to { opacity: 1; } }
+.backdrop {
+  position: absolute; inset: 0;
+  background:
+    linear-gradient(0deg, rgba(5, 7, 15, .92), rgba(5, 7, 15, .55)),
+    url('nui://pxd_loadscreen/html/assets/keyart.png') center / cover no-repeat,
+    radial-gradient(1200px 600px at 75% 10%, #262c66 0%, #0c1130 50%, var(--night-950) 100%);
+  backdrop-filter: blur(4px);
+}
+.panel { position: relative; width: min(980px, 92vw); text-align: center; }
+.logo { width: min(420px, 70vw); height: auto; filter: drop-shadow(0 6px 30px rgba(92, 225, 255, .3)); }
+h1 { font-size: clamp(26px, 2.6vw, 44px); margin: 18px 0 4px; font-weight: 700; }
+.sub { color: var(--muted); margin: 0 0 30px; font-size: 17px; }
+.choices { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+.choice {
+  font: inherit; color: var(--text); text-align: left; cursor: pointer; padding: 22px; border-radius: 16px;
+  background: linear-gradient(160deg, rgba(18, 26, 51, .92), rgba(5, 7, 15, .92));
+  border: 1px solid var(--line); display: grid; gap: 6px; transition: transform .15s, border-color .15s, box-shadow .15s;
+}
+.choice:hover, .choice:focus-visible { transform: translateY(-3px); border-color: var(--star); box-shadow: 0 10px 40px rgba(92, 225, 255, .18); outline: none; }
+.choice strong { font-size: 19px; }
+.choice span:not(.choice__icon) { color: var(--muted); font-size: 14px; }
+.choice__icon { font-size: 22px; color: var(--star); }
+.choice--primary { border-color: rgba(92, 225, 255, .6); }
+.choice--primary .choice__icon { color: var(--nova); }
+.hint { color: var(--muted); font-size: 12px; margin-top: 22px; }

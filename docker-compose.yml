@@ -1,0 +1,25 @@
+# Base de datos opcional para cuando añadas un framework (Qbox/ESX usan oxmysql + MariaDB).
+# Los recursos pxd_* NO la necesitan. Uso: docker compose up -d
+# Contraseñas en .env (ver .env.example): MARIADB_ROOT_PASSWORD y MARIADB_PASSWORD.
+services:
+  mariadb:
+    image: mariadb:11.4
+    restart: unless-stopped
+    environment:
+      MARIADB_DATABASE: proxima
+      MARIADB_USER: proxima
+      MARIADB_PASSWORD: ${MARIADB_PASSWORD:?define MARIADB_PASSWORD en .env}
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:?define MARIADB_ROOT_PASSWORD en .env}
+    command: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_unicode_ci"]
+    ports:
+      - "127.0.0.1:3306:3306"
+    volumes:
+      - mariadb-data:/var/lib/mysql
+  adminer:
+    image: adminer:4
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8080:8080"
+    depends_on: [mariadb]
+volumes:
+  mariadb-data:

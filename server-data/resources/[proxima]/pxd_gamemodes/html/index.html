@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Próxima RP — Modos de juego</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Menú de modos (F7 / /modos) -->
+  <section id="menu" class="panel hidden" aria-label="Modos de juego">
+    <header class="panel__head">
+      <div class="brand"><span class="brand__star" aria-hidden="true"></span>PRÓXIMA <b>RP</b><small>Modos de juego</small></div>
+      <button class="icon-btn" data-action="close" aria-label="Cerrar">✕</button>
+    </header>
+
+    <div class="panel__body">
+      <div class="col">
+        <h2>Crear partida</h2>
+        <div id="modes" class="modes" role="list"></div>
+        <label class="field">Arena
+          <select id="arena"></select>
+        </label>
+        <button id="create" class="btn btn--primary" disabled>Crear partida</button>
+      </div>
+      <div class="col">
+        <h2>Partidas abiertas</h2>
+        <ul id="matches" class="matches"></ul>
+        <p id="no-matches" class="muted">No hay partidas. ¡Crea la primera!</p>
+        <div id="current" class="current hidden">
+          <h3 id="current-title"></h3>
+          <p id="current-state" class="muted"></p>
+          <div class="row">
+            <button id="start" class="btn btn--primary">Iniciar</button>
+            <button id="leave" class="btn btn--ghost">Salir</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <footer class="panel__foot muted">F7 abre y cierra este menú · /salirmodo para abandonar</footer>
+  </section>
+
+  <!-- HUD en partida -->
+  <section id="hud" class="hud hidden" aria-live="polite">
+    <div class="hud__top">
+      <div class="hud__mode" id="hud-mode"></div>
+      <div class="hud__clock" id="hud-clock">0:00</div>
+      <div class="hud__score" id="hud-score"></div>
+    </div>
+    <ol class="hud__board" id="hud-board"></ol>
+    <div class="hud__center" id="hud-center"></div>
+    <ul class="hud__feed" id="hud-feed"></ul>
+  </section>
+
+  <!-- Resultados -->
+  <section id="results" class="results hidden" aria-live="assertive">
+    <div class="results__card">
+      <p class="results__kicker">Fin de la partida</p>
+      <h2 id="results-title"></h2>
+      <ol id="results-list"></ol>
+      <p class="muted">Volverás a la ciudad en unos segundos…</p>
+    </div>
+  </section>
+
+  <div id="toasts" class="toasts" aria-live="polite"></div>
+  <script src="app.js"></script>
+</body>
+</html>

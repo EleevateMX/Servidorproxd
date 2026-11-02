@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Próxima RP — Bienvenida</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <section id="welcome" class="welcome hidden" aria-labelledby="greeting">
+    <div class="backdrop" aria-hidden="true"></div>
+    <div class="panel">
+      <svg class="logo" viewBox="0 0 730 160" role="img" aria-label="Próxima RP">
+        <defs>
+          <radialGradient id="g" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#fff"/><stop offset=".35" stop-color="#5ce1ff"/><stop offset="1" stop-color="#5ce1ff" stop-opacity="0"/></radialGradient>
+          <linearGradient id="rp" x1="0" x2="1"><stop offset="0" stop-color="#5ce1ff"/><stop offset="1" stop-color="#22c8f0"/></linearGradient>
+        </defs>
+        <circle cx="72" cy="80" r="58" fill="url(#g)" opacity=".55"/>
+        <path d="M72 18 C76 62 90 76 134 80 C90 84 76 98 72 142 C68 98 54 84 10 80 C54 76 68 62 72 18Z" fill="#fff"/>
+        <circle cx="72" cy="80" r="7" fill="#5ce1ff"/>
+        <text x="158" y="103" font-family="'Segoe UI', Inter, Roboto, Arial, sans-serif" font-size="64" font-weight="800" letter-spacing="10" textLength="424" lengthAdjust="spacingAndGlyphs" fill="#eef2ff">PRÓXIMA</text>
+        <rect x="598" y="50" width="116" height="66" rx="14" fill="url(#rp)"/>
+        <text x="656" y="101" text-anchor="middle" font-family="'Segoe UI', Inter, Roboto, Arial, sans-serif" font-size="50" font-weight="900" letter-spacing="4" fill="#031018">RP</text>
+      </svg>
+      <h1 id="greeting">Bienvenido/a</h1>
+      <p class="sub" id="sub">¿Qué quieres hacer?</p>
+
+      <div class="choices">
+        <button class="choice choice--primary" data-action="city">
+          <span class="choice__icon" aria-hidden="true">◆</span>
+          <strong>Entrar a la ciudad</strong>
+          <span>Rol libre en Los Santos.</span>
+        </button>
+        <button class="choice" data-action="modes" id="choice-modes">
+          <span class="choice__icon" aria-hidden="true">✦</span>
+          <strong>Modos de juego</strong>
+          <span>Deathmatch, rey de la colina y carreras. También con F7.</span>
+        </button>
+        <button class="choice hidden" data-action="props" id="choice-props">
+          <span class="choice__icon" aria-hidden="true">▣</span>
+          <strong>Editor de props</strong>
+          <span>Solo staff. También con F6.</span>
+        </button>
+      </div>
+      <p class="hint">/bienvenida vuelve a abrir este panel</p>
+    </div>
+  </section>
+  <script src="app.js"></script>
+</body>
+</html>

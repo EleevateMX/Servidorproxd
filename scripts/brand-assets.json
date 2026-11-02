@@ -1,0 +1,8 @@
+{
+  "$comment": "Arte de Próxima RP generado con Kling (imagen y vídeo) y guardado en la biblioteca de Higgsfield para que los enlaces no caduquen. La voz (ElevenLabs) ya está en el repo.",
+  "files": [
+    { "url": "https://d2ol7oe51mr4n9.cloudfront.net/user_37Ov13C5FiPPOO8dlkIS8XYZnE7/f9847beb-648f-4a2b-80f9-8439aacd7b49.png", "dest": "keyart.png", "source": "Kling kling-image-v3_0_omni (variante A)" },
+    { "url": "https://d2ol7oe51mr4n9.cloudfront.net/user_37Ov13C5FiPPOO8dlkIS8XYZnE7/ddd95eaa-864b-452c-97fe-23be7d8f1cbe.png", "dest": "keyart-alt.png", "source": "Kling kling-image-v3_0_omni (variante B)" },
+    { "url": "https://d2ol7oe51mr4n9.cloudfront.net/user_37Ov13C5FiPPOO8dlkIS8XYZnE7/936ef4bd-4152-48c8-9d3c-52109244e823.mp4", "dest": "background.mp4", "source": "Kling kling-video-v3_0_turbo, 10 s 1080p, a partir de la variante A" }
+  ]
+}

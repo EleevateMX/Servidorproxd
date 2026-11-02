@@ -1,0 +1,19 @@
+{
+  "$comment": "Idea: «arena de rey de la colina: muro circular, coberturas, zona central y un spawn por equipo». Ancla: /ancla arena",
+  "id": "arena_koth",
+  "name": "Arena Rey de la colina",
+  "anchor": "arena",
+  "frame": "anchor",
+  "active": false,
+  "items": [
+    { "type": "ring", "model": "prop_mp_barrier_02b", "radius": 40, "count": 32, "face": "tangent", "ground": true },
+    { "type": "ring", "model": "prop_box_wood02a", "radius": 12, "count": 6, "face": "center", "ground": true },
+    { "type": "grid", "model": "prop_container_01a", "origin": [-18, -24], "rows": 1, "cols": 2, "spacing": 36, "ground": true },
+    { "type": "grid", "model": "prop_container_01a", "origin": [-18, 24], "rows": 1, "cols": 2, "spacing": 36, "ground": true },
+    { "type": "point", "kind": "zone", "at": [0, 0], "radius": 10 },
+    { "type": "point", "kind": "team1", "at": [0, -34], "h": 0 },
+    { "type": "point", "kind": "team1", "at": [4, -34], "h": 0 },
+    { "type": "point", "kind": "team2", "at": [0, 34], "h": 180 },
+    { "type": "point", "kind": "team2", "at": [-4, 34], "h": 180 }
+  ]
+}

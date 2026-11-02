@@ -1,0 +1,18 @@
+{
+  "$comment": "Idea: «un circuito corto de conos con 4 checkpoints y salida delante de mí». Ancla: /ancla circuito",
+  "id": "circuito_conos",
+  "name": "Circuito de conos",
+  "anchor": "circuito",
+  "active": false,
+  "items": [
+    { "type": "line", "model": "prop_mp_cone_02", "from": [-6, 0], "to": [-6, 60], "spacing": 6, "ground": true },
+    { "type": "line", "model": "prop_mp_cone_02", "from": [6, 0], "to": [6, 60], "spacing": 6, "ground": true },
+    { "type": "ring", "model": "prop_mp_cone_02", "center": [20, 60], "radius": 26, "count": 9, "arc": [-90, 90], "face": "fixed", "ground": true },
+    { "type": "ring", "model": "prop_tyre_wall_01", "center": [20, 60], "radius": 14, "count": 7, "arc": [-90, 90], "face": "out", "ground": true },
+    { "type": "line", "model": "prop_mp_cone_02", "from": [34, 60], "to": [34, 0], "spacing": 6, "ground": true },
+    { "type": "line", "model": "prop_mp_cone_02", "from": [46, 60], "to": [46, 0], "spacing": 6, "ground": true },
+    { "type": "point", "kind": "grid", "at": [-2, -6], "h": 0 },
+    { "type": "point", "kind": "grid", "at": [2, -6], "h": 0 },
+    { "type": "route", "kind": "checkpoint", "path": [[0, 55], [20, 80], [40, 55], [40, 5]] }
+  ]
+}

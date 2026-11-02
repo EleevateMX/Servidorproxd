@@ -1,0 +1,23 @@
+# Binarios de FXServer y datos de txAdmin
+/server/
+/txData/
+server-data/cache/
+
+# Recursos de terceros descargados por los scripts
+server-data/resources/[cfx]/
+
+# Secretos
+server-data/secrets.cfg
+.env
+
+# Datos de ejecución
+server-data/resources/[proxima]/pxd_props/data/*.json
+server-data/resources/[proxima]/pxd_login/data/*.json
+
+# Medios descargados con scripts/fetch-brand-assets (pesados; viven en Higgsfield)
+server-data/resources/[proxima]/pxd_loadscreen/html/assets/*.png
+server-data/resources/[proxima]/pxd_loadscreen/html/assets/*.mp4
+
+# Pruebas
+tests/web/out/
+node_modules/

@@ -1,0 +1,42 @@
+<p align="center"><img src="brand/logo.svg" width="460" alt="Próxima RP"></p>
+
+<p align="center"><b>Tu próxima vida empieza aquí.</b><br>Entorno de pruebas FiveM para crear modos de juego y escenarios de rol.</p>
+
+## Qué hay aquí
+
+| Recurso | Qué hace |
+|---|---|
+| `pxd_gamemodes` | Modos de juego en mundos aislados (routing buckets): todos contra todos, deathmatch por equipos, rey de la colina y carreras. Menú F7 + HUD |
+| `pxd_props` | Editor de props en el juego (F6), dashboard web con mapa cenital y API para inyectar diseños |
+| `pxd_login` | Login al conectar: código de acceso opcional + normas; pantalla de bienvenida |
+| `pxd_loadscreen` | Pantalla de carga con progreso real, consejos, vídeo y voz de bienvenida |
+| `scripts/pxd.mjs` | Comando para pasar de una idea a un escenario: blueprint → servidor, en vivo |
+
+## Empezar
+
+```powershell
+.\scripts\setup-windows.ps1 -ArtifactUrl "<build recomendado de docs.fivem.net/docs/server-download>"
+```
+```powershell
+.\scripts\run-windows.ps1
+```
+En FiveM: F8 → `connect localhost:30120`. Guía completa: [docs/02-entorno-de-pruebas.md](docs/02-entorno-de-pruebas.md).
+
+## Documentación
+
+1. [Investigación: cómo se monta un servidor como GTAHUB](docs/01-investigacion.md)
+2. [Entorno de pruebas paso a paso](docs/02-entorno-de-pruebas.md)
+3. [Modos de juego](docs/03-modos-de-juego.md)
+4. [Editor de props, dashboard y blueprints](docs/04-editor-de-props.md)
+5. [Login, pantalla de carga e identidad](docs/05-login-carga-y-marca.md)
+
+## Pruebas
+
+```bash
+npm test
+```
+Lógica y servidores simulados en Lua 5.4 (sin el juego) + compilador de blueprints en Node. `npm run test:web` abre todas las interfaces en Chromium.
+
+## Aviso
+
+Proyecto independiente. No usa nombre, marcas ni materiales de GTAHUB ni de Rockstar Games. FiveM y GTA V son de sus respectivos dueños; respeta el acuerdo de licencia de Cfx.re.

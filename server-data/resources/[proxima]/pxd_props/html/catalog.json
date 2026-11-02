@@ -1,0 +1,62 @@
+{
+  "$comment": "Catálogo inicial de modelos frecuentes en servidores RP. La existencia de cada modelo se comprueba en el juego (IsModelInCdimage) al abrir el editor; los que no existan en tu build se marcan como no disponibles. Puedes escribir cualquier otro nombre de modelo a mano.",
+  "categories": [
+    {
+      "id": "trafico",
+      "label": "Tráfico y barreras",
+      "models": [
+        "prop_barrier_work05",
+        "prop_barrier_work06a",
+        "prop_mp_barrier_02b",
+        "prop_mp_arrow_barrier_01",
+        "prop_roadcone02a",
+        "prop_mp_cone_02",
+        "prop_tyre_wall_01"
+      ]
+    },
+    {
+      "id": "rampas",
+      "label": "Rampas y saltos",
+      "models": [
+        "prop_mp_ramp_01",
+        "prop_mp_ramp_02",
+        "prop_mp_ramp_03",
+        "prop_skate_halfpipe"
+      ]
+    },
+    {
+      "id": "contenedores",
+      "label": "Contenedores y cajas",
+      "models": [
+        "prop_container_01a",
+        "prop_container_05a",
+        "prop_boxpile_07d",
+        "prop_box_wood02a",
+        "prop_cs_cardbox_01",
+        "prop_dumpster_01a"
+      ]
+    },
+    {
+      "id": "mobiliario",
+      "label": "Mobiliario",
+      "models": [
+        "prop_bench_01a",
+        "prop_table_03",
+        "prop_chair_01a",
+        "prop_gazebo_03",
+        "prop_bbq_1"
+      ]
+    },
+    {
+      "id": "obra",
+      "label": "Obra e iluminación",
+      "models": [
+        "prop_worklight_03b",
+        "prop_generator_03b",
+        "prop_tool_box_04",
+        "prop_streetlight_01",
+        "prop_air_lights_02a"
+      ]
+    }
+  ]
+}

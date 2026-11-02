@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Próxima RP</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Fondo: vídeo de Kling si existe (assets/background.mp4); si no, imagen; si no, cielo CSS. -->
+  <div class="bg bg--sky" aria-hidden="true">
+    <div class="stars stars--a"></div>
+    <div class="stars stars--b"></div>
+    <div class="proxima-star"></div>
+    <svg class="skyline" viewBox="0 0 1600 260" preserveAspectRatio="none">
+      <path d="M0 260V190h60v-30h40v50h30v-90h50v70h40V90h30v-30h20v30h30v130h40v-60h60v40h30V70h20V40h20v30h20v150h40v-80h50v50h30v-110h40v130h30v-50h60v70h30V100h20V60h30v40h20v120h40v-70h50v40h40V130h30v-40h20v40h30v110h40v-60h50v80h30v-120h40v100h40v-40h60v60h30V110h30v90h50v-50h40v80h30v80z" fill="#04060d"/>
+      <g fill="#ffd27a" opacity=".55">
+        <rect x="262" y="110" width="4" height="5"/><rect x="272" y="130" width="4" height="5"/><rect x="520" y="100" width="4" height="5"/>
+        <rect x="530" y="140" width="4" height="5"/><rect x="760" y="120" width="4" height="5"/><rect x="1012" y="150" width="4" height="5"/>
+        <rect x="1240" y="140" width="4" height="5"/><rect x="1250" y="170" width="4" height="5"/><rect x="900" y="120" width="4" height="5"/>
+      </g>
+    </svg>
+  </div>
+  <img id="bg-image" class="bg bg--media hidden" src="assets/keyart.png" alt="">
+  <video id="bg-video" class="bg bg--media hidden" src="assets/background.mp4" autoplay muted loop playsinline></video>
+  <div class="vignette" aria-hidden="true"></div>
+
+  <main class="content">
+    <img class="logo" src="logo.svg" alt="Próxima RP">
+    <p class="tagline">Tu próxima vida empieza aquí.</p>
+    <p class="welcome" id="welcome"></p>
+  </main>
+
+  <aside class="tip" aria-live="polite">
+    <span class="tip__label">Consejo</span>
+    <p id="tip"></p>
+  </aside>
+
+  <footer class="loader">
+    <div class="loader__row">
+      <span id="status">Conectando con la ciudad…</span>
+      <span id="percent" class="mono">0%</span>
+    </div>
+    <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="bar"><span id="bar-fill"></span></div>
+    <div class="loader__row muted small">
+      <span id="log" class="mono"></span>
+      <span id="mute-hint">M: silenciar</span>
+    </div>
+  </footer>
+
+  <audio id="voice" src="assets/bienvenida.mp3" preload="auto"></audio>
+  <script src="app.js"></script>
+</body>
+</html>
