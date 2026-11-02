@@ -1,6 +1,6 @@
 // Pantalla de carga de Próxima RP.
 // Datos del servidor: window.nuiHandoverData (pxd_login: name/firstTime; pxd_loadscreen: pxd = {...}).
-// Medios opcionales en assets/: background.mp4, keyart.png, slide-*.png, ciudad-*.png,
+// Medios opcionales en assets/: gente.mp4 (o background.mp4), keyart.png, slide-*.png, ciudad-*.png,
 // bienvenida.mp3 (voz), music.mp3 (radio). Lo que no exista simplemente no se muestra.
 (() => {
   'use strict';
@@ -37,13 +37,23 @@
   const CANDIDATES = ['keyart.png', 'ciudad-1.png', 'slide-barrio.png', 'ciudad-2.png', 'slide-policia.png',
     'ciudad-3.png', 'slide-taller.png', 'ciudad-4.png', 'slide-emergencias.png'];
   const shown = [];
+  // Vídeo: el de la gente de la ciudad si existe; si no, el del key art.
+  const VIDEOS = ['gente.mp4', 'background.mp4'];
+  const VIDEO_MS = 20000;   // el vídeo se queda más tiempo que cada imagen
+  const IMAGE_MS = 9000;
   const video = $('bg-video');
-  video.addEventListener('loadeddata', () => { video.play().catch(() => {}); shown.unshift({ el: video }); start(); });
-  video.addEventListener('error', () => video.remove());
+  let videoIndex = 0;
+  video.addEventListener('loadeddata', () => { video.play().catch(() => {}); shown.unshift({ el: video, ms: VIDEO_MS }); bgIndex = -1; restart(); }, { once: true });
+  video.addEventListener('error', () => {
+    videoIndex += 1;
+    if (videoIndex < VIDEOS.length) video.src = `assets/${VIDEOS[videoIndex]}`;
+    else video.remove();
+  });
+  video.src = `assets/${VIDEOS[0]}`;
   for (const file of CANDIDATES) {
     const img = new Image();
     img.alt = '';
-    img.addEventListener('load', () => { $('slides').append(img); shown.push({ el: img }); start(); });
+    img.addEventListener('load', () => { $('slides').append(img); shown.push({ el: img, ms: IMAGE_MS }); start(); });
     img.src = `assets/${file}`;
   }
   let bgIndex = -1;
@@ -51,13 +61,27 @@
   function nextBg() {
     if (!shown.length) return;
     shown.forEach((s) => s.el.classList.remove('is-on'));
-    bgIndex = (bgIndex + 1) % shown.length;
-    shown[bgIndex].el.classList.add('is-on');
+    // Con vídeo, se alterna: vídeo, imagen, vídeo, imagen…
+    const hasVideo = shown[0] && shown[0].el === video;
+    if (hasVideo && shown.length > 1) {
+      if (bgIndex !== 0) bgIndex = 0;
+      else { imageTurn = imageTurn % (shown.length - 1) + 1; bgIndex = imageTurn; }
+    } else {
+      bgIndex = (bgIndex + 1) % shown.length;
+    }
+    const cur = shown[bgIndex];
+    cur.el.classList.add('is-on');
+    bgTimer = setTimeout(nextBg, cur.ms || IMAGE_MS);
   }
+  let imageTurn = 0;
   function start() {
     if (bgTimer) return;
     nextBg();
-    bgTimer = setInterval(nextBg, 9000);
+  }
+  function restart() {
+    clearTimeout(bgTimer);
+    bgTimer = null;
+    start();
   }
 
   // ── Código de la ciudad: normas (de pxd_login) y avisos, en rotación ─
