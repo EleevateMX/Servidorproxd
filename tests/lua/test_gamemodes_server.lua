@@ -29,6 +29,23 @@ T.describe('pxd_gamemodes servidor', function()
         T.eq(#Fx.sentTo(-1, 'pxd_gm:client:lobby') > 0, true, 'difunde el lobby')
     end)
 
+    T.it('al terminar cuenta partidas y victorias en pxd_progress', function()
+        local calls = {}
+        boot({ resourceStates = { pxd_progress = 'started' },
+            exports = { pxd_progress = { Track = function(src, key, n) calls[#calls + 1] = src .. ':' .. key .. ':' .. n end } } })
+        Fx.emit('pxd_gm:server:create', 1, 'ffa', 'prueba')
+        Fx.emit('pxd_gm:server:join', 2, 1)
+        Fx.emit('pxd_gm:server:start', 1)
+        Fx.advance(11)
+        for _ = 1, 20 do
+            Fx.emit('baseevents:onPlayerKilled', 2, 1, {})
+            Fx.time = Fx.time + 3.5
+        end
+        Fx.advance(1)
+        table.sort(calls)
+        T.eq(table.concat(calls, ','), '1:gm_play:1,1:gm_win:1,2:gm_play:1')
+    end)
+
     T.it('flujo completo: unirse, iniciar, cuenta atrás, bajas, fin y regreso', function()
         boot()
         Fx.emit('pxd_gm:server:create', 1, 'ffa', 'prueba')

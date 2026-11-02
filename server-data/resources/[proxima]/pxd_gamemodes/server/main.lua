@@ -209,6 +209,22 @@ local function joinPlayer(src, match)
     return true
 end
 
+-- Progreso (pxd_progress, opcional): partidas jugadas y ganadas.
+local function track(src, key)
+    if GetResourceState('pxd_progress') ~= 'started' then return end
+    pcall(function() exports.pxd_progress:Track(src, key, 1) end)
+end
+
+local function trackResult(match, ev)
+    if ev.reason == 'admin' then return end   -- cancelada por el staff: no cuenta
+    local w = ev.winner
+    for pid, p in pairs(match.players) do
+        track(pid, 'gm_play')
+        local won = w and ((w.type == 'team' and p.team == w.team) or (w.type == 'player' and w.id == pid))
+        if won then track(pid, 'gm_win') end
+    end
+end
+
 -- Reacciona a los eventos que devuelve Match (inicio y fin) estén donde estén.
 local function handleEvents(match, events, t)
     for _, ev in ipairs(events) do
@@ -218,6 +234,7 @@ local function handleEvents(match, events, t)
         elseif ev.type == 'ended' then
             match.removeAt = t + match.mode.resultsSec
             local snap = match:snapshot(t)
+            trackResult(match, ev)
             for pid in pairs(match.players) do
                 TriggerClientEvent('pxd_gm:client:ended', pid, snap)
             end

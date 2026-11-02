@@ -53,8 +53,8 @@
   {
    "resource": "pxd_gamemodes",
    "path": "server/main.lua",
-   "size": 17196,
-   "sha256": "6627dfd6af6d9077aacbabfa8bbad28c69dda3f2f634281934e695f53a0f72aa"
+   "size": 17851,
+   "sha256": "daa0e9eb95c323efecd4d0caa865aa76926eefb166212d3c906a3c67efd85898"
   },
   {
    "resource": "pxd_gamemodes",
@@ -207,6 +207,31 @@
    "path": "shared/login.lua",
    "size": 3727,
    "sha256": "c46284e0d8873dbec99bff7b2ebace7067160ac832978a88d3a100b50ac403f4"
+  },
+  {
+   "resource": "pxd_progress",
+   "path": "config.lua",
+   "size": 9279,
+   "sha256": "1d317071ea67bd30dfc1accd66d17aeba56782f164d7a16d461eb31fdbd26c69",
+   "config": true
+  },
+  {
+   "resource": "pxd_progress",
+   "path": "fxmanifest.lua",
+   "size": 278,
+   "sha256": "4ea603a76bc7c7d08ec2f8c603f2798eef2a40ddf3c634415da86aade388b0d2"
+  },
+  {
+   "resource": "pxd_progress",
+   "path": "server/main.lua",
+   "size": 9554,
+   "sha256": "625433b955f89cfc4e084819bcf8212a6814e30f0e8b57bcfb1f49e41ae74098"
+  },
+  {
+   "resource": "pxd_progress",
+   "path": "shared/progress.lua",
+   "size": 15755,
+   "sha256": "67e454e41e11b4b8ab47477548f964571d1b4a727c75c026ac45ff3b47be61e6"
   },
   {
    "resource": "pxd_props",
@@ -409,6 +434,7 @@
  ],
  "plan": {
   "autostart": [
+   "pxd_progress",
    "pxd_restart"
   ],
   "replaces": {},
