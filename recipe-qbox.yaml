@@ -501,6 +501,11 @@ tasks:  #  Download Base Files
     search: '"defaultLanguage": "en"'
     replace: '"defaultLanguage": "es"'
 
+  - action: replace_string # el teléfono se abre con la flecha arriba
+    file: ./resources/[npwd]/npwd/config.json
+    search: '"toggleKey": "m"'
+    replace: '"toggleKey": "UP"'
+
   - action: download_file
     path: ./tmp/npwd_qbx_garages.zip
     url: https://github.com/Qbox-project/npwd_qbx_garages/releases/latest/download/npwd_qbx_garages.zip

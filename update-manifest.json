@@ -150,8 +150,8 @@
   {
    "resource": "pxd_hud",
    "path": "npwd/config.json",
-   "size": 2811,
-   "sha256": "4b0edde276da24a98f4bd77fbeb12f5379905fb56cba727282b6c8a304a75b48"
+   "size": 2812,
+   "sha256": "556a2e0eb296cf9b053cf6ca346ac8185fb3035f74233be1cae5cfef44065d78"
   },
   {
    "resource": "pxd_hud",
@@ -681,6 +681,14 @@
     "replace": "\"defaultLanguage\": \"es\"",
     "requires": "pxd_hud",
     "why": "teléfono en español"
+   },
+   {
+    "resource": "npwd",
+    "path": "config.json",
+    "find": "\"toggleKey\": \"m\"",
+    "replace": "\"toggleKey\": \"UP\"",
+    "requires": "pxd_hud",
+    "why": "el teléfono se abre con la flecha arriba"
    }
   ],
   "external": [

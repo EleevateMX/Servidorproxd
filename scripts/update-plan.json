@@ -29,6 +29,14 @@
    "replace": "\"defaultLanguage\": \"es\"",
    "requires": "pxd_hud",
    "why": "teléfono en español"
+  },
+  {
+   "resource": "npwd",
+   "path": "config.json",
+   "find": "\"toggleKey\": \"m\"",
+   "replace": "\"toggleKey\": \"UP\"",
+   "requires": "pxd_hud",
+   "why": "el teléfono se abre con la flecha arriba"
   }
  ]
 }
