@@ -366,6 +366,8 @@
     });
     const active = list.querySelector('.is-active');
     if (active && active.scrollIntoView) active.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    const cur = spawnView.options[spawnSel];
+    if (cur) post('spawnFocus', { id: cur.id });   // la cámara del juego se mueve a esa opción
   }
 
   function openSpawn(view) {
@@ -449,7 +451,7 @@
   function demoPost(name, body) {
     if (name === 'create') return { ok: false, field: 'firstname', error: 'Demostración: aquí se crearía el personaje.' };
     if (name === 'delete') return { ok: true };
-    if (name === 'spawnChoose') return { ok: true };
+    if (name === 'spawnChoose' || name === 'spawnFocus') return { ok: true };
     return { ok: true, body };
   }
 

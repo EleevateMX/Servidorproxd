@@ -202,14 +202,80 @@ RegisterNetEvent('qbx_core:client:spawnNoApartments', function()
     TriggerEvent('qb-clothes:client:CreateFirstCharacter')
 end)
 
+-- ── Escenario de la pantalla de aparición ──────────────────────────────
+-- La selección de personaje usa una escena (interior) con cámara propia; la aparición
+-- NO debe verla: se destruye esa cámara, se oculta el personaje y se usa una vista
+-- aérea de la ciudad que se desplaza a la opción elegida. Natives verificados en
+-- citizenfx/natives: CreateCamWithParams, PointCamAtCoord, SetCamActiveWithInterp,
+-- RenderScriptCams, SetFocusPosAndVel, ClearFocus, HideHudAndRadarThisFrame.
+local spawnStage, spawnCam = false, nil
+
+local function spawnCamTo(from, at, fov, ms)
+    SetFocusPosAndVel(at.x, at.y, at.z, 0.0, 0.0, 0.0)
+    local cam = CreateCamWithParams('DEFAULT_SCRIPTED_CAMERA', from.x, from.y, from.z, 0.0, 0.0, 0.0, fov or 50.0, false, 0)
+    PointCamAtCoord(cam, at.x, at.y, at.z)
+    local old = spawnCam
+    if old and DoesCamExist(old) and ms and ms > 0 then
+        SetCamActiveWithInterp(cam, old, ms, 1, 1)
+        SetTimeout(ms + 200, function() if DoesCamExist(old) then DestroyCam(old, false) end end)
+    else
+        if old and DoesCamExist(old) then DestroyCam(old, false) end
+        SetCamActive(cam, true)
+        RenderScriptCams(true, false, 0, true, true)
+    end
+    spawnCam = cam
+end
+
+--- Vista sobre una opción: un poco al sur y por encima, mirando al punto.
+local function focusCoords(c)
+    local o = Config.spawnCamera.optionOffset
+    return vec3(c.x + o.x, c.y + o.y, c.z + o.z), vec3(c.x, c.y, c.z)
+end
+
+local function enterSpawnStage()
+    if spawnStage then return end
+    spawnStage = true
+    destroyPreviewCam()
+    ClearTimecycleModifier()
+    local ped = PlayerPedId()
+    FreezeEntityPosition(ped, true)
+    SetEntityVisible(ped, false, false)
+    local v = Config.spawnCamera
+    spawnCamTo(v.from, v.at, v.fov, 0)
+    CreateThread(function()
+        while spawnStage do
+            HideHudAndRadarThisFrame()   -- ni minimapa ni HUD del juego en esta pantalla
+            Wait(0)
+        end
+    end)
+end
+
+local function leaveSpawnStage()
+    if not spawnStage then return end
+    spawnStage = false
+    if spawnCam and DoesCamExist(spawnCam) then
+        SetCamActive(spawnCam, false)
+        DestroyCam(spawnCam, false)
+    end
+    spawnCam = nil
+    RenderScriptCams(false, false, 0, true, true)
+    ClearFocus()
+    local ped = PlayerPedId()
+    SetEntityVisible(ped, true, false)
+    FreezeEntityPosition(ped, false)
+    DisplayRadar(true)
+end
+
 -- ── Pantalla de aparición propia ───────────────────────────────────────
 local pickerChoice -- promise mientras la pantalla está abierta
-local pickerIds = {}
+local pickerIds, pickerCoords, pickerFocused = {}, {}, nil
 
 --- Abre la pantalla de elección y espera. view: { mode, kicker, title, text, confirm, options }
-local function pick(view, ids)
-    pickerIds = ids
+--- coords[id] (opcional): punto al que se mueve la cámara al marcar esa opción.
+local function pick(view, ids, coords)
+    pickerIds, pickerCoords, pickerFocused = ids, coords or {}, nil
     pickerChoice = promise.new()
+    enterSpawnStage()
     SetNuiFocus(true, true)
     SendNUIMessage({ action = 'spawn', data = view })
     local id = Citizen.Await(pickerChoice)
@@ -226,30 +292,50 @@ RegisterNUICallback('spawnChoose', function(data, cb)
     pickerChoice:resolve(id)
 end)
 
+RegisterNUICallback('spawnFocus', function(data, cb)
+    cb({ ok = true })
+    local id = type(data) == 'table' and data.id
+    if not pickerChoice or not spawnStage or type(id) ~= 'string' or id == pickerFocused then return end
+    local c = pickerCoords[id]
+    if not c then return end
+    pickerFocused = id
+    local from, at = focusCoords(c)
+    spawnCamTo(from, at, Config.spawnCamera.optionFov, Config.spawnCamera.interpMs)
+end)
+
 --- Elegir y crear el apartamento inicial (como qbx_properties/client/apartmentselect.lua,
 --- inputConfirm). Devuelve false si no se pudo usar nuestra pantalla.
 local function chooseApartment()
     local options = apartmentOptions()
     if not options or #options == 0 then return false end
-    local list, ids = {}, {}
+    local list, ids, coords = {}, {}, {}
     for i, a in ipairs(options) do
         local t = Config.apartmentTexts[a.interior] or {}
         local id = 'apt:' .. i
         ids[id] = i
+        if a.enter then coords[id] = a.enter end
         list[#list + 1] = { id = id, kind = 'apartment', label = t.label or a.label, detail = t.detail or a.description, image = Config.spawnImages.apartment }
     end
     local id = pick({ mode = 'apartment', kicker = 'Tu primer hogar', title = 'Elige tu apartamento',
-        text = 'Es gratis y será tu casa en la ciudad: ahí guardas tus cosas y te cambias de ropa.', confirm = 'Mudarme aquí', options = list }, ids)
+        text = 'Es gratis y será tu casa en la ciudad: ahí guardas tus cosas y te cambias de ropa.', confirm = 'Mudarme aquí', options = list }, ids, coords)
     local index = ids[id]
     local apt = options[index]
     DoScreenFadeOut(500)
     while not IsScreenFadedOut() do Wait(0) end
+    leaveSpawnStage()
     destroyPreviewCam()
     FreezeEntityPosition(cache.ped, false)
     SetEntityCoords(cache.ped, apt.enter.x, apt.enter.y, apt.enter.z - 2.0, false, false, false, false)
     Wait(0)
     TriggerServerEvent('qbx_properties:server:apartmentSelect', index)
-    Wait(1000) -- como qbx_properties: deja que el servidor coloque al jugador antes de cargar
+    -- qbx_properties abre SU pizarra de apartamentos en QBCore:Server:OnPlayerLoaded si el
+    -- personaje aún no tiene apartamento. Antes se esperaba 1 s fijo y, si su INSERT tardaba
+    -- más, se abrían las dos pantallas. Ahora se espera a que el apartamento exista (máx. 10 s).
+    local waited = 1000
+    Wait(1000)
+    while waited < 10000 and lib.callback.await('pxd_multichar:server:needsApartment', false) do
+        Wait(500); waited = waited + 500
+    end
     TriggerServerEvent('QBCore:Server:OnPlayerLoaded')
     TriggerEvent('QBCore:Client:OnPlayerLoaded')
     -- Por si nada vuelve a mostrar la pantalla (qbx_properties la abre al entrar).
@@ -272,11 +358,14 @@ local function chooseSpawn()
     for _, p in ipairs(properties or {}) do p.image = Config.spawnImages.property end
     local list, byId = PXDChar.buildSpawnOptions(last, properties, Config.spawnPoints)
     if #list == 0 then return spawnAt(defaultSpawn) end
+    local coords = {}
+    for oid, o in pairs(byId) do coords[oid] = o.coords end
     local id = pick({ mode = 'spawn', kicker = '¿Dónde apareces?', title = 'Elige dónde empezar',
-        text = 'Vuelve donde lo dejaste, a tu casa o a un punto de la ciudad.', confirm = 'Aparecer', options = list }, byId)
+        text = 'Vuelve donde lo dejaste, a tu casa o a un punto de la ciudad.', confirm = 'Aparecer', options = list }, byId, coords)
     local opt = byId[id]
     DoScreenFadeOut(500)
     while not IsScreenFadedOut() do Wait(0) end
+    leaveSpawnStage()
     destroyPreviewCam()
     TriggerServerEvent('QBCore:Server:OnPlayerLoaded')
     TriggerEvent('QBCore:Client:OnPlayerLoaded')
@@ -390,6 +479,7 @@ RegisterNUICallback('play', function(data, cb)
     DoScreenFadeOut(10)
     lib.callback.await('qbx_core:server:loadCharacter', false, data.citizenid)
     if Config.spawnPicker then
+        enterSpawnStage()
         DoScreenFadeIn(300)
         if apartmentsEnabled() and lib.callback.await('pxd_multichar:server:needsApartment', false) and chooseApartment() then
             -- ya colocado en su apartamento nuevo
@@ -432,6 +522,7 @@ RegisterNUICallback('create', function(data, cb)
         return
     end
     if Config.spawnPicker and apartmentsEnabled() then
+        enterSpawnStage()
         DoScreenFadeIn(300)
         if not chooseApartment() then
             TriggerEvent('apartments:client:setupSpawnUI', newData) -- su pizarra, si no pudimos leer su config
@@ -488,6 +579,7 @@ end)
 
 AddEventHandler('onResourceStop', function(name)
     if name ~= GetCurrentResourceName() then return end
-    if uiOpen then SetNuiFocus(false, false) end
+    if uiOpen or pickerChoice then SetNuiFocus(false, false) end
+    leaveSpawnStage()
     destroyPreviewCam()
 end)

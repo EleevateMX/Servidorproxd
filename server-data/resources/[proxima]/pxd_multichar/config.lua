@@ -31,6 +31,18 @@ Config.spawnPoints = {
     { label = 'Motel', detail = 'Habitaciones baratas para empezar', coords = vec4(327.56, -205.08, 53.08, 163.5), image = 'assets/spawn-motel.jpg' },
 }
 
+-- Cámara de la pantalla de aparición (no se ve la escena de personajes).
+-- from/at: vista aérea inicial (Los Santos desde el sur, mirando al centro).
+-- optionOffset: desde dónde se mira cada opción al marcarla (m respecto al punto).
+Config.spawnCamera = {
+    from = vec3(150.0, -1550.0, 240.0),
+    at = vec3(-60.0, -800.0, 90.0),
+    fov = 50.0,
+    optionOffset = vec3(-45.0, -70.0, 55.0),
+    optionFov = 45.0,
+    interpMs = 1200,
+}
+
 -- Imágenes para la última ubicación y las casas propias.
 Config.spawnImages = { last = 'assets/spawn-ultima.jpg', property = 'assets/spawn-casa.jpg', apartment = 'assets/spawn-casa.jpg' }
 

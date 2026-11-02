@@ -164,11 +164,17 @@ T.describe('pxd_multichar · integración', function()
     end)
 
     T.it('la configuración carga y las escenas tienen coordenadas', function()
-        local saved = _G.vec4
+        local saved, saved3 = _G.vec4, _G.vec3
         _G.vec4 = function(x, y, z, w) return { x = x, y = y, z = z, w = w } end
+        _G.vec3 = function(x, y, z) return { x = x, y = y, z = z } end
         Config = nil
         dofile(DIR .. 'config.lua')
-        _G.vec4 = saved
+        _G.vec4, _G.vec3 = saved, saved3
+        -- Cámara propia de la aparición: aérea (no la escena de personajes)
+        local c = Config.spawnCamera
+        T.truthy(c and c.from and c.at and c.optionOffset)
+        T.truthy(c.from.z > 100 and c.optionOffset.z > 20, 'vista desde arriba')
+        T.truthy(c.interpMs > 0 and c.fov > 0)
         T.truthy(#Config.scenes > 0)
         for _, s in ipairs(Config.scenes) do T.truthy(s.pedCoords.w and s.camCoords.w) end
         T.truthy(Config.dateMin < Config.dateMax)

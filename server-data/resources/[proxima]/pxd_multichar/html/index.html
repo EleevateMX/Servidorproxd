@@ -144,7 +144,13 @@
   <section class="spawn hidden" id="spawn" aria-live="polite">
     <div class="spawn__veil" aria-hidden="true"></div>
     <header class="spawn__head">
-      <img src="logo.svg" alt="Próxima RP" class="spawn__logo">
+      <div class="spawn__top">
+        <img src="logo.svg" alt="Próxima RP" class="spawn__logo">
+        <ol class="spawn__steps" aria-label="Pasos">
+          <li class="is-done">Personaje</li>
+          <li class="is-current">Ubicación</li>
+        </ol>
+      </div>
       <p class="px-eyebrow" id="spawn-kicker"></p>
       <h1 class="px-title px-title--l" id="spawn-title"></h1>
       <p class="spawn__text" id="spawn-text"></p>

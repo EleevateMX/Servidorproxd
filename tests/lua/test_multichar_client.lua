@@ -63,6 +63,15 @@ local function makeEnv(opts)
     G.DoScreenFadeIn = function() log[#log + 1] = 'fadeIn' end
     G.SetEntityCoords = function(_, x, y, z) log[#log + 1] = ('coords:%.1f,%.1f,%.1f'):format(x, y, z) end
     G.GetInvokingResource = function() return nil end
+    -- Cámaras y visibilidad: se registran para comprobar el orden.
+    G.SetEntityVisible = function(_, on) log[#log + 1] = 'visible:' .. tostring(on) end
+    G.PointCamAtCoord = function(_, x, y, z) log[#log + 1] = ('lookAt:%.1f,%.1f,%.1f'):format(x, y, z) end
+    G.SetCamActiveWithInterp = function() log[#log + 1] = 'interp' end
+    G.SetFocusPosAndVel = function() log[#log + 1] = 'focusArea' end
+    G.ClearFocus = function() log[#log + 1] = 'clearFocus' end
+    G.DestroyCam = function() log[#log + 1] = 'destroyCam' end
+    G.RenderScriptCams = function(on) log[#log + 1] = 'render:' .. tostring(on) end
+    G.DoesCamExist = function() return true end
     -- El resto de natives (cámara, modelos…): no hacen nada.
     setmetatable(G, { __index = function(_, k)
         if type(k) == 'string' and k:match('^%u') and not k:match('^PXD') and k ~= 'Config' then return function() return 0 end end
@@ -229,4 +238,64 @@ T.describe('pxd_multichar · flujo en el cliente (simulado)', function()
         T.truthy(indexOf(env.log, ('coords:%.1f,%.1f,%.1f'):format(c.x, c.y, c.z)))
         env.restore()
     end)
+
+    T.it('aparición: sin la escena de personajes detrás, cámara aérea propia y todo restaurado al elegir', function()
+        local character = { citizenid = 'XYZ', charinfo = { firstname = 'Ana', lastname = 'Lima', gender = 1 }, money = {}, job = {}, metadata = {} }
+        local env = makeEnv({ callbacks = {
+            ['qbx_core:server:getCharacters'] = { multi = { { character }, 3 } },
+            ['pxd_multichar:server:setup'] = {},
+            ['qbx_core:server:loadCharacter'] = true,
+            ['pxd_multichar:server:needsApartment'] = false,
+            ['qbx_spawn:server:getLastLocation'] = { multi = { nil, nil } },
+            ['qbx_spawn:server:getProperties'] = {},
+        } })
+        env.handlers['qbx_core:client:playerLoggedOut']()
+        local before = #env.log
+        local step = run(env, 'play', { citizenid = 'XYZ' })
+        T.eq(step(), 'await')
+        local function after(item) for i = before + 1, #env.log do if env.log[i] == item then return i end end end
+        local hide, fadeIn = after('visible:false'), after('fadeIn')
+        local a = Config.spawnCamera.at
+        local aerial = after(('lookAt:%.1f,%.1f,%.1f'):format(a.x, a.y, a.z))
+        T.truthy(hide and aerial and fadeIn, 'personaje oculto y vista aérea')
+        T.truthy(hide < fadeIn and aerial < fadeIn, 'antes de quitar el fundido: nunca se ve el interior de la selección')
+        -- Marcar una opción mueve la cámara a ese punto; una falsa no hace nada.
+        local n = #env.log
+        run(env, 'spawnFocus', { id = 'point:99' })()
+        T.eq(#env.log, n, 'opción inexistente: sin cambios')
+        run(env, 'spawnFocus', { id = 'point:2' })()
+        local c = Config.spawnPoints[2].coords
+        T.truthy(after(('lookAt:%.1f,%.1f,%.1f'):format(c.x, c.y, c.z)) and after('interp'), 'transición suave al punto')
+        local choose = run(env, 'spawnChoose', { id = 'point:2' })
+        T.eq(choose(), 'dead'); T.eq(step(), 'dead')
+        local show, clear, loaded = after('visible:true'), after('clearFocus'), after('sv:QBCore:Server:OnPlayerLoaded')
+        T.truthy(show and clear, 'personaje visible y carga del mundo alrededor del jugador otra vez')
+        T.eq(env.log[#env.log], 'fadeIn')
+        T.truthy(loaded, 'se carga el personaje')
+        env.restore()
+    end)
+
+    T.it('apartamento: espera a que qbx_properties lo guarde antes de cargar (no abre su pizarra encima)', function()
+        local pending = 3
+        local env = makeEnv({ callbacks = {
+            ['qbx_core:server:getCharacters'] = { multi = { {}, 3 } },
+            ['pxd_multichar:server:setup'] = {},
+            ['pxd_multichar:server:checkRegistration'] = { ok = true, data = registration },
+            ['qbx_core:server:createCharacter'] = { citizenid = 'ABC' },
+            ['pxd_multichar:server:needsApartment'] = function() pending = pending - 1; return pending > 0 end,
+        } })
+        env.handlers['qbx_core:client:playerLoggedOut']()
+        local step = run(env, 'create', registration)
+        T.eq(step(), 'await')
+        run(env, 'spawnChoose', { id = 'apt:1' })()
+        T.eq(step(), 'dead')
+        local sel = indexOf(env.log, 'sv:qbx_properties:server:apartmentSelect')
+        local loaded = indexOf(env.log, 'sv:QBCore:Server:OnPlayerLoaded')
+        local checks = 0
+        for i = sel, loaded do if env.log[i] == 'cb:pxd_multichar:server:needsApartment' then checks = checks + 1 end end
+        T.eq(checks, 3, 'consulta hasta que el apartamento existe')
+        T.eq(pending, 0)
+        env.restore()
+    end)
 end)
+
