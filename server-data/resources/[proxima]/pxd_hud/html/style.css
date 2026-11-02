@@ -1,22 +1,26 @@
 :root {
-  --night-950: #05070f;
-  --glass: rgba(8, 11, 24, 0.66);
-  --glass-strong: rgba(8, 11, 24, 0.82);
-  --line: rgba(140, 170, 255, 0.16);
-  --text: #eef2ff;
-  --muted: #9aa6c7;
-  --star: #5ce1ff;
-  --nova: #ff4fd8;
-  --gold: #ffc857;
-  --ok: #4ade80;
-  --blue: #50a0ff;
-  --red: #ff5a5a;
-  --font: "Segoe UI", "Inter", Roboto, "Helvetica Neue", Arial, sans-serif;
+  /* Tokens de Próxima UI (ui/proxima-ui.css) con los nombres del HUD. Superficies casi
+     sólidas: nada de backdrop-filter (en CEF deja rectángulos negros sobre el juego). */
+  --night-950: var(--px-bg);
+  --glass: rgba(11, 15, 29, .86);
+  --glass-strong: rgba(11, 15, 29, .94);
+  --line: var(--px-line-2);
+  --text: var(--px-text);
+  --muted: var(--px-text-2);
+  --star: var(--px-star);
+  --nova: var(--px-nova);
+  --gold: var(--px-gold);
+  --ok: var(--px-ok);
+  --blue: var(--px-armor);
+  --red: var(--px-health);
+  --font: var(--px-font);
   /* Rectángulo del minimapa en % de pantalla (lo fija app.js) */
   --map-left: 1.5vw; --map-bottom: 2vh; --map-w: 14vw; --map-h: 17.6vh;
+  --needs-h: 26px;          /* fila de necesidades */
+  --hotbar-half: 230px;     /* media barra rápida de ox_inventory (aprox.) */
 }
 * { box-sizing: border-box; }
-html, body { margin: 0; height: 100%; overflow: hidden; background: transparent; color: var(--text); font-family: var(--font); }
+html, body { margin: 0; height: 100%; overflow: hidden; background: transparent; color: var(--text); font-family: var(--font); -webkit-font-smoothing: antialiased; text-shadow: 0 1px 2px rgba(0, 0, 0, .45); }
 .ic { width: 16px; height: 16px; fill: currentColor; flex: none; }
 
 .hud { position: fixed; inset: 0; pointer-events: none; transition: opacity .35s ease; }
@@ -25,48 +29,50 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: transparent;
 /* ── Minimapa enmarcado ──────────────────────────── */
 .map-frame {
   position: fixed; left: var(--map-left); bottom: var(--map-bottom); width: var(--map-w); height: var(--map-h);
-  border-radius: 14px; border: 1px solid rgba(92, 225, 255, .35);
-  box-shadow: 0 0 0 1px rgba(5, 7, 15, .6), 0 0 22px rgba(92, 225, 255, .18), inset 0 0 18px rgba(5, 7, 15, .55);
+  border-radius: 10px; border: 1px solid rgba(150, 172, 255, .22);
+  box-shadow: 0 0 0 1px rgba(5, 7, 15, .5);
   transition: opacity .3s;
 }
-.map-frame__star { position: absolute; top: -9px; right: 14px; width: 18px; height: 18px; display: grid; place-items: center; border-radius: 50%; background: var(--night-950); }
-.map-frame__star svg { width: 12px; height: 12px; fill: var(--star); filter: drop-shadow(0 0 4px rgba(92, 225, 255, .9)); }
+.map-frame__star { display: none; }
 .hud.no-map .map-frame { opacity: 0; }
 
 /* ── Dinero ──────────────────────────────────────── */
 .wallet {
-  position: fixed; left: var(--map-left); bottom: calc(var(--map-bottom) + var(--map-h) + 10px);
-  display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; padding: 8px 14px; border-radius: 12px;
-  max-width: max(var(--map-w), 150px);
-  background: linear-gradient(90deg, var(--glass-strong), var(--glass)); border: 1px solid var(--line); backdrop-filter: blur(6px);
+  position: fixed; left: var(--map-left); bottom: calc(var(--map-bottom) + var(--map-h) + 6px + var(--needs-h) + 6px);
+  display: flex; align-items: center; justify-content: space-between; gap: 4px 12px; padding: 7px 12px; border-radius: 10px;
+  width: max(var(--map-w), 300px);
+  background: var(--glass-strong); border: 1px solid var(--line); box-shadow: var(--px-shadow-s);
   font-variant-numeric: tabular-nums;
 }
-.hud.no-map .wallet { bottom: calc(var(--map-bottom) + 10px); }
-.wallet__item { display: flex; align-items: center; gap: 7px; font-size: 15px; }
-.wallet__item b { font-weight: 700; letter-spacing: .01em; }
+.hud.no-map .wallet { bottom: calc(var(--map-bottom) + var(--needs-h) + 6px); }
+.wallet__item { display: flex; align-items: center; gap: 7px; font-size: 16px; }
+.wallet__item b { font-weight: 750; letter-spacing: .01em; }
 .ic--cash { color: var(--ok); }
 .ic--bank { color: var(--gold); }
 .wallet__sep { width: 1px; height: 18px; background: var(--line); }
-@media (max-width: 1500px) { .wallet__sep { display: none; } .wallet__item { width: 100%; } }
-.wallet__delta { position: absolute; left: 0; bottom: 100%; margin-bottom: 6px; padding: 3px 9px; border-radius: 8px; font-size: 13px; font-weight: 700; opacity: 0; transform: translateY(6px); background: var(--glass-strong); border: 1px solid var(--line); white-space: nowrap; }
-.wallet__delta.is-in { animation: delta 2.4s ease forwards; }
+
+.wallet__delta { position: absolute; left: 0; bottom: 100%; margin-bottom: 6px; padding: 3px 9px; border-radius: 8px; font-size: 14px; font-weight: 800; opacity: 0; visibility: hidden; transform: translateY(6px); background: var(--glass-strong); border: 1px solid var(--line); white-space: nowrap; }
+.wallet__delta:empty { display: none; }
+.wallet__delta.is-in { visibility: visible; animation: delta 2.4s ease forwards; }
 .wallet__delta.plus { color: var(--ok); }
 .wallet__delta.minus { color: var(--red); }
 @keyframes delta { 12% { opacity: 1; transform: translateY(0); } 80% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-8px); } }
 
 /* ── Constantes a la derecha del minimapa ───────── */
 .vitals {
-  position: fixed; left: calc(var(--map-left) + var(--map-w) + 10px); bottom: var(--map-bottom);
-  display: flex; flex-direction: column; gap: 6px; width: 150px;
+  position: fixed; left: var(--map-left); bottom: calc(var(--map-bottom) + var(--map-h) + 6px);
+  display: flex; gap: 4px; width: max(var(--map-w), 300px); height: var(--needs-h);
 }
-.hud.no-map .vitals { left: calc(var(--map-left) + 330px); }
-.clock { display: flex; align-items: center; gap: 6px; padding: 5px 9px; border-radius: 9px; background: var(--glass); border: 1px solid var(--line); font-size: 12px; color: var(--muted); }
+.hud.no-map .vitals { bottom: var(--map-bottom); }
+.clock { position: fixed; left: calc(var(--map-left) + var(--map-w) + 10px); bottom: var(--map-bottom); display: flex; align-items: center; gap: 6px; padding: 5px 9px; border-radius: 8px; background: var(--glass); border: 1px solid var(--px-line); font-size: 12.5px; color: var(--muted); }
+.hud.no-map .clock { left: calc(var(--map-left) + max(var(--map-w), 300px) + 10px); }
+.clock span { white-space: nowrap; }
 .clock b { margin-left: auto; color: var(--text); font-size: 13px; font-variant-numeric: tabular-nums; }
 .ic--star { width: 11px; height: 11px; color: var(--star); filter: drop-shadow(0 0 3px rgba(92, 225, 255, .8)); }
-.stat { display: flex; align-items: center; gap: 7px; padding: 4px 9px; border-radius: 9px; background: var(--glass); border: 1px solid transparent; transition: border-color .3s, opacity .3s; }
+.stat { flex: 1; min-width: 0; display: flex; align-items: center; gap: 5px; padding: 0 7px; border-radius: 8px; background: var(--glass); border: 1px solid var(--px-line); transition: border-color .3s, opacity .3s; }
 .stat .ic { width: 13px; height: 13px; color: var(--c); }
 .stat i { flex: 1; height: 5px; border-radius: 4px; background: rgba(255, 255, 255, .09); overflow: hidden; }
-.stat i span { display: block; height: 100%; width: 0; border-radius: inherit; background: var(--c); box-shadow: 0 0 8px var(--c); transition: width .5s ease; }
+.stat i span { display: block; height: 100%; width: 0; border-radius: inherit; background: var(--c); transition: width .5s ease; }
 .stat[data-k="health"] { --c: var(--red); }
 .stat[data-k="armor"] { --c: var(--blue); }
 .stat[data-k="hunger"] { --c: var(--gold); }
@@ -81,7 +87,8 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: transparent;
 
 /* ── Voz (primera fila de la columna; así no choca con la barra rápida de ox_inventory) ── */
 .voice {
-  display: flex; align-self: flex-start; align-items: center; gap: 8px; padding: 7px 12px 7px 7px; border-radius: 999px;
+  position: fixed; left: 50%; bottom: 2.4vh; transform: translateX(calc(-50% - var(--hotbar-half) - 90px));
+  display: flex; align-items: center; gap: 8px; padding: 6px 8px 6px 6px; border-radius: 999px;
   background: var(--glass); border: 1px solid var(--line); font-size: 12px; color: var(--muted);
 }
 .voice__mic { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: rgba(255, 255, 255, .06); color: var(--muted); transition: all .2s; }
@@ -93,6 +100,7 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: transparent;
 .voice[data-range="2"] .voice__range i:nth-child(-n+2),
 .voice[data-range="3"] .voice__range i:nth-child(-n+3) { background: var(--star); }
 .voice__label { color: var(--text); font-weight: 600; letter-spacing: .02em; }
+.voice__key { min-width: 1.35rem; height: 1.35rem; font-size: 11px; }
 .voice__radio { display: none; align-items: center; gap: 4px; margin-left: 4px; padding: 2px 8px; border-radius: 999px; background: rgba(255, 79, 216, .14); color: var(--nova); font-weight: 700; }
 .voice__radio .ic { width: 13px; height: 13px; }
 .voice.has-radio .voice__radio { display: inline-flex; }
@@ -100,7 +108,7 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: transparent;
 /* ── Vehículo ────────────────────────────────────── */
 .car {
   position: fixed; right: 2.2vw; bottom: 3vh; width: 230px; padding: 10px 16px 14px; border-radius: 18px;
-  background: linear-gradient(160deg, var(--glass-strong), var(--glass)); border: 1px solid var(--line); backdrop-filter: blur(6px);
+  background: var(--glass-strong); border: 1px solid var(--line); box-shadow: var(--px-shadow-s);
   opacity: 0; transform: translateY(12px); transition: opacity .3s, transform .3s;
 }
 .hud.in-vehicle .car { opacity: 1; transform: none; }
@@ -111,7 +119,7 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: transparent;
 .gauge__track { stroke: rgba(255, 255, 255, .08); }
 .gauge__fill { stroke: url(#g-speed); stroke-dasharray: 251.3; stroke-dashoffset: 251.3; transition: stroke-dashoffset .25s linear; filter: drop-shadow(0 0 6px rgba(92, 225, 255, .55)); }
 .car__speed { position: absolute; left: 0; right: 0; bottom: 4px; text-align: center; line-height: 1; }
-.car__speed b { display: block; font-size: 44px; font-weight: 800; font-variant-numeric: tabular-nums; text-shadow: 0 0 18px rgba(92, 225, 255, .35); }
+.car__speed b { display: block; font-family: var(--px-display); font-size: 44px; font-weight: 800; font-variant-numeric: tabular-nums; text-shadow: 0 0 18px rgba(92, 225, 255, .35); }
 .car__speed span { font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: var(--muted); }
 .car__row { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
 .ic--fuel { color: var(--gold); }

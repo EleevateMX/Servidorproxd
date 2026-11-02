@@ -21,6 +21,7 @@ node -e '
 const fs = require("fs"); const { execFileSync } = require("child_process");
 const [root, dir] = process.argv.slice(1);
 for (const f of require(root + "/scripts/brand-assets.json").files) {
+  if (f.resource && f.resource !== "pxd_loadscreen") continue; // ya viene en el repo (git archive)
   const dest = `${dir}/${f.dest}`;
   if (f.url.includes("raw.githubusercontent.com/EleevateMX/Servidorproxd/")) fs.copyFileSync(`${root}/brand/media/${f.dest}`, dest);
   else execFileSync("curl", ["-sSfL", "-o", dest, f.url]);

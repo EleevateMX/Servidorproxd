@@ -10,8 +10,15 @@ end
 
 local settings = loadSettings()
 
+-- Desenfoque del juego detrás del panel (mismas natives que ox_inventory, Utils.blurIn/blurOut).
+local function blur(on)
+    if IsScreenblurFadeRunning() then DisableScreenblurFade() end
+    if on then TriggerScreenblurFadeIn(150) else TriggerScreenblurFadeOut(200) end
+end
+
 local function setOpen(state)
     if state and IsPauseMenuActive() then return end
+    if state ~= open then blur(state) end
     open = state
     SetNuiFocus(state, state)
     SendNUIMessage({ type = 'open', data = { open = state, settings = settings } })
@@ -69,5 +76,5 @@ RegisterNUICallback('saveSettings', function(body, cb)
 end)
 
 AddEventHandler('onResourceStop', function(res)
-    if res == GetCurrentResourceName() and open then SetNuiFocus(false, false) end
+    if res == GetCurrentResourceName() and open then SetNuiFocus(false, false); blur(false) end
 end)

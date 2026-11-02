@@ -57,6 +57,55 @@
    "sha256": "6eef9e308ddc14929a3a18d6ba7ef33b96cc32f6fc4372741fb1006201f5706f"
   },
   {
+   "resource": "pxd_chat",
+   "path": "client/main.lua",
+   "size": 1170,
+   "sha256": "147aa6b8e18a110d1a3f3b733053ddb131d1e7a9ffcd14b7dffb36a8ca1ddb21"
+  },
+  {
+   "resource": "pxd_chat",
+   "path": "config.lua",
+   "size": 1063,
+   "sha256": "cfc9ac86d67a8ff0f070496a5425bdb90c2fd1b64504cf1015873e78fe332d2f",
+   "config": true
+  },
+  {
+   "resource": "pxd_chat",
+   "path": "fxmanifest.lua",
+   "size": 1796,
+   "sha256": "23bb549ca9df49efe12664e2348834e1ca7f6be2e201fc2c97081700d2edeaea"
+  },
+  {
+   "resource": "pxd_chat",
+   "path": "html/chat.css",
+   "size": 4626,
+   "sha256": "77084780eec81dab8250388ff213270754c87ec72d7063ab081c910a8842a53d"
+  },
+  {
+   "resource": "pxd_chat",
+   "path": "html/ui/proxima-fonts.css",
+   "size": 125038,
+   "sha256": "14caa1b8012bd67f6695272004c3d4761de7dfb1411c69a5b7ab97d31617461a"
+  },
+  {
+   "resource": "pxd_chat",
+   "path": "html/ui/proxima-ui.css",
+   "size": 12208,
+   "sha256": "db87d90642c53f0d5ae8df9c69f0488bd51fa6cd152c7856c4d6a3a1412d3206"
+  },
+  {
+   "resource": "pxd_chat",
+   "path": "server/main.lua",
+   "size": 5073,
+   "sha256": "c84eb91aaca96faa788927c2b766585e4e7030fac1e4de2982ae50d08e298e6e"
+  },
+  {
+   "resource": "pxd_chat",
+   "path": "shared/chat.lua",
+   "size": 2225,
+   "sha256": "05b19ed70bda75e9a7963c0834e02c00d2f6bc5b1b71250b575a9343b8fac935"
+  },
+  {
    "resource": "pxd_gamemodes",
    "path": "client/bridge.lua",
    "size": 2784,
@@ -78,8 +127,8 @@
   {
    "resource": "pxd_gamemodes",
    "path": "fxmanifest.lua",
-   "size": 757,
-   "sha256": "a5731b482a60f0c83793b0be9d0c435f3de697bb1d22beb59c31672c8c62499b"
+   "size": 778,
+   "sha256": "b80c70dddc920de5ed7e160bbbc7c3102a4a91833afbc2787a4a13bea0bab477"
   },
   {
    "resource": "pxd_gamemodes",
@@ -90,14 +139,26 @@
   {
    "resource": "pxd_gamemodes",
    "path": "html/index.html",
-   "size": 2439,
-   "sha256": "9fa917787877665bc361d2ed8b95e5b3cdf2f20805ec592fd490d2d3ee7ed1e5"
+   "size": 2555,
+   "sha256": "4367f59b6a7e1f234c330397097fbf8aeacd07025b7df6a7ea3e1753b9fbfab9"
   },
   {
    "resource": "pxd_gamemodes",
    "path": "html/style.css",
-   "size": 7953,
-   "sha256": "283f578889418bedebd6e1d18eee27493fc4af9c4ffa05e1cef2f6eaebc05c1a"
+   "size": 7903,
+   "sha256": "f6b5c07c6211f68121adb33cc3cd044fa3a0a685f5a5542209997c4c0eb96de7"
+  },
+  {
+   "resource": "pxd_gamemodes",
+   "path": "html/ui/proxima-fonts.css",
+   "size": 125038,
+   "sha256": "14caa1b8012bd67f6695272004c3d4761de7dfb1411c69a5b7ab97d31617461a"
+  },
+  {
+   "resource": "pxd_gamemodes",
+   "path": "html/ui/proxima-ui.css",
+   "size": 12208,
+   "sha256": "db87d90642c53f0d5ae8df9c69f0488bd51fa6cd152c7856c4d6a3a1412d3206"
   },
   {
    "resource": "pxd_gamemodes",
@@ -181,26 +242,38 @@
   {
    "resource": "pxd_hud",
    "path": "fxmanifest.lua",
-   "size": 453,
-   "sha256": "748e6fca5f4558235d63f005fee08565f360d4799ff662dcc4fe4a0853ca2136"
+   "size": 474,
+   "sha256": "22f4d8d2906bd308f56e865944cc18c50c0aadd99b8e0b376735c8e8b4313f0e"
   },
   {
    "resource": "pxd_hud",
    "path": "html/app.js",
-   "size": 7184,
-   "sha256": "3bfe87981a2dc0fa15498270cd309b52385722b52fa5154c79f5c3ab5c185080"
+   "size": 7185,
+   "sha256": "4913cc0d651889515b35a699192a1334ebce7bc213a48bbedd9b2c629312b299"
   },
   {
    "resource": "pxd_hud",
    "path": "html/index.html",
-   "size": 5933,
-   "sha256": "8d25eefe1f288a8cf0cc170af6cfbf61d1f768c80931851fa1c3ec1ae11ad212"
+   "size": 6204,
+   "sha256": "1a93ff9c227c2b774a7f602cd05899691ded56848b6b4d44a544fba9d97a81a4"
   },
   {
    "resource": "pxd_hud",
    "path": "html/style.css",
-   "size": 9392,
-   "sha256": "3f0eb7443056c39c9f6b2d98e9875464ba051d0ab19ff6367e63e53bed236097"
+   "size": 9834,
+   "sha256": "4b69ac7e5920842bfd8dddc2c9dd0179d395aa42d6ddc17f7c1a8eeae4d997e8"
+  },
+  {
+   "resource": "pxd_hud",
+   "path": "html/ui/proxima-fonts.css",
+   "size": 125038,
+   "sha256": "14caa1b8012bd67f6695272004c3d4761de7dfb1411c69a5b7ab97d31617461a"
+  },
+  {
+   "resource": "pxd_hud",
+   "path": "html/ui/proxima-ui.css",
+   "size": 12208,
+   "sha256": "db87d90642c53f0d5ae8df9c69f0488bd51fa6cd152c7856c4d6a3a1412d3206"
   },
   {
    "resource": "pxd_hud",
@@ -371,8 +444,8 @@
   {
    "resource": "pxd_loadscreen",
    "path": "fxmanifest.lua",
-   "size": 672,
-   "sha256": "e8cfce4a51a370ed8b830749a4f80c29199699c21e7ea8e70484dece08bb8f44"
+   "size": 693,
+   "sha256": "8ce9975a65b0da5b4d97c50a24ed3b231eaa9c24da0d9d9b1ff182a030b5b00f"
   },
   {
    "resource": "pxd_loadscreen",
@@ -383,8 +456,8 @@
   {
    "resource": "pxd_loadscreen",
    "path": "html/index.html",
-   "size": 3704,
-   "sha256": "548d1ddf9bf761779a581f9c3be371546c7f38cc72aa44cee43fc30dfef79414"
+   "size": 3820,
+   "sha256": "325c244b2d6e4de705d71def18405acbe98c049d5a63f76e508ae59c3da8bbac"
   },
   {
    "resource": "pxd_loadscreen",
@@ -395,8 +468,20 @@
   {
    "resource": "pxd_loadscreen",
    "path": "html/style.css",
-   "size": 9237,
-   "sha256": "9383f15fbc0acd4aaf321f95197fb339d9df47f251f0458f44e4a1082c9c6a18"
+   "size": 9187,
+   "sha256": "9aa36a427c541ba855b9d6191ef97ecd18f2de949b64279cc42112ccf476b60e"
+  },
+  {
+   "resource": "pxd_loadscreen",
+   "path": "html/ui/proxima-fonts.css",
+   "size": 125038,
+   "sha256": "14caa1b8012bd67f6695272004c3d4761de7dfb1411c69a5b7ab97d31617461a"
+  },
+  {
+   "resource": "pxd_loadscreen",
+   "path": "html/ui/proxima-ui.css",
+   "size": 12208,
+   "sha256": "db87d90642c53f0d5ae8df9c69f0488bd51fa6cd152c7856c4d6a3a1412d3206"
   },
   {
    "resource": "pxd_loadscreen",
@@ -420,8 +505,8 @@
   {
    "resource": "pxd_login",
    "path": "fxmanifest.lua",
-   "size": 442,
-   "sha256": "a6b5849524d451b2eee5e3c71e74d19d9ac0f86e08d941b2a117fb69e3e3de38"
+   "size": 463,
+   "sha256": "66f3d14203ddb14be95a5f3fe4dddaa25bdfcc43fcf05936609352ca14354fff"
   },
   {
    "resource": "pxd_login",
@@ -432,14 +517,26 @@
   {
    "resource": "pxd_login",
    "path": "html/index.html",
-   "size": 2588,
-   "sha256": "26e9596f54f523635539cae94a71f969d11e9cce7dc3d2607c55d5a90e6fcd64"
+   "size": 2704,
+   "sha256": "519d27712cd6b2b8adb3face321009056a09c44fe52b647a5b4e91ef2d4ec652"
   },
   {
    "resource": "pxd_login",
    "path": "html/style.css",
-   "size": 2221,
-   "sha256": "0482f1815ed3808a6ad71340447417d98c92179c3d431e5ad55743fb354489bb"
+   "size": 2141,
+   "sha256": "3a88fdfe63f46b0616b37b3c4ec1b68df2fcd64416e4e1ada48293bdf1461ba2"
+  },
+  {
+   "resource": "pxd_login",
+   "path": "html/ui/proxima-fonts.css",
+   "size": 125038,
+   "sha256": "14caa1b8012bd67f6695272004c3d4761de7dfb1411c69a5b7ab97d31617461a"
+  },
+  {
+   "resource": "pxd_login",
+   "path": "html/ui/proxima-ui.css",
+   "size": 12208,
+   "sha256": "db87d90642c53f0d5ae8df9c69f0488bd51fa6cd152c7856c4d6a3a1412d3206"
   },
   {
    "resource": "pxd_login",
@@ -456,33 +553,33 @@
   {
    "resource": "pxd_multichar",
    "path": "client/main.lua",
-   "size": 16060,
-   "sha256": "94b8286e1b6363e80ed010a77c02cdea372b759b48803fbed8d850ecf84b89a7"
+   "size": 21890,
+   "sha256": "5f3b62fe739bf37dc06895daa27ec1aada08fa79955d934968e2180aa1e1599f"
   },
   {
    "resource": "pxd_multichar",
    "path": "config.lua",
-   "size": 2191,
-   "sha256": "d9efe5f46092c753edd1a06a5dfdb3b3ab870c7b4b44feb5c6692be70b86b4c8",
+   "size": 4173,
+   "sha256": "356eed5890faccffd2be11341b915097141b3547a7993335b53ee90660b2df71",
    "config": true
   },
   {
    "resource": "pxd_multichar",
    "path": "fxmanifest.lua",
-   "size": 726,
-   "sha256": "ad166dfc3535962863ddd5e021b4db3a38120ab4882af12b65dd6c06cf6c4401"
+   "size": 772,
+   "sha256": "88cbc8e9c5328125afd9a356d01ac8191d1927d65d30897a9bf83e2fcb2d5285"
   },
   {
    "resource": "pxd_multichar",
    "path": "html/app.js",
-   "size": 16771,
-   "sha256": "f75dc2c18beea147b6c7724ae72b2c0bd04fc29edbc8e920419e28252049be7e"
+   "size": 21818,
+   "sha256": "42e267862ef988fde4b61ad2388651aebe61f2827e2ab93f9bf90cbc6ba7a321"
   },
   {
    "resource": "pxd_multichar",
    "path": "html/index.html",
-   "size": 6381,
-   "sha256": "395cce83614ad15d1f2aec5dcae08d38e2cdb5eac11d1477a55373be9a306143"
+   "size": 7584,
+   "sha256": "b4146d5252c8579a6f4f97ab0d00508920a961d7325300a51e30f7fc515be6d9"
   },
   {
    "resource": "pxd_multichar",
@@ -493,26 +590,38 @@
   {
    "resource": "pxd_multichar",
    "path": "html/style.css",
-   "size": 12477,
-   "sha256": "a55932f47038d3d4f11d08111c18118e7d0f8fc2aebcf7fe104d3dd76de491e6"
+   "size": 15011,
+   "sha256": "1edfacf985f38e0dff7553e5ce66337618d5cbe676a3c7291c7e7918e9244dd4"
+  },
+  {
+   "resource": "pxd_multichar",
+   "path": "html/ui/proxima-fonts.css",
+   "size": 125038,
+   "sha256": "14caa1b8012bd67f6695272004c3d4761de7dfb1411c69a5b7ab97d31617461a"
+  },
+  {
+   "resource": "pxd_multichar",
+   "path": "html/ui/proxima-ui.css",
+   "size": 12208,
+   "sha256": "db87d90642c53f0d5ae8df9c69f0488bd51fa6cd152c7856c4d6a3a1412d3206"
   },
   {
    "resource": "pxd_multichar",
    "path": "server/main.lua",
-   "size": 3655,
-   "sha256": "c027a83020229818bc3956bfe032d736920b4e5043abe9112109b94d95278043"
+   "size": 4222,
+   "sha256": "75b7e56da83e9d7207bcbe7c4936e6361c4090024a9d998c26ec2d07ec26d10b"
   },
   {
    "resource": "pxd_multichar",
    "path": "shared/multichar.lua",
-   "size": 9994,
-   "sha256": "f672efd4c79fb413303723f106b915d815af6c344bf1e40c2b10d38619d237ea"
+   "size": 12137,
+   "sha256": "a2263b5f17737b423acaf40ab90690e18afc4bc5ef2f8f585caaa0bee93936ae"
   },
   {
    "resource": "pxd_panel",
    "path": "client/main.lua",
-   "size": 2385,
-   "sha256": "e53aa0d55fc6f245ed03840932321bf7af98add8332e3ef430e848e32b79eb62"
+   "size": 2717,
+   "sha256": "ca053a90e7a195b04577f818e0a5f66bc53cbccc9de32ca348695b13dd514b62"
   },
   {
    "resource": "pxd_panel",
@@ -524,8 +633,8 @@
   {
    "resource": "pxd_panel",
    "path": "fxmanifest.lua",
-   "size": 549,
-   "sha256": "b9343d787436c876bbcbea1be70478be0c8d553812e7f7796a48237b4979f93c"
+   "size": 570,
+   "sha256": "c83055d20a494a3b1a0a42f9ca2dd0c25001df5982b9c24af8f0eba296722a3b"
   },
   {
    "resource": "pxd_panel",
@@ -536,8 +645,8 @@
   {
    "resource": "pxd_panel",
    "path": "html/index.html",
-   "size": 2415,
-   "sha256": "4ee3a732e8f3944fc7e62b562f09e13d5b2caad431af4d34e28c9cdd5ff8c54c"
+   "size": 2531,
+   "sha256": "9e9b8e73364dea9a0c9cdaba4928fe3aa169bf05924017596f1c185804b062e4"
   },
   {
    "resource": "pxd_panel",
@@ -548,8 +657,20 @@
   {
    "resource": "pxd_panel",
    "path": "html/style.css",
-   "size": 26681,
-   "sha256": "e6d6576383b9cff7e97d0cdb0fb46201e21e1b8fe8bea045e2c60b4bb41b2a69"
+   "size": 26607,
+   "sha256": "d9089ce4bbf9c77cb4fb5c251a0195859b9e1e4d9ff35d58cdfa68748e1aaae5"
+  },
+  {
+   "resource": "pxd_panel",
+   "path": "html/ui/proxima-fonts.css",
+   "size": 125038,
+   "sha256": "14caa1b8012bd67f6695272004c3d4761de7dfb1411c69a5b7ab97d31617461a"
+  },
+  {
+   "resource": "pxd_panel",
+   "path": "html/ui/proxima-ui.css",
+   "size": 12208,
+   "sha256": "db87d90642c53f0d5ae8df9c69f0488bd51fa6cd152c7856c4d6a3a1412d3206"
   },
   {
    "resource": "pxd_panel",
@@ -665,8 +786,8 @@
   {
    "resource": "pxd_restart",
    "path": "fxmanifest.lua",
-   "size": 445,
-   "sha256": "3c9359948c88ca95f03f9353a56ccac3a6bcbbfd304d23fcc3a4b365318d89eb"
+   "size": 466,
+   "sha256": "f36350c1ac94bb3233416e6fbf5db865a50b629c097ff0f9382e63ff1eaa186f"
   },
   {
    "resource": "pxd_restart",
@@ -677,8 +798,8 @@
   {
    "resource": "pxd_restart",
    "path": "html/index.html",
-   "size": 1385,
-   "sha256": "69cf069dc2ef99901dee61d7a84f78dcb937378e9b496a12b44d08af30dffa9f"
+   "size": 1501,
+   "sha256": "f3474c2c526af488bbc632db93649cf3b9248770458f652a83f22c8a1fb87be6"
   },
   {
    "resource": "pxd_restart",
@@ -689,8 +810,20 @@
   {
    "resource": "pxd_restart",
    "path": "html/style.css",
-   "size": 4748,
-   "sha256": "77e35fd4327cec50114714a0044a08a0494a233537e53f20e76f84336a78cd1a"
+   "size": 4642,
+   "sha256": "887aa7a235d35f61c451973b05d791b7deb66fbe1d630b9de08d24e62aef60c4"
+  },
+  {
+   "resource": "pxd_restart",
+   "path": "html/ui/proxima-fonts.css",
+   "size": 125038,
+   "sha256": "14caa1b8012bd67f6695272004c3d4761de7dfb1411c69a5b7ab97d31617461a"
+  },
+  {
+   "resource": "pxd_restart",
+   "path": "html/ui/proxima-ui.css",
+   "size": 12208,
+   "sha256": "db87d90642c53f0d5ae8df9c69f0488bd51fa6cd152c7856c4d6a3a1412d3206"
   },
   {
    "resource": "pxd_restart",
@@ -827,6 +960,31 @@
    "resource": "pxd_loadscreen",
    "path": "html/assets/ciudad-4.png",
    "url": "https://d2ol7oe51mr4n9.cloudfront.net/user_37Ov13C5FiPPOO8dlkIS8XYZnE7/8897b50d-9f3e-4317-9d61-a6fdc8d47896.png"
+  },
+  {
+   "resource": "pxd_multichar",
+   "path": "html/assets/spawn-centro.jpg",
+   "url": "https://raw.githubusercontent.com/EleevateMX/Servidorproxd/HEAD/server-data/resources/%5Bproxima%5D/pxd_multichar/html/assets/spawn-centro.jpg"
+  },
+  {
+   "resource": "pxd_multichar",
+   "path": "html/assets/spawn-paleto.jpg",
+   "url": "https://raw.githubusercontent.com/EleevateMX/Servidorproxd/HEAD/server-data/resources/%5Bproxima%5D/pxd_multichar/html/assets/spawn-paleto.jpg"
+  },
+  {
+   "resource": "pxd_multichar",
+   "path": "html/assets/spawn-motel.jpg",
+   "url": "https://raw.githubusercontent.com/EleevateMX/Servidorproxd/HEAD/server-data/resources/%5Bproxima%5D/pxd_multichar/html/assets/spawn-motel.jpg"
+  },
+  {
+   "resource": "pxd_multichar",
+   "path": "html/assets/spawn-ultima.jpg",
+   "url": "https://raw.githubusercontent.com/EleevateMX/Servidorproxd/HEAD/server-data/resources/%5Bproxima%5D/pxd_multichar/html/assets/spawn-ultima.jpg"
+  },
+  {
+   "resource": "pxd_multichar",
+   "path": "html/assets/spawn-casa.jpg",
+   "url": "https://raw.githubusercontent.com/EleevateMX/Servidorproxd/HEAD/server-data/resources/%5Bproxima%5D/pxd_multichar/html/assets/spawn-casa.jpg"
   }
  ],
  "plan": {
@@ -840,7 +998,8 @@
    "pxd_hud",
    "pxd_voice",
    "pxd_admin",
-   "pxd_inventory"
+   "pxd_inventory",
+   "pxd_chat"
   ],
   "replaces": {
    "pxd_hud": [
@@ -879,6 +1038,30 @@
     "replace": "<link rel=\"stylesheet\" href=\"./assets/pxd.css\"><script src=\"./assets/pxd.js\"></script></head>",
     "requires": "pxd_inventory",
     "why": "inventario con el estilo de Próxima"
+   },
+   {
+    "resource": "illenium-appearance",
+    "path": "shared/theme.lua",
+    "find": "currentTheme = \"qb-core\",",
+    "replace": "currentTheme = \"proxima\",",
+    "requires": "pxd_multichar",
+    "why": "editor de ropa con el tema de Próxima"
+   },
+   {
+    "resource": "illenium-appearance",
+    "path": "shared/theme.lua",
+    "find": "    themes = {",
+    "replace": "    themes = {\n        {\n            id = \"proxima\",\n            borderRadius = \"1vh\",\n            fontColor = \"242, 245, 255\",\n            fontColorHover = \"255, 255, 255\",\n            fontColorSelected = \"5, 7, 15\",\n            fontFamily = \"Inter\",\n            primaryBackground = \"214, 59, 240\",\n            primaryBackgroundSelected = \"92, 225, 255\",\n            secondaryBackground = \"11, 15, 29\",\n            scaleOnHover = false,\n            sectionFontWeight = \"bold\",\n            smoothBackgroundTransition = true\n        },",
+    "requires": "pxd_multichar",
+    "why": "tema «proxima» del editor de ropa"
+   },
+   {
+    "resource": "illenium-appearance",
+    "path": "shared/config.lua",
+    "find": "    Ped = true,",
+    "replace": "    Ped = false, -- Próxima: solo personajes freemode (se pueden vestir)",
+    "requires": "pxd_multichar",
+    "why": "al crear personaje solo modelos freemode"
    }
   ],
   "external": [

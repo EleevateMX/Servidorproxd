@@ -175,3 +175,29 @@ T.describe('pxd_multichar · integración', function()
         T.eq(type(Config.storeUrl), 'string')
     end)
 end)
+
+T.describe('pxd_multichar · aparición', function()
+    T.it('lee si qbx_core da apartamento inicial', function()
+        T.eq(PXDChar.qbxStartingApartment('characters = { startingApartment = false, }'), false)
+        T.eq(PXDChar.qbxStartingApartment('characters = { startingApartment = true, }'), true)
+        T.eq(PXDChar.qbxStartingApartment(nil), true, 'sin leer: valor por defecto de qbx_core')
+    end)
+
+    T.it('opciones: última ubicación, casas y puntos, con ids estables y coordenadas válidas', function()
+        local list, byId = PXDChar.buildSpawnOptions(
+            { coords = { x = 1, y = 2, z = 3 }, propertyId = 7 },
+            { { label = 'Del Perro 12', coords = { x = 4, y = 5, z = 6 }, propertyId = 12 }, { label = 'Rota', coords = { x = 0 / 0, y = 0, z = 0 } } },
+            { { label = 'Plaza', detail = 'Centro', coords = { x = 7, y = 8, z = 9, w = 10 }, image = 'img/a.jpg' } })
+        T.eq(#list, 3, 'la casa con coordenadas inválidas se descarta')
+        T.eq(list[1].id, 'last'); T.eq(list[1].kind, 'last')
+        T.eq(list[2].id, 'property:12'); T.eq(byId['property:12'].propertyId, 12)
+        T.eq(list[3].id, 'point:1'); T.eq(list[3].image, 'img/a.jpg')
+        T.falsy(list[3].coords, 'a la NUI no le llegan coordenadas')
+        T.eq(byId['point:1'].coords.w, 10)
+    end)
+
+    T.it('sin última ubicación ni casas: solo los puntos', function()
+        local list = PXDChar.buildSpawnOptions(nil, nil, { { label = 'Plaza', coords = { x = 1, y = 1, z = 1 } } })
+        T.eq(#list, 1); T.eq(list[1].kind, 'point')
+    end)
+end)

@@ -16,6 +16,7 @@ client_script 'client/main.lua'
 ui_page 'html/index.html'
 nui_callback_strict_mode 'true'
 files {
+    'html/ui/*.css',
     'html/index.html',
     'html/style.css',
     'html/app.js',

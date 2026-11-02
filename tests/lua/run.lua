@@ -17,6 +17,8 @@ local suites = {
     'test_panel',
     'test_hud',
     'test_interact',
+    'test_chat',
+    'test_multichar_client',
     'test_voice',
     'test_admin',
     'test_inventory',

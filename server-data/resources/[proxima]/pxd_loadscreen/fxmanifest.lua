@@ -19,6 +19,7 @@ server_scripts {
 }
 
 files {
+    'html/ui/*.css',
     'html/index.html',
     'html/style.css',
     'html/app.js',

@@ -8,7 +8,7 @@
   --star: #5ce1ff;
   --star-strong: #22c8f0;
   --nova: #ff4fd8;
-  --font: "Segoe UI", "Inter", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font: var(--px-font);
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; overflow: hidden; background: var(--night-950); color: var(--text); font-family: var(--font); }
