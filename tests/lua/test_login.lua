@@ -68,7 +68,7 @@ T.describe('pxd_login', function()
         connect(1, 'Nova', { { code = 'codigo-uno' }, { submitId = 'accept' } })
         Fx.convars.pxd_login_accessCode = 'codigo-dos'
         local d = connect(1, 'Nova', {})
-        T.eq(#d.cards, 1); T.eq(d.cards[1].body[3].id, 'code')
+        T.truthy(#d.cards >= 1); T.eq(d.cards[1].body[3].id, 'code')
     end)
 
     T.it('si suben las normas (rulesVersion), se vuelven a pedir', function()
@@ -98,5 +98,34 @@ T.describe('pxd_login', function()
         Fx.emit('playerConnecting', 5, 'SinLicencia', function() end, d)
         for _ = 1, 3 do Fx.advance(0) end
         T.truthy(result and result:find('licencia'))
+    end)
+
+    T.it('vuelve a mostrar la tarjeta mientras otros recursos la tapan', function()
+        boot()
+        local d = connect(1, 'Nova', {})   -- no responde todavía
+        for _ = 1, 6 do Fx.advance(1.6) end
+        T.truthy(#d.cards >= 5, 're-presenta la tarjeta: ' .. #d.cards)
+        T.eq(d.cards[1].body[1].type, 'ColumnSet', 'cabecera con icono')
+        T.falsy(d.result, 'sigue esperando')
+        Fx.advance(25)
+        local before = #d.cards
+        for _ = 1, 4 do Fx.advance(1.6) end
+        T.eq(#d.cards, before, 'pasados 20 s deja de re-presentar')
+    end)
+
+    T.it('cancela con un mensaje claro si nadie responde', function()
+        boot()
+        Config.cardTimeoutSec = 10
+        local d = connect(1, 'Nova', {})
+        for _ = 1, 10 do Fx.advance(1.6) end
+        T.truthy(d.result and d.result:find('agotó'), tostring(d.result))
+    end)
+
+    T.it('si el login falla por dentro, no deja la conexión colgada', function()
+        boot()
+        PXDLogin.Login.nextStep = function() error('fallo simulado') end
+        local d = connect(1, 'Nova', {})
+        T.truthy(d.result and d.result:find('error'), tostring(d.result))
+        T.truthy(Fx.logs[#Fx.logs]:find('fallo simulado'))
     end)
 end)

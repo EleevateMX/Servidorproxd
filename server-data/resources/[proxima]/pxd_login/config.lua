@@ -2,6 +2,15 @@
 Config = {}
 
 Config.serverName = 'PRÓXIMA RP'
+Config.tagline = 'Tu próxima vida empieza aquí'
+-- Icono de las tarjetas al conectar (URL pública). Vacío = sin imagen.
+Config.cardIcon = 'https://raw.githubusercontent.com/EleevateMX/Servidorproxd/HEAD/brand/portal/proxima-rp-icono-512.png'
+
+-- Tarjetas al conectar: otros recursos (p. ej. Qbox) envían mensajes de progreso que
+-- tapan la tarjeta; se vuelve a mostrar cada 1,5 s durante estos segundos.
+Config.cardRefreshSec = 20
+-- Tiempo máximo para responder una tarjeta antes de cancelar la conexión.
+Config.cardTimeoutSec = 300
 
 -- Código de acceso para servidores de pruebas privados. Se lee de esta convar:
 --   set pxd_login_accessCode "algo-largo"   (en secrets.cfg, con `set`, nunca `setr`)

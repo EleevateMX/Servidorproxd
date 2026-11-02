@@ -20,42 +20,54 @@ function Login.nextStep(record, opts)
     return 'done'
 end
 
-local function header(serverName, subtitle)
+-- Cabecera con el icono de la marca (columna izquierda) y nombre + lema.
+local function header(opts, subtitle)
+    local brand = {
+        { type = 'TextBlock', text = opts.serverName, size = 'ExtraLarge', weight = 'Bolder', color = 'Accent' },
+        { type = 'TextBlock', text = opts.tagline or '', isSubtle = true, spacing = 'None' },
+    }
+    local head
+    if opts.icon and opts.icon ~= '' then
+        head = { type = 'ColumnSet', columns = {
+            { type = 'Column', width = 'auto', items = { { type = 'Image', url = opts.icon, size = 'Medium', altText = opts.serverName } } },
+            { type = 'Column', width = 'stretch', verticalContentAlignment = 'Center', items = brand },
+        } }
+    else
+        head = { type = 'Container', items = brand }
+    end
+    return { head, { type = 'TextBlock', text = subtitle, wrap = true, spacing = 'Large' } }
+end
+
+local function card(body, actions)
     return {
-        { type = 'TextBlock', text = serverName, size = 'ExtraLarge', weight = 'Bolder', color = 'Accent' },
-        { type = 'TextBlock', text = subtitle, wrap = true, isSubtle = true },
+        type = 'AdaptiveCard', version = '1.0',
+        ['$schema'] = 'http://adaptivecards.io/schemas/adaptive-card.json',
+        body = body, actions = actions,
     }
 end
 
-function Login.codeCard(serverName, errorText, attemptsLeft)
-    local body = header(serverName, 'Servidor privado de pruebas. Introduce el código de acceso.')
+--- opts = { serverName, tagline, icon }
+function Login.codeCard(opts, errorText, attemptsLeft)
+    local body = header(opts, 'Estamos en pruebas privadas. Escribe el código de acceso que te dio el staff.')
     if errorText then
         body[#body + 1] = { type = 'TextBlock', text = errorText .. (' Intentos restantes: %d.'):format(attemptsLeft),
             color = 'Attention', wrap = true }
     end
     body[#body + 1] = { type = 'Input.Text', id = 'code', placeholder = 'Código de acceso' }
-    return {
-        type = 'AdaptiveCard', version = '1.0',
-        ['$schema'] = 'http://adaptivecards.io/schemas/adaptive-card.json',
-        body = body,
-        actions = { { type = 'Action.Submit', title = 'Entrar', id = 'submit' } },
-    }
+    return card(body, { { type = 'Action.Submit', title = 'Entrar', id = 'submit' } })
 end
 
-function Login.rulesCard(serverName, rules, name)
-    local body = header(serverName, ('Hola, %s. Antes de entrar, acepta las normas de la ciudad:'):format(name or 'jugador'))
-    for i, r in ipairs(rules) do
-        body[#body + 1] = { type = 'TextBlock', text = ('%d. %s'):format(i, r), wrap = true }
+function Login.rulesCard(opts, rules, name)
+    local body = header(opts, ('¡Hola, %s! Antes de entrar a la ciudad, lee y acepta las normas:'):format(name or 'jugador'))
+    for _, r in ipairs(rules) do
+        body[#body + 1] = { type = 'TextBlock', text = '✦  ' .. r, wrap = true, spacing = 'Small' }
     end
-    return {
-        type = 'AdaptiveCard', version = '1.0',
-        ['$schema'] = 'http://adaptivecards.io/schemas/adaptive-card.json',
-        body = body,
-        actions = {
-            { type = 'Action.Submit', title = 'Acepto las normas', id = 'accept' },
-            { type = 'Action.Submit', title = 'No acepto', id = 'decline' },
-        },
-    }
+    body[#body + 1] = { type = 'TextBlock', text = 'Al aceptar te comprometes a respetarlas dentro y fuera del rol.',
+        isSubtle = true, wrap = true, spacing = 'Medium', size = 'Small' }
+    return card(body, {
+        { type = 'Action.Submit', title = 'Acepto las normas', id = 'accept' },
+        { type = 'Action.Submit', title = 'No acepto', id = 'decline' },
+    })
 end
 
 --- Normaliza el registro de un jugador cargado de disco.

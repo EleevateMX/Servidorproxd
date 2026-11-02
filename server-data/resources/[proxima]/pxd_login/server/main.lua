@@ -29,10 +29,37 @@ CreateThread(function()
 end)
 AddEventHandler('onResourceStop', function(name) if name == RES then save() end end)
 
---- Presenta una tarjeta y espera la respuesta del jugador.
+local CARD_OPTS = { serverName = Config.serverName, tagline = Config.tagline, icon = Config.cardIcon }
+
+--- Presenta una tarjeta y espera la respuesta. Mientras no responda, la vuelve a
+--- presentar unos segundos (los mensajes de progreso de otros recursos la tapan) y
+--- cancela tras Config.cardTimeoutSec. Devuelve la respuesta o { timeout = true }.
 local function ask(deferrals, card)
     local p = promise.new()
-    deferrals.presentCard(json.encode(card), function(data) p:resolve(type(data) == 'table' and data or {}) end)
+    local answered = false
+    local raw = json.encode(card)
+    local function onAnswer(data)
+        if answered then return end
+        answered = true
+        p:resolve(type(data) == 'table' and data or {})
+    end
+    deferrals.presentCard(raw, onAnswer)
+    CreateThread(function()
+        local started = GetGameTimer()
+        while not answered do
+            Wait(1500)
+            if answered then return end
+            local elapsed = GetGameTimer() - started
+            if elapsed >= Config.cardTimeoutSec * 1000 then
+                answered = true
+                p:resolve({ timeout = true })
+                return
+            end
+            if elapsed <= Config.cardRefreshSec * 1000 then
+                deferrals.presentCard(raw, onAnswer)
+            end
+        end
+    end)
     return Citizen.Await(p)
 end
 
@@ -41,11 +68,9 @@ local function accessOptions()
     return { accessCode = code, codeHash = code ~= '' and GetHashKey(code) or nil, rulesVersion = Config.rulesVersion }
 end
 
-AddEventHandler('playerConnecting', function(name, _, deferrals)
-    local src = source
-    deferrals.defer()
+local function connect(src, name, deferrals)
+    deferrals.update(('✦ %s · Preparando tu llegada…'):format(Config.serverName))
     Wait(0)
-    deferrals.update(('Comprobando tu acceso a %s…'):format(Config.serverName))
 
     local license = GetPlayerIdentifierByType(src, 'license')
     if not license then
@@ -60,7 +85,8 @@ AddEventHandler('playerConnecting', function(name, _, deferrals)
     if step == 'code' then
         local attempts, err = Config.maxCodeAttempts, nil
         while true do
-            local data = ask(deferrals, Login.codeCard(Config.serverName, err, attempts))
+            local data = ask(deferrals, Login.codeCard(CARD_OPTS, err, attempts))
+            if data.timeout then return deferrals.done('Se agotó el tiempo para escribir el código. Vuelve a conectarte.') end
             if Login.safeEquals(tostring(data.code or ''), opts.accessCode) then
                 rec.codeHash = opts.codeHash
                 break
@@ -76,7 +102,8 @@ AddEventHandler('playerConnecting', function(name, _, deferrals)
     end
 
     if step == 'rules' then
-        local data = ask(deferrals, Login.rulesCard(Config.serverName, Config.rules, name))
+        local data = ask(deferrals, Login.rulesCard(CARD_OPTS, Config.rules, name))
+        if data.timeout then return deferrals.done('Se agotó el tiempo para aceptar las normas. Vuelve a conectarte.') end
         if data.submitId ~= 'accept' then
             return deferrals.done(('Necesitas aceptar las normas para jugar en %s.'):format(Config.serverName))
         end
@@ -96,6 +123,19 @@ AddEventHandler('playerConnecting', function(name, _, deferrals)
     deferrals.handover({ name = name, firstTime = firstTime, serverName = Config.serverName })
     Wait(0)
     deferrals.done()
+end
+
+AddEventHandler('playerConnecting', function(name, _, deferrals)
+    local src = source
+    deferrals.defer()
+    Wait(0)
+    -- Si algo falla aquí, nunca dejamos al jugador colgado en la conexión.
+    local ok, err = pcall(connect, src, name, deferrals)
+    if not ok then
+        print(('[pxd_login] ERROR al conectar %s: %s'):format(tostring(name), tostring(err)))
+        Wait(0)
+        deferrals.done('Hubo un error en el login de Próxima RP. Inténtalo de nuevo y avisa al staff si se repite.')
+    end
 end)
 
 -- Perfil para la pantalla de bienvenida.
