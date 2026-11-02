@@ -4,8 +4,41 @@ import { Fold, Slider, Stepper, Swatches, percent, signed } from './controls';
 import { EYE_COLOR_NAMES, NATURAL_EYES, PARENT_NAMES, portraitTexture } from './data';
 import { FATHERS, FREEMODE, MOTHERS, clone, drawablesOf, getComponent, getProp, setComponent, setProp, texturesFor } from './look';
 import type { IdentityErrors } from './validation';
+import { nationalityOptions } from './nationality';
 
 type Change = (next: Look, key: string) => void;
+
+// Fecha en día / mes / año (el <input type="date"> del navegador de FiveM sale en inglés: mm/dd/yyyy).
+const MONTHS = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+const pad = (n: number) => String(n).padStart(2, '0');
+function DateField(p: { value: string; min?: string; max?: string; invalid?: boolean; onChange: (v: string) => void }) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(p.value || '');
+  const [y, mo, d] = m ? [Number(m[1]), Number(m[2]), Number(m[3])] : [0, 0, 0];
+  const minY = Number((p.min || '1900').slice(0, 4)), maxY = Number((p.max || '2010').slice(0, 4));
+  const years: number[] = [];
+  for (let i = maxY; i >= minY; i--) years.push(i);
+  const days = y && mo ? new Date(y, mo, 0).getDate() : 31;
+  const emit = (ny: number, nm: number, nd: number) => {
+    if (!ny || !nm || !nd) return p.onChange('');
+    p.onChange(`${ny}-${pad(nm)}-${pad(Math.min(nd, new Date(ny, nm, 0).getDate()))}`);
+  };
+  return (
+    <div className="date3" aria-invalid={p.invalid}>
+      <select aria-label="Día" value={d || ''} onChange={(e) => emit(y, mo, Number(e.target.value))}>
+        <option value="">Día</option>
+        {Array.from({ length: days }, (_, i) => i + 1).map((n) => <option key={n} value={n}>{n}</option>)}
+      </select>
+      <select aria-label="Mes" value={mo || ''} onChange={(e) => emit(y, Number(e.target.value), d)}>
+        <option value="">Mes</option>
+        {MONTHS.map((n, i) => <option key={n} value={i + 1}>{n}</option>)}
+      </select>
+      <select aria-label="Año" value={y || ''} onChange={(e) => emit(Number(e.target.value), mo, d)}>
+        <option value="">Año</option>
+        {years.map((n) => <option key={n} value={n}>{n}</option>)}
+      </select>
+    </div>
+  );
+}
 
 // ── A. Identidad ──────────────────────────────────────
 export function IdentitySection(p: {
@@ -33,14 +66,14 @@ export function IdentitySection(p: {
         </div>
         <p className="ctl__hint">Cambiar el sexo restablece la ropa y el cabello; la herencia y los rasgos se conservan.</p>
       </Field>
-      <div className="row2">
+      <div className="stack2">
         <Field label="Fecha de nacimiento" error={errors.birthdate}>
-          <input type="date" value={id.birthdate} min={id.dateMin} max={id.dateMax} onChange={(e) => set('birthdate', e.target.value)} aria-invalid={!!errors.birthdate} />
+          <DateField value={id.birthdate} min={id.dateMin} max={id.dateMax} onChange={(v) => set('birthdate', v)} invalid={!!errors.birthdate} />
         </Field>
         <Field label="Nacionalidad" error={errors.nationality}>
           {id.limitNationalities && id.nationalities?.length ? (
             <select value={id.nationality} onChange={(e) => set('nationality', e.target.value)} aria-invalid={!!errors.nationality}>
-              {id.nationalities.map((n) => <option key={n} value={n}>{n}</option>)}
+              {nationalityOptions(id.nationalities).map((n) => <option key={n.value} value={n.value}>{n.label}</option>)}
             </select>
           ) : (
             <input value={id.nationality} maxLength={30} onChange={(e) => set('nationality', e.target.value)} aria-invalid={!!errors.nationality} />

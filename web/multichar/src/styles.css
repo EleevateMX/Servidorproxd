@@ -173,3 +173,9 @@ kbd { display: inline-block; min-width: 22px; padding: 2px 6px; margin-right: 6p
 .sec, .fold__body, .garment, .ctl { grid-template-columns: minmax(0, 1fr); }
 .sec > *, .fold__body > *, .garment > *, .step { min-width: 0; }
 .step__label { flex: 1 1 auto; }
+
+/* Fecha de nacimiento en día / mes / año y su fila a lo ancho */
+.stack2 { display: grid; grid-template-columns: minmax(0, 1fr); grid-gap: 10px; }
+.date3 { display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.5fr) minmax(0, 1fr); grid-gap: 6px; }
+.date3 select { width: 100%; min-width: 0; }
+.date3[aria-invalid="true"] select { border-color: var(--danger, #ff5a6e); }

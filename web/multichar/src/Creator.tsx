@@ -1,3 +1,4 @@
+import { nationalityLabel } from './nationality';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { EditorData, Identity, Limits, Look, SectionId } from './types';
 import { FREEMODE, SECTION_LABEL, clone, push, randomizeSection, replace, resetSection, undo, type History } from './look';
@@ -208,7 +209,7 @@ export function Creator(p: { data: EditorData; error: { text: string; field?: st
                 <dt>Nombre</dt><dd>{fullName}</dd>
                 <dt>Sexo</dt><dd>{FREEMODE[look.model] === 1 ? 'Femenino' : 'Masculino'}</dd>
                 <dt>Nacimiento</dt><dd>{identity.birthdate}</dd>
-                <dt>Nacionalidad</dt><dd>{identity.nationality}</dd>
+                <dt>Nacionalidad</dt><dd>{nationalityLabel(identity.nationality)}</dd>
               </dl>
             ) : null}
             <p className="modal__text">{data.mode === 'create'

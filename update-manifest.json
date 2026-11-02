@@ -802,8 +802,8 @@
   {
    "resource": "pxd_multichar",
    "path": "client/editor.lua",
-   "size": 13901,
-   "sha256": "9e70c9c68047c87c5e1cb113310294c87447cce84ab65d85074cd41cb8b957a8"
+   "size": 15492,
+   "sha256": "c7daa64b516c0859d5f3200c2b94e0df07c70505de754881a472479accb1512c"
   },
   {
    "resource": "pxd_multichar",
@@ -818,6 +818,7 @@
    "sha256": "a47ceb962e05796685bba305cd1d9389659366b0b31f9a00bb007661e852ccdf",
    "config": true,
    "known": [
+    "0a205fb510cda463fb8736d2ad3d9af26aac9ebd867de94067f653d6bcd6fcab",
     "356eed5890faccffd2be11341b915097141b3547a7993335b53ee90660b2df71",
     "657a6868ea8143fa365c4904a4d1fb83d25c30ef3f8932e0f199bc4ff78dcea8",
     "d9efe5f46092c753edd1a06a5dfdb3b3ab870c7b4b44feb5c6692be70b86b4c8"

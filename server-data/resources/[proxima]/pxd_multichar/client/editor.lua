@@ -73,6 +73,31 @@ local function setModel(model)
     return true
 end
 
+local function isFreemode(ped)
+    local m = GetEntityModel(ped)
+    return m == joaat('mp_m_freemode_01') or m == joaat('mp_f_freemode_01')
+end
+
+--- Herencia directamente con el native (SET_PED_HEAD_BLEND_DATA). Un ped freemode sin
+--- head blend sale SIN CABEZA, así que se aplica siempre antes que nada y no depende de illenium.
+local function applyHeadBlend(ped, hb)
+    if not isFreemode(ped) then return end
+    hb = type(hb) == 'table' and hb or {}
+    SetPedHeadBlendData(ped, hb.shapeFirst or 0, hb.shapeSecond or 0, hb.shapeThird or 0,
+        hb.skinFirst or 0, hb.skinSecond or 0, hb.skinThird or 0,
+        (hb.shapeMix or 0) + 0.0, (hb.skinMix or 0) + 0.0, (hb.thirdMix or 0) + 0.0, false)
+end
+
+local reported = false
+local function illeniumApply(ped, look)
+    if not illenium() then return end
+    local ok, err = pcall(function() exports['illenium-appearance']:setPedAppearance(ped, look) end)
+    if not ok and not reported then
+        reported = true   -- una vez por sesión, para no llenar la consola F8
+        print(('[pxd_multichar] illenium-appearance:setPedAppearance falló: %s'):format(tostring(err)))
+    end
+end
+
 --- Aplica una apariencia completa (ya saneada) al ped del jugador.
 function E.apply(look)
     local changed = setModel(look.model)
@@ -83,8 +108,20 @@ function E.apply(look)
         SetEntityHeading(ped, state.heading or s.w)
         FreezeEntityPosition(ped, true)
     end
-    if illenium() then
-        pcall(function() exports['illenium-appearance']:setPedAppearance(ped, look) end)
+    applyHeadBlend(ped, look.headBlend)
+    illeniumApply(ped, look)
+    if changed then
+        -- Recién cambiado el modelo, GTA puede ignorar el head blend del primer frame:
+        -- se vuelve a aplicar cuando el ped ya está creado.
+        CreateThread(function()
+            for _ = 1, 2 do
+                Wait(150)
+                local p = PlayerPedId()
+                if GetEntityModel(p) ~= joaat(look.model) then return end
+                applyHeadBlend(p, look.headBlend)
+                illeniumApply(p, look)
+            end
+        end)
     end
     return ped, changed
 end
