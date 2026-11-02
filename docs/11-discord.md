@@ -38,6 +38,19 @@ Y publica los mensajes fijos: normas (las mismas que se aceptan al entrar al jue
 
 Toda la plantilla está en `discord/src/template.js`: cambia nombres, colores o canales ahí.
 
+## Sin comandos (Windows, con doble clic)
+
+Si no quieres escribir comandos, haz esto:
+
+1. Instala **Node.js** desde https://nodejs.org (el botón **LTS**; siguiente, siguiente, finalizar).
+2. Descarga el proyecto en ZIP: https://github.com/EleevateMX/Servidorproxd/archive/refs/heads/claude/gracious-gauss-sb5o7s.zip. Descomprímelo (clic derecho → Extraer todo) y entra en la carpeta `discord`.
+3. Crea el bot y copia el token y el ID de tu servidor (pasos 1 y 2 de «Ponerlo en marcha», más abajo).
+4. Doble clic en **`1-configurar.bat`**: te pregunta el token, el ID del servidor y, si quieres, la IP de FiveM y el enlace de la tienda. Para pegar en esa ventana, clic derecho.
+5. Doble clic en **`2-montar-servidor.bat`**: te enseña lo que va a crear y pregunta «S/N». Pulsa **S**.
+6. Doble clic en **`3-encender-bot.bat`**: el bot queda encendido mientras esa ventana esté abierta.
+
+Si Windows avisa de que el archivo viene de internet: «Más información» → «Ejecutar de todas formas».
+
 ## Ponerlo en marcha
 
 ### 1. Crear el bot (una vez)

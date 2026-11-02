@@ -244,3 +244,29 @@ test('imágenes: cada mensaje fijo y la bienvenida llevan su cabecera de brand/d
   const w = welcomeMessage({ userId: '1' });
   assert.deepEqual(w.files, [HEADERS.welcome]);
 });
+
+test('asistente de configuración: valida y rellena discord/.env sin perder comentarios', async () => {
+  const { buildEnv, parseEnv, isGuildId, looksLikeToken, fivemAddress } = await import('../../discord/src/envfile.js');
+  assert.ok(isGuildId('123456789012345678') && !isGuildId('12') && !isGuildId('abc123456789012345'));
+  // Token inventado, armado por partes para que no parezca un secreto real.
+  assert.ok(looksLikeToken(['x'.repeat(24), 'y'.repeat(6), 'z'.repeat(27)].join('.')));
+  assert.ok(!looksLikeToken('hola') && !looksLikeToken('a.b.c'));
+  assert.deepEqual(fivemAddress('connect 1.2.3.4:30125'), { FIVEM_CONNECT: '1.2.3.4:30125', FIVEM_URL: 'http://1.2.3.4:30125' });
+  assert.deepEqual(fivemAddress('1.2.3.4'), { FIVEM_CONNECT: '1.2.3.4:30120', FIVEM_URL: 'http://1.2.3.4:30120' });
+  assert.equal(fivemAddress('no vale nada'), null);
+  const example = readFileSync(`${root}discord/.env.example`, 'utf8');
+  const out = buildEnv(example, { DISCORD_TOKEN: 'x.y.z', DISCORD_GUILD_ID: '123456789012345678', EXTRA: '1' });
+  const env = parseEnv(out);
+  assert.equal(env.DISCORD_TOKEN, 'x.y.z');
+  assert.equal(env.LINK_DISCORD, 'https://discord.gg/qUcD5gCf6v', 'conserva lo que no se pregunta');
+  assert.equal(env.EXTRA, '1');
+  assert.ok(out.includes('# Bot de Discord de Próxima RP'), 'conserva los comentarios');
+});
+
+test('archivos de doble clic: existen, con saltos de línea de Windows', () => {
+  for (const f of ['1-configurar.bat', '2-montar-servidor.bat', '3-encender-bot.bat']) {
+    const text = readFileSync(`${root}discord/${f}`, 'latin1');
+    assert.ok(text.includes('\r\n') && !/[^\r]\n/.test(text), `${f}: debe usar CRLF`);
+    assert.ok(text.includes('cd /d "%~dp0"'), `${f}: debe ejecutarse desde su carpeta`);
+  }
+});
