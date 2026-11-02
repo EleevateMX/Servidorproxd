@@ -106,3 +106,40 @@ Recorre las 23 pruebas de `docs/32` §5. Primero estas:
 | El cfg da problemas | Pega `server-cfg-antes.txt` en CFG Editor → reiniciar |
 
 Las tablas nuevas `pxd_fines` y `pxd_fine_events` no afectan a nada más; pueden quedarse aunque vuelvas atrás.
+
+---
+
+## Segunda entrega · integraciones (solo después de verificar la primera)
+
+**Paquete:** `proxima-integraciones-3bb862a.zip`. Contiene los 23 recursos del commit `3bb862a`, `permissions.pxd.cfg` y `proxima.cfg` (ya fijado a `3bb862a`). No lleva datos persistentes.
+
+**Recursos nuevos:**
+- `pxd_phone`: teléfono;
+- `pxd_theme`: menús ox_lib y mirilla ox_target;
+- `pxd_blips`: mapa en español;
+- `pxd_audit`: auditoría común; migra la del hospital y las multas sin borrar los originales;
+- `pxd_economy`: `/factura`, `/facturas` y `/economia`.
+
+1. Sin jugadores. Haz una copia de Nodecraft y un dump de la base de datos (como en el paso 0).
+2. Sube el zip a `PrxmaRPQbox_E83FED.base`, descomprímelo y acepta sobrescribir. `server.cfg` no se toca: ya tiene `exec proxima.cfg`.
+3. Reinicia, ejecuta `pxd_update check` y luego `pxd_update`. **Deberías ver:**
+   - parches de `npwd`, `ox_lib` y `ox_target` aplicados con copia de seguridad;
+   - «Iniciado pxd_phone / pxd_theme / pxd_blips / pxd_audit / pxd_economy».
+   - 🛑 DETENTE si sale «no encuentra el texto» o un SCRIPT ERROR.
+4. Reinicia otra vez. En la consola: `economia`. Debe mostrar el resumen, vacío al principio.
+5. **Pruebas en el juego:**
+
+   | Prueba | ✔ si… |
+   |---|---|
+   | Flecha arriba | El teléfono tiene el diseño de Próxima; Dynasty 8, Emergencias y Taxi se abren |
+   | Alt sobre un objeto | Mirilla con destello y menú con el estilo de Próxima |
+   | Mapa de pausa | Puntos en español: Comisaría, Hospital, Tienda… |
+   | Mecánico de servicio: `/factura` a otro jugador | Al cliente le llega el aviso; `/facturas` la muestra pendiente |
+   | Pagar parte y luego el resto | Parcial y luego pagada; el dinero va a la cuenta `mechanic` (banco de empresa) |
+   | Staff: `/economia` | Muestra entradas y salidas por categoría |
+   | Hospital y multas | Tras reaparecer o pagar una multa, `pxd_audit` registra la acción (docs/34) |
+
+**Volver atrás:** `pxd_update rollback <id>` deshace los parches. Para todo lo demás, restaura la copia del punto 1. Las tablas nuevas pueden quedarse:
+- `pxd_audit`;
+- `pxd_invoices` y `pxd_invoice_events`;
+- `pxd_money_flow` y `pxd_money_large`.
