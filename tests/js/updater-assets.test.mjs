@@ -67,3 +67,29 @@ test('instala recursos nuevos: comprueba huellas, rutas y no pisa carpetas', asy
   const again = installResources([{ name: 'pxd_nuevo', files: [{ path: 'b.lua', sha256: sha('y'), body: 'y' }] }], root);
   assert.equal(again[0].ok, false, 'no pisa un recurso que ya existe');
 });
+
+test('recursos de terceros: descomprime el zip de GitHub y rechaza los peligrosos', async () => {
+  const { installExternal } = require(cjs);
+  const fixtures = new URL('./fixtures/', import.meta.url);
+  const srv = createServer((req, res) => {
+    const file = { '/demo': 'repo.zip', '/evil': 'evil.zip', '/nomanifest': 'nomanifest.zip' }[req.url];
+    if (!file) { res.writeHead(404); return res.end(); }
+    res.writeHead(200); res.end(readFileSync(new URL(file, fixtures)));
+  });
+  await new Promise((ok) => srv.listen(0, '127.0.0.1', ok));
+  const base = `http://127.0.0.1:${srv.address().port}`;
+  const root = mkdtempSync(join(tmpdir(), 'pxd-ext-'));
+  const urls = { qbx_demo: '/demo', qbx_evil: '/evil', qbx_nom: '/nomanifest' };
+  const res = await installExternal([
+    { name: 'qbx_demo', category: '[qbx]', repo: 'a/b', ref: 'main' },
+    { name: 'qbx_evil', category: '[qbx]', repo: 'a/b', ref: 'main' },
+    { name: 'qbx_nom', category: '[qbx]', repo: 'a/b', ref: 'main' },
+    { name: '../x', category: '[qbx]', repo: 'a/b', ref: 'main' },
+  ], root, { allowHttp: true, urlFor: (e) => base + urls[e.name] });
+  srv.close();
+  assert.deepEqual(res.map((r) => r.ok), [true, false, false, false]);
+  assert.match(readFileSync(join(root, '[qbx]/qbx_demo/fxmanifest.lua'), 'utf8'), /cerulean/);
+  assert.equal(readFileSync(join(root, '[qbx]/qbx_demo/client/main.lua'), 'utf8'), 'print("ñ")');
+  assert.ok(!existsSync(join(root, '[qbx]/qbx_evil')) && !existsSync(join(root, 'evil.lua')));
+  assert.match(res[2].message, /fxmanifest/);
+});

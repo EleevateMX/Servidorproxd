@@ -352,6 +352,7 @@ tasks:  #  Download Base Files
   - action: waste_time # prevent github throttling
     seconds: 10
 
+  # fase 2 (recursos de terceros): pxd_updater instala en servidores ya montados lo que falte de este bloque.
   # TRABAJOS Y PROPIEDADES (fase 2) — mismos repos y forma que la receta oficial completa
   # (Qbox-project/txAdminRecipe qbox.yaml). Van en [qbx], así que `ensure [qbx]` los arranca.
   - action: download_github # mecánico (prioridad 1)
@@ -424,6 +425,7 @@ tasks:  #  Download Base Files
     dest: ./resources/[qbx]/qbx_properties
     ref: main
     src: https://github.com/qbox-project/qbx_properties
+  # fin fase 2
 
   - action: waste_time # prevent github throttling
     seconds: 10

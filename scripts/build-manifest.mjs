@@ -19,6 +19,18 @@ function walk(dir, out = []) {
   return out;
 }
 
+// Trabajos y demás recursos de terceros de la fase 2: se leen de la receta Qbox
+// (bloque «download_github» a resources/[categoría]/nombre con ref), así hay una sola fuente.
+function externalFromRecipe() {
+  const text = readFileSync(join(root, 'recipe-qbox.yaml'), 'utf8');
+  const start = text.indexOf('# fase 2 (recursos de terceros)');
+  if (start < 0) return [];
+  const end = text.indexOf('# fin fase 2', start);
+  const block = text.slice(start, end < 0 ? undefined : end);
+  const re = /dest: \.\/resources\/(\[[\w-]+\])\/([\w-]+)\n\s+ref: ([\w.-]+)\n\s+src: https:\/\/github\.com\/([\w.-]+\/[\w.-]+)/g;
+  return [...block.matchAll(re)].map((m) => ({ name: m[2], category: m[1], repo: m[4], ref: m[3] }));
+}
+
 export function buildManifest() {
   const files = [];
   for (const resource of readdirSync(res).sort()) {
@@ -43,6 +55,7 @@ export function buildManifest() {
     autostart: raw.autostart.filter(exists),
     replaces: Object.fromEntries(Object.entries(raw.replaces).filter(([r]) => exists(r))),
     patches: raw.patches.filter((p) => exists(p.requires)),
+    external: externalFromRecipe(),
   };
   return { format: 1, files, assets, plan };
 }

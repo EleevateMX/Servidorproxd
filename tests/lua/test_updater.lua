@@ -153,4 +153,21 @@ T.describe('pxd_updater', function()
         T.truthy(Fx.files['qbx_core/config/client.lua']:find('useExternalCharacters = true, %-%- comentario'))
         T.truthy(logged('Reinicia el servidor'))
     end)
+
+    T.it('instala de GitHub los recursos de terceros que falten y los arranca', function()
+        local ext = { { name = 'qbx_taxijob', category = '[qbx]', repo = 'qbox-project/qbx_taxijob', ref = 'main' },
+                      { name = 'qbx_busjob', category = '[qbx]', repo = 'qbox-project/qbx_busjob', ref = 'main' } }
+        boot({}, {}, { pxd_updater = 'started', qbx_busjob = 'started' }, { plan = { external = ext } })
+        local got
+        AddEventHandler('pxd_updater:installExternal', function(list) got = list end)
+        run('check')
+        T.falsy(got, 'check no instala')
+        T.truthy(logged('recurso de terceros: qbx_taxijob'))
+        run()
+        T.eq(#got, 1, 'qbx_busjob ya está'); T.eq(got[1].name, 'qbx_taxijob')
+        Fx.restarted = {}
+        TriggerEvent('pxd_updater:externalDone', 0, { { name = 'qbx_taxijob', ok = true } })
+        T.eq(table.concat(Fx.restarted, ','), 'start qbx_taxijob')
+        T.truthy(logged('Instalado e iniciado qbx_taxijob'))
+    end)
 end)

@@ -110,7 +110,98 @@ function installResources(packages, root) {
   return results;
 }
 
+const zlib = require('zlib');
+const MAX_ZIP_BYTES = 80 * 1024 * 1024;
+
+/**
+ * Descomprime un .zip (método 0 «stored» u 8 «deflate») en `dest`, quitando la
+ * carpeta raíz que pone GitHub («repo-main/»). Rechaza rutas peligrosas.
+ */
+function unzipTo(buf, dest) {
+  let eocd = -1;
+  for (let i = buf.length - 22; i >= Math.max(0, buf.length - 65557); i--) {
+    if (buf.readUInt32LE(i) === 0x06054b50) { eocd = i; break; }
+  }
+  if (eocd < 0) throw new Error('zip no válido');
+  const count = buf.readUInt16LE(eocd + 10);
+  let p = buf.readUInt32LE(eocd + 16);
+  let written = 0;
+  for (let n = 0; n < count; n++) {
+    if (buf.readUInt32LE(p) !== 0x02014b50) throw new Error('zip dañado');
+    const method = buf.readUInt16LE(p + 10);
+    const csize = buf.readUInt32LE(p + 20);
+    const usize = buf.readUInt32LE(p + 24);
+    const nlen = buf.readUInt16LE(p + 28);
+    const elen = buf.readUInt16LE(p + 30);
+    const clen = buf.readUInt16LE(p + 32);
+    const local = buf.readUInt32LE(p + 42);
+    const name = buf.toString('utf8', p + 46, p + 46 + nlen);
+    p += 46 + nlen + elen + clen;
+    const rel = name.split('/').slice(1).join('/');          // sin «repo-main/»
+    if (!rel || name.endsWith('/')) continue;                 // carpetas
+    if (!safeRel(rel)) throw new Error(`ruta no permitida en el zip: ${rel}`);
+    if (buf.readUInt32LE(local) !== 0x04034b50) throw new Error('zip dañado');
+    const start = local + 30 + buf.readUInt16LE(local + 26) + buf.readUInt16LE(local + 28);
+    const raw = buf.subarray(start, start + csize);
+    const data = method === 0 ? raw : method === 8 ? zlib.inflateRawSync(raw) : null;
+    if (!data) throw new Error(`compresión no soportada en ${rel}`);
+    if (data.length !== usize) throw new Error(`tamaño incorrecto en ${rel}`);
+    written += data.length;
+    if (written > MAX_ZIP_BYTES) throw new Error('el zip es demasiado grande');
+    const out = path.join(dest, rel);
+    fs.mkdirSync(path.dirname(out), { recursive: true });
+    fs.writeFileSync(out, data);
+  }
+}
+
+const SAFE_EXT_NAME = /^[A-Za-z0-9_-]+$/;
+const SAFE_CATEGORY = /^\[[A-Za-z0-9_-]+\]$/;
+const SAFE_REPO = /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/;
+const SAFE_REF = /^[A-Za-z0-9_.-]+$/;
+
+/**
+ * Instala recursos de terceros desde GitHub (zip de una rama) en
+ * resources/<categoría>/<nombre>. No toca los que ya existan.
+ */
+async function installExternal(list, resourcesRoot, opts = {}) {
+  const results = [];
+  for (const e of Array.isArray(list) ? list : []) {
+    const name = e && e.name;
+    try {
+      if (!SAFE_EXT_NAME.test(String(name)) || !SAFE_CATEGORY.test(String(e.category))
+        || !SAFE_REPO.test(String(e.repo)) || !SAFE_REF.test(String(e.ref))) throw new Error('datos no permitidos');
+      const dir = path.join(resourcesRoot, e.category);
+      const final = path.join(dir, name);
+      if (fs.existsSync(final)) throw new Error('la carpeta ya existe');
+      const url = opts.urlFor ? opts.urlFor(e) : `https://codeload.github.com/${e.repo}/zip/refs/heads/${e.ref}`;
+      const buf = await fetchBuffer(url, Boolean(opts.allowHttp));
+      const tmp = path.join(dir, `.${name}.part`);
+      fs.rmSync(tmp, { recursive: true, force: true });
+      fs.mkdirSync(tmp, { recursive: true });
+      try {
+        unzipTo(buf, tmp);
+        if (!fs.existsSync(path.join(tmp, 'fxmanifest.lua'))) throw new Error('no trae fxmanifest.lua');
+        fs.renameSync(tmp, final);
+      } catch (err) {
+        fs.rmSync(tmp, { recursive: true, force: true });
+        throw err;
+      }
+      results.push({ name, ok: true });
+    } catch (err) {
+      results.push({ name: String(name), ok: false, message: err.message });
+    }
+  }
+  return results;
+}
+
 if (typeof on === 'function') {
+  on('pxd_updater:installExternal', (list, src) => {
+    const resourcesRoot = path.dirname(path.dirname(GetResourcePath(GetCurrentResourceName())));
+    installExternal(list, resourcesRoot).then((results) => {
+      setImmediate(() => emit('pxd_updater:externalDone', src, results));
+    });
+  });
+
   on('pxd_updater:installResources', (packages, src) => {
     const root = path.dirname(GetResourcePath(GetCurrentResourceName()));
     const results = installResources(packages, root);
@@ -126,4 +217,4 @@ if (typeof on === 'function') {
   });
 }
 
-if (typeof module !== 'undefined') module.exports = { fetchBuffer, downloadAll, prepare, installResources, safeRel };
+if (typeof module !== 'undefined') module.exports = { fetchBuffer, downloadAll, prepare, installResources, safeRel, unzipTo, installExternal };

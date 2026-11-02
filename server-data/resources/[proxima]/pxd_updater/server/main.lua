@@ -94,12 +94,30 @@ local function run(src, mode)
             end
         end
         for _, a in ipairs(newAssets) do log(src, ' + arte: ' .. a.resource .. '/' .. a.path) end
+        -- Recursos de terceros del plan (trabajos de Qbox…) que aún no estén.
+        local externals = {}
+        local plan = type(manifest.plan) == 'table' and manifest.plan or {}
+        for _, e in ipairs(type(plan.external) == 'table' and plan.external or {}) do
+            if type(e) == 'table' and type(e.name) == 'string' and GetResourceState(e.name) == 'missing' then
+                externals[#externals + 1] = e
+                log(src, (' + recurso de terceros: %s (%s)'):format(e.name, tostring(e.repo)))
+            end
+        end
         if #changes == 0 and #installs == 0 and mode ~= 'check' then
             SaveResourceFile(RES, Config.stateFile, json.encode(state), -1)
             PXDUpdater.applyPatches(src)
             PXDUpdater.startPlanned(src)
         end
-        if #changes == 0 and #installs == 0 and #newAssets == 0 then return log(src, 'Todo está al día.') end
+        if #changes == 0 and #installs == 0 and #newAssets == 0 and #externals == 0 then return log(src, 'Todo está al día.') end
+        if #changes == 0 and #installs == 0 and #externals > 0 then
+            if mode == 'check' then
+                log(src, ('%d recurso(s) de terceros por instalar. Ejecuta «pxd_update» para instalarlos.'):format(#externals))
+            else
+                TriggerEvent('pxd_updater:installExternal', externals, src)
+                log(src, 'Descargando recursos de terceros desde GitHub… (los resultados aparecerán aquí)')
+            end
+            if #newAssets == 0 then return end
+        end
         if #changes == 0 and #installs > 0 then
             if mode == 'check' then
                 return log(src, ('%d recurso(s) nuevo(s) por instalar. Ejecuta «pxd_update» para instalarlos.'):format(#installs))
@@ -234,6 +252,22 @@ function PXDUpdater.applyPatches(src)
         end
     end
 end
+
+AddEventHandler('pxd_updater:externalDone', function(src, results)
+    src = tonumber(src) or 0
+    ExecuteCommand('refresh')
+    local ok = 0
+    for _, r in ipairs(type(results) == 'table' and results or {}) do
+        if r.ok then
+            ok = ok + 1
+            if StartResource(r.name) then log(src, 'Instalado e iniciado ' .. r.name .. '.')
+            else log(src, ('Instalado %s, pero no se pudo iniciar: revisa la consola.'):format(r.name)) end
+        else
+            log(src, ('No se pudo instalar %s: %s'):format(tostring(r.name), tostring(r.message)))
+        end
+    end
+    log(src, ('Recursos de terceros instalados: %d. Al reiniciar el servidor arrancan solos.'):format(ok))
+end)
 
 AddEventHandler('pxd_updater:installDone', function(src, results)
     src = tonumber(src) or 0
