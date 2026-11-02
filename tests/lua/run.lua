@@ -26,6 +26,7 @@ local suites = {
     'test_compat',
     'test_justice',
     'test_audit',
+    'test_economy',
     'test_phone',
 }
 for _, s in ipairs(suites) do

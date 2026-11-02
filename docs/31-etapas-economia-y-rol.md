@@ -31,7 +31,7 @@ Las etapas se pueden **diseñar** a la vez, pero se **implementan** en este orde
 | X-1 | ✔ implementado (docs/34) · **Auditoría común** `pxd_audit`: export `Log(actor, accion, objetivo, datos)`, tabla `pxd_audit` y consulta en pxd_admin. La usan multas, hospital, economía, propiedades y organizaciones | — |
 | X-2 | **API de avisos** `pxd_ui:notify` que use el estilo común (ox_lib con el tema de Próxima en cuanto se integre `wt/oxlib`) | Fase 3 (interfaces) |
 | X-3 | **Permisos**: tabla de ACE `pxd.*` y ayudante `HasPermission(src, perm)` | — |
-| X-4 | **Dinero seguro**: función común `Charge(src, importe, motivo, {cash, bank})` y `Pay(cuenta, importe, motivo)` con comprobación de resultados y reembolso si falla el segundo paso. Ya existe en pxd_justice: se convierte en librería común | Multas |
+| X-4 | ✔ implementado (docs/35) · **Dinero seguro**: función común `Charge(src, importe, motivo, {cash, bank})` y `Pay(cuenta, importe, motivo)` con comprobación de resultados y reembolso si falla el segundo paso. Ya existe en pxd_justice: se convierte en librería común | Multas |
 
 ## Etapa A · Sistema financiero integrado
 
@@ -39,12 +39,12 @@ Las etapas se pueden **diseñar** a la vez, pero se **implementan** en este orde
 |---|---|---|
 | A-1 | Nóminas pagadas con los fondos de la empresa: `paycheckSociety = true` en qbx_core para empleos de jugadores; reglas propias para los públicos (policía, EMS, ayuntamiento), con presupuesto del «Gobierno» | Configuración de qbx_core. Hay que decidir el presupuesto público |
 | A-2 | Transferencias entre jugadores, con límites y auditoría | Renewed-Banking ya las tiene: se exponen en la app de banco (E-1) |
-| A-3 | **Facturación** genérica: emisor (empresa o servicio), cliente, concepto, importe, estado y pago | Reutiliza el modelo de pxd_justice (pendiente, parcial, pagada) |
-| A-4 | Pago de servicios: mecánico, taxi, médico… mediante factura | A-3 |
+| A-3 | ✔ implementado (docs/35) · **Facturación** genérica: emisor (empresa o servicio), cliente, concepto, importe, estado y pago | Reutiliza el modelo de pxd_justice (pendiente, parcial, pagada) |
+| A-4 | ✔ implementado (docs/35) · Pago de servicios: mecánico, taxi, médico… mediante factura | A-3 |
 | A-5 | Ingresos de negocios: las ventas van a la cuenta de la empresa, no desaparecen | B |
 | A-6 | Gastos de mantenimiento: propiedades, vehículos de empresa y locales | C; reglas por decidir |
 | A-7 | Impuestos configurables (porcentaje por tipo de operación), desactivados por defecto | Decisión económica |
-| A-8 | **Panel económico para el staff**: entradas y salidas de dinero por origen (nóminas, ventas, multas, tiendas, tuneo), dinero total en circulación y alertas de picos | X-1 y A-1…A-7 |
+| A-8 | ◐ base implementada (docs/35: `/economia`) · **Panel económico para el staff**: entradas y salidas de dinero por origen (nóminas, ventas, multas, tiendas, tuneo), dinero total en circulación y alertas de picos | X-1 y A-1…A-7 |
 | A-9 | Corregir las fuentes de dinero «de la nada»: comisión del concesionario y `/paylawyer` | Parche o adaptador |
 
 ## Etapa B · Empresas y negocios de jugadores

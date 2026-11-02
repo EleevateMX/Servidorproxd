@@ -218,6 +218,55 @@
    "sha256": "7d702389f06b4e990b22ce8be180585f9751b84880fadd49b0d9f4e7db5edeb7"
   },
   {
+   "resource": "pxd_economy",
+   "path": "client/main.lua",
+   "size": 6939,
+   "sha256": "23e768b728dcb0169b3e7c3ce7c8bf8eab274417694f9860324f26e2b53bb9b5"
+  },
+  {
+   "resource": "pxd_economy",
+   "path": "config.lua",
+   "size": 3030,
+   "sha256": "b5ce1646201f7d4555cc13289d7d27123367e46b87e02fa31a04e406d762a9a4",
+   "config": true
+  },
+  {
+   "resource": "pxd_economy",
+   "path": "fxmanifest.lua",
+   "size": 523,
+   "sha256": "c7be325ea81167f6bcee8eab3c1a354e768998241178ac7bd2ccb2d3e78692c8"
+  },
+  {
+   "resource": "pxd_economy",
+   "path": "server/ledger.lua",
+   "size": 5919,
+   "sha256": "801818141b726ce0b45c749f1e80a2e7c1e78ab7a762a29fe45726f31f98231e"
+  },
+  {
+   "resource": "pxd_economy",
+   "path": "server/main.lua",
+   "size": 13816,
+   "sha256": "0569adbd753c6bfd74fc54b4f8f261817b13085f5c1e56d691d8c64b41246233"
+  },
+  {
+   "resource": "pxd_economy",
+   "path": "server/money.lua",
+   "size": 2764,
+   "sha256": "fb631d1cbbfb12f4878becc516adf9da6b911e97b72e767c47c8a8d8b5f53c8b"
+  },
+  {
+   "resource": "pxd_economy",
+   "path": "server/store.lua",
+   "size": 6666,
+   "sha256": "fa0d45ad9e2eef1696449e8d8ec1601ffb1c4b5993bf4f95aa9a6f95df179e16"
+  },
+  {
+   "resource": "pxd_economy",
+   "path": "shared/economy.lua",
+   "size": 9605,
+   "sha256": "de1d0b4196bef3a2597db4b3e6ac9ec27625dac32a26c76c6534f071cf0c5998"
+  },
+  {
    "resource": "pxd_gamemodes",
    "path": "client/bridge.lua",
    "size": 2784,
@@ -1275,6 +1324,7 @@
    "pxd_jobs",
    "pxd_audit",
    "pxd_justice",
+   "pxd_economy",
    "pxd_panel",
    "pxd_multichar",
    "pxd_hud",

@@ -62,6 +62,7 @@ Antes rellena `deploy/.env` (ver [docs/06-servidor-en-la-nube.md](docs/06-servid
 32. [Entrega de las fases 0 y 1](docs/32-entrega-fase-0-1.md)
 33. [Guía paso a paso en Nodecraft](docs/33-guia-nodecraft.md)
 34. [Auditoría común (pxd_audit)](docs/34-auditoria-comun.md)
+35. [Economía conectada: facturas y flujo de dinero](docs/35-economia.md)
 
 ## Pruebas
 
