@@ -12,6 +12,24 @@ export const IDS = {
 
 const footer = { text: `✦ ${BRAND.tagline}` };
 
+// Cabeceras de brand/discord/ (scripts/build-discord-art.mjs). El bot las adjunta al mensaje.
+export const HEADERS = {
+  welcome: 'header-bienvenida.jpg',
+  verify: 'header-verificacion.jpg',
+  rules: 'header-normas.jpg',
+  howto: 'header-como-jugar.jpg',
+  about: 'header-sobre.jpg',
+  links: 'header-enlaces.jpg',
+  roles: 'header-roles.jpg',
+  support: 'header-soporte.jpg',
+};
+
+function withHeader(message, file) {
+  if (!file) return message;
+  const [first, ...rest] = message.embeds;
+  return { ...message, files: [file], embeds: [{ ...first, image: { url: `attachment://${file}` } }, ...rest] };
+}
+
 // Mención clicable a un canal de la plantilla (<#id>) o su nombre si aún no existe.
 export function channelRef(channels, key) {
   const id = channels?.[key];
@@ -44,7 +62,7 @@ export function buildPanels(env = {}, channels = {}) {
   const connect = env.FIVEM_CONNECT?.trim();
   const links = linksFrom(env);
 
-  return {
+  const panels = {
     verify: {
       embeds: [{
         color: BRAND.colors.star,
@@ -149,11 +167,12 @@ export function buildPanels(env = {}, channels = {}) {
       buttons: [{ customId: IDS.ticketOpen, label: 'Abrir ticket', emoji: '🎫', style: 'primary' }],
     },
   };
+  return Object.fromEntries(Object.entries(panels).map(([key, panel]) => [key, withHeader(panel, HEADERS[key])]));
 }
 
 // Mensaje de bienvenida en #bienvenida.
 export function welcomeMessage({ userId, memberCount, channels = {} }) {
-  return {
+  return withHeader({
     content: `<@${userId}>`,
     allowedMentions: { users: [userId] },
     embeds: [{
@@ -167,5 +186,5 @@ export function welcomeMessage({ userId, memberCount, channels = {} }) {
       thumbnail: { url: BRAND.icon },
       footer: { text: Number.isFinite(memberCount) ? `Eres el ciudadano n.º ${memberCount}` : footer.text },
     }],
-  };
+  }, HEADERS.welcome);
 }

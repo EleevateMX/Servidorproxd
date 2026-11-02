@@ -11,7 +11,7 @@ import { IDS, welcomeMessage } from './panels.js';
 import { KINDS, buildAnnouncement, LIMITS } from './announce.js';
 import { isStaff, canAnnounce, canSelfAssign, canCloseTicket, openTicketOf, ticketName } from './access.js';
 import { parseDynamic, statNames, statsInterval, dynamicUrl } from './stats.js';
-import { buttonRows, roleKeysOf } from './discord-glue.js';
+import { buttonRows, roleKeysOf, resolveFiles } from './discord-glue.js';
 
 requireEnv('DISCORD_TOKEN', 'DISCORD_GUILD_ID');
 const state = loadState(STATE_FILE);
@@ -224,7 +224,8 @@ client.on(Events.InteractionCreate, async (interaction) => {
 client.on(Events.GuildMemberAdd, async (member) => {
   if (member.guild.id !== env.DISCORD_GUILD_ID) return;
   const ch = await channel('welcome');
-  await ch?.send(welcomeMessage({ userId: member.id, memberCount: member.guild.memberCount, channels: state.channels })).catch(() => {});
+  const msg = welcomeMessage({ userId: member.id, memberCount: member.guild.memberCount, channels: state.channels });
+  await ch?.send({ ...msg, files: resolveFiles(msg.files) }).catch(() => {});
 });
 
 // ---- Contadores ----

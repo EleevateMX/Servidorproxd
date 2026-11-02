@@ -2,13 +2,13 @@
 // Solo módulos puros (no necesitan discord.js instalado).
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, existsSync } from 'node:fs';
 import { ROLES, CATEGORIES, STAFF_ROLES, SELF_ROLES, RULES, allChannels } from '../../discord/src/template.js';
 import { planSetup, overwritesFor, normalizeName, resolveType, describePlan } from '../../discord/src/plan.js';
 import { canAnnounce, canCloseTicket, canSelfAssign, isStaff, openTicketOf, ticketName } from '../../discord/src/access.js';
 import { buildAnnouncement, KINDS } from '../../discord/src/announce.js';
 import { parseDynamic, statNames, statsInterval, dynamicUrl } from '../../discord/src/stats.js';
-import { buildPanels, linksFrom, welcomeMessage, IDS } from '../../discord/src/panels.js';
+import { buildPanels, linksFrom, welcomeMessage, IDS, HEADERS } from '../../discord/src/panels.js';
 
 const root = new URL('../../', import.meta.url).pathname;
 
@@ -230,4 +230,17 @@ test('paneles: botones válidos, enlaces solo https y menciones clicables', () =
   const w = welcomeMessage({ userId: '333333333333333333', memberCount: 50 });
   assert.deepEqual(w.allowedMentions, { users: ['333333333333333333'] });
   assert.match(w.embeds[0].footer.text, /n\.º 50/);
+});
+
+test('imágenes: cada mensaje fijo y la bienvenida llevan su cabecera de brand/discord', () => {
+  for (const file of Object.values(HEADERS)) assert.ok(existsSync(`${root}brand/discord/${file}`), `falta ${file}`);
+  for (const file of ['bot-avatar.png', 'bot-banner.jpg', 'server-icon.png', 'server-banner.jpg', 'invite-splash.jpg']) {
+    assert.ok(existsSync(`${root}brand/discord/${file}`), `falta ${file}`);
+  }
+  for (const [key, panel] of Object.entries(buildPanels({}))) {
+    assert.deepEqual(panel.files, [HEADERS[key]], key);
+    assert.equal(panel.embeds[0].image.url, `attachment://${HEADERS[key]}`);
+  }
+  const w = welcomeMessage({ userId: '1' });
+  assert.deepEqual(w.files, [HEADERS.welcome]);
 });

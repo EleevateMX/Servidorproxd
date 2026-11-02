@@ -1,4 +1,6 @@
 // Convierte los datos puros (plantilla, paneles, anuncios) en objetos de discord.js.
+import { join } from 'node:path';
+import { ART_DIR } from './config.js';
 import {
   ActionRowBuilder, ButtonBuilder, ButtonStyle, ChannelType, PermissionFlagsBits,
 } from 'discord.js';
@@ -58,8 +60,18 @@ export function buttonRows(buttons = []) {
   return rows;
 }
 
-export function panelPayload(panel) {
-  return { embeds: panel.embeds, components: buttonRows(panel.buttons), allowedMentions: { parse: [] } };
+// Nombres de brand/discord/ → adjuntos de discord.js.
+export const resolveFiles = (files = []) => files.map((name) => ({ attachment: join(ART_DIR, name), name }));
+
+// edit: al reescribir un mensaje fijo se quitan los adjuntos viejos para no duplicar la cabecera.
+export function panelPayload(panel, { edit = false } = {}) {
+  return {
+    embeds: panel.embeds,
+    components: buttonRows(panel.buttons),
+    allowedMentions: { parse: [] },
+    files: resolveFiles(panel.files),
+    ...(edit ? { attachments: [] } : {}),
+  };
 }
 
 // Claves de rol (de la plantilla) que tiene un miembro.

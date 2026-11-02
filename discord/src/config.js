@@ -19,4 +19,6 @@ export function requireEnv(...names) {
 }
 
 export const env = process.env;
+// Imágenes de brand/discord/ (en Docker se copian a /app/brand).
+export const ART_DIR = join(ROOT, '..', 'brand', 'discord');
 export const STATE_FILE = join(ROOT, 'data', 'state.json');

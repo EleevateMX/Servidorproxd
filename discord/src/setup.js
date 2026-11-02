@@ -7,7 +7,7 @@
 // Nunca borra roles, canales ni mensajes.
 import { join } from 'node:path';
 import { Client, Events, GatewayIntentBits, GuildFeature } from 'discord.js';
-import { env, requireEnv, ROOT, STATE_FILE } from './config.js';
+import { env, requireEnv, ART_DIR, STATE_FILE } from './config.js';
 import { loadState, saveState } from './state.js';
 import { planSetup, describePlan } from './plan.js';
 import { buildPanels } from './panels.js';
@@ -92,14 +92,14 @@ try {
       if (!channel?.isTextBased()) continue;
       const old = state.panels[key] && await channel.messages.fetch(state.panels[key]).catch(() => null);
       if (old && !args.has('--paneles')) continue;
-      const msg = old ? await old.edit(panelPayload(panel)) : await channel.send(panelPayload(panel));
+      const msg = old ? await old.edit(panelPayload(panel, { edit: true })) : await channel.send(panelPayload(panel));
       state.panels[key] = msg.id;
       saveState(STATE_FILE, state);
       console.log(`✓ mensaje fijo en ${channel.name}`);
     }
 
     if (args.has('--icono')) {
-      await guild.setIcon(join(ROOT, '..', 'brand', 'portal', 'proxima-rp-icono-512.png'), 'Icono de Próxima RP');
+      await guild.setIcon(join(ART_DIR, 'server-icon.png'), 'Icono de Próxima RP');
       console.log('✓ icono del servidor');
     }
     console.log('\nListo. Arranca el bot con: npm start');

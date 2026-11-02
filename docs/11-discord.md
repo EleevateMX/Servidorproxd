@@ -43,7 +43,7 @@ Toda la plantilla está en `discord/src/template.js`: cambia nombres, colores o 
 ### 1. Crear el bot (una vez)
 
 1. https://discord.com/developers/applications → **New Application** → nombre «Próxima RP».
-2. En **Bot**: sube el icono (`brand/portal/proxima-rp-icono-512.png`), pulsa **Reset Token** y guarda el token (es secreto).
+2. En **Bot**: sube `brand/discord/bot-avatar.png` como icono y `bot-banner.jpg` como banner, pulsa **Reset Token** y guarda el token (es secreto).
 3. En **Bot → Privileged Gateway Intents** activa **Server Members Intent** (lo necesita la bienvenida).
 4. En **OAuth2 → URL Generator**: marca `bot` y `applications.commands`; en permisos, **Administrator**. Abre la URL y añade el bot a tu servidor.
    El bot necesita Administrador para crear roles con permisos de moderación (Discord no deja dar permisos que uno no tiene).
@@ -121,9 +121,22 @@ Tiene que estar encendido siempre para que funcionen los botones, la bienvenida 
 - El bot comprueba los permisos en cada acción, aunque Discord ya oculte el comando: rol del miembro para anunciar, dueño o staff para cerrar tickets, lista cerrada de roles de avisos.
 - Los anuncios no mencionan a nadie salvo lo elegido (`allowedMentions`), y las imágenes tienen que ser https.
 
+## Imágenes
+
+Están en `brand/discord/` y se regeneran con `node scripts/build-discord-art.mjs` (usa el key art de la pantalla de carga; descárgalo antes con `node scripts/fetch-brand-assets.mjs`).
+
+| Archivo | Tamaño | Dónde va |
+|---|---|---|
+| `bot-avatar.png` | 1024×1024 | Portal de desarrolladores → tu aplicación → **General Information → App Icon** y **Bot → Icon** |
+| `bot-banner.jpg` | 680×240 | Portal de desarrolladores → **Bot → Banner** (el fondo del perfil del bot) |
+| `server-icon.png` | 1024×1024 | Icono del servidor: lo pone `npm run setup -- --aplicar --icono`, o a mano en Ajustes del servidor |
+| `server-banner.jpg` | 960×540 | Ajustes del servidor → banner (Discord lo pide con nivel 2 de mejoras) |
+| `invite-splash.jpg` | 1920×1080 | Ajustes del servidor → fondo de la invitación (nivel 1 de mejoras) |
+| `header-*.jpg` | 1600×500 | Cabeceras de bienvenida, verificación, normas, cómo jugar, sobre Próxima, enlaces, roles y soporte. **El bot las adjunta solo**; para cambiarlas en mensajes ya publicados: `npm run setup -- --aplicar --paneles` |
+
 ## Lo que se hace a mano en Discord
 
-- **Banner del servidor**: necesita nivel 2 de mejoras; usa el formato 960×540 del manual de identidad.
+- **Banner del servidor** y **fondo de invitación**: necesitan mejoras; las imágenes ya están en `brand/discord/` (ver Imágenes).
 - **Bienvenida y Onboarding de Discord** (Ajustes → Incorporación), **etiqueta de servidor** y **emojis propios**: no los gestiona el bot.
 - **Vincular roles de Tebex** (VIP Próxima): pendiente; hoy se asigna a mano.
 
