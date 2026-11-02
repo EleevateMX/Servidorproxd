@@ -562,8 +562,8 @@
   {
    "resource": "pxd_inventory",
    "path": "client/main.lua",
-   "size": 5946,
-   "sha256": "87f923ba8524abc2f8f275abb69b5c19e33d2b13a7164665fff36e69e54697a8"
+   "size": 6368,
+   "sha256": "ea4690f1a99dd58bc69d511df37463177310bcb0a3c0c4cc55488bd2eeee2cad"
   },
   {
    "resource": "pxd_inventory",
@@ -575,26 +575,32 @@
   {
    "resource": "pxd_inventory",
    "path": "fxmanifest.lua",
-   "size": 464,
-   "sha256": "1d987cc39148eacc3822ae14af005e735076be53983a5597966dda0fd62990f4"
-  },
-  {
-   "resource": "pxd_inventory",
-   "path": "overlay/ox_inventory/pxd.css",
-   "size": 15810,
-   "sha256": "6aada7c5a5644e6c4be06c1056082253f4a513a597e4f7b5e38e6e5749efa3fe"
-  },
-  {
-   "resource": "pxd_inventory",
-   "path": "overlay/ox_inventory/pxd.js",
-   "size": 10584,
-   "sha256": "8c44ddf578230df85fcbfed2f3eb707b41e80ce9fbc8577503de7826a303d04b"
+   "size": 609,
+   "sha256": "d3c9cfbb68e3abed33b337c4a6fb08a11e5f753bfaa992d0796a46856e19198b"
   },
   {
    "resource": "pxd_inventory",
    "path": "shared/inventory.lua",
-   "size": 4640,
-   "sha256": "3670a67b75ad58360f1aa4b140ee0a7affc649ffe95c9c8feb489da27e288cbc"
+   "size": 5273,
+   "sha256": "d90f4f1fb1189ecf5aa1ac04ac2b68240200f6676d88a8e4f04b9b3b2b853200"
+  },
+  {
+   "resource": "pxd_inventory",
+   "path": "web/assets/pxd-inventory.css",
+   "size": 123933,
+   "sha256": "74bb554b052bed57ac087b9385698b7385e7a0523e0dec14bcfd8938e2562316"
+  },
+  {
+   "resource": "pxd_inventory",
+   "path": "web/assets/pxd-inventory.js",
+   "size": 225549,
+   "sha256": "7b5736928b149704d87d7a193584d78500fb7f4818ca59dbffc1f9ec92d99a57"
+  },
+  {
+   "resource": "pxd_inventory",
+   "path": "web/index.html",
+   "size": 540,
+   "sha256": "5c5643bb9ee6406ba3f9f5f7f54e8ae420c4785a3dff6154261ec20a364fe1a7"
   },
   {
    "resource": "pxd_jobs",
@@ -1368,14 +1374,6 @@
     "why": "el teléfono se abre con la flecha arriba"
    },
    {
-    "resource": "ox_inventory",
-    "path": "web/build/index.html",
-    "find": "</head>",
-    "replace": "<link rel=\"stylesheet\" href=\"./assets/pxd.css\"><script src=\"./assets/pxd.js\"></script></head>",
-    "requires": "pxd_inventory",
-    "why": "inventario con el estilo de Próxima"
-   },
-   {
     "resource": "illenium-appearance",
     "path": "shared/theme.lua",
     "find": "currentTheme = \"qb-core\",",
@@ -1567,28 +1565,6 @@
  },
  "overlays": [
   {
-   "resource": "ox_inventory",
-   "path": "web/build/assets/pxd.css",
-   "requiresVersion": "2.48.1",
-   "from": {
-    "resource": "pxd_inventory",
-    "path": "overlay/ox_inventory/pxd.css"
-   },
-   "size": 15810,
-   "sha256": "6aada7c5a5644e6c4be06c1056082253f4a513a597e4f7b5e38e6e5749efa3fe"
-  },
-  {
-   "resource": "ox_inventory",
-   "path": "web/build/assets/pxd.js",
-   "requiresVersion": "2.48.1",
-   "from": {
-    "resource": "pxd_inventory",
-    "path": "overlay/ox_inventory/pxd.js"
-   },
-   "size": 10584,
-   "sha256": "8c44ddf578230df85fcbfed2f3eb707b41e80ce9fbc8577503de7826a303d04b"
-  },
-  {
    "resource": "ox_lib",
    "path": "web/build/assets/pxd.css",
    "requiresVersion": "3.42.0",
@@ -1609,6 +1585,39 @@
    },
    "size": 3112,
    "sha256": "09d2a98e628aebb3c96ba03a401b03cdd30aed3a6b14299c030e787358e89134"
+  },
+  {
+   "resource": "ox_inventory",
+   "path": "web/build/assets/pxd-inventory.js",
+   "requiresVersion": "2.48.1",
+   "from": {
+    "resource": "pxd_inventory",
+    "path": "web/assets/pxd-inventory.js"
+   },
+   "size": 225549,
+   "sha256": "7b5736928b149704d87d7a193584d78500fb7f4818ca59dbffc1f9ec92d99a57"
+  },
+  {
+   "resource": "ox_inventory",
+   "path": "web/build/assets/pxd-inventory.css",
+   "requiresVersion": "2.48.1",
+   "from": {
+    "resource": "pxd_inventory",
+    "path": "web/assets/pxd-inventory.css"
+   },
+   "size": 123933,
+   "sha256": "74bb554b052bed57ac087b9385698b7385e7a0523e0dec14bcfd8938e2562316"
+  },
+  {
+   "resource": "ox_inventory",
+   "path": "web/build/index.html",
+   "requiresVersion": "2.48.1",
+   "from": {
+    "resource": "pxd_inventory",
+    "path": "web/index.html"
+   },
+   "size": 540,
+   "sha256": "5c5643bb9ee6406ba3f9f5f7f54e8ae420c4785a3dff6154261ec20a364fe1a7"
   }
  ]
 }

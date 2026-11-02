@@ -1,0 +1,25 @@
+{
+  "name": "pxd-inventory-web",
+  "private": true,
+  "description": "Próxima RP — interfaz propia del inventario (sustituye la web de ox_inventory 2.48.1; mismo contrato NUI)",
+  "type": "module",
+  "scripts": {
+    "build": "tsc --noEmit && vite build && node scripts/postbuild.mjs",
+    "test": "vitest run",
+    "shots": "node scripts/shots.mjs"
+  },
+  "dependencies": {
+    "react": "19.2.0",
+    "react-dom": "19.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "22.18.12",
+    "@types/react": "19.2.2",
+    "@types/react-dom": "19.2.2",
+    "@vitejs/plugin-react": "5.1.0",
+    "jsdom": "27.0.1",
+    "typescript": "5.9.3",
+    "vite": "7.1.12",
+    "vitest": "3.2.4"
+  }
+}

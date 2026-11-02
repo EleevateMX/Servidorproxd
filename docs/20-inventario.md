@@ -1,5 +1,7 @@
 # 20. Inventario de Próxima RP
 
+> **Sustituido por docs/36-inventario.md:** ahora la interfaz es una aplicación propia (React) sobre ox_inventory. Lo de abajo describe la capa anterior; la ropa, la cámara y los signos vitales se mantienen.
+
 Se abre con **I**. Es el inventario de ox_inventory con la capa visual de Próxima y el recurso `pxd_inventory`.
 
 ## Qué se ve

@@ -66,11 +66,24 @@ function PXDInv.pushNotice(list, n, now, max)
     return list
 end
 
---- Datos que pinta la interfaz. pd = PlayerData de Qbox (o nil), extra = { health, maxHealth, armour, state }.
+-- Versión del contrato con la interfaz (web/pxd-inventory, docs/36-inventario.md).
+PXDInv.CONTRACT = 2
+
+local function pct(v)
+    v = tonumber(v)
+    if not v or v ~= v then return nil end
+    return math.floor(clamp(v, 0, 100) + 0.5)
+end
+
+--- Datos que pinta la interfaz. pd = PlayerData de Qbox (o nil), extra = { health, maxHealth, armour, state, preview }.
+--- Nunca se inventan valores: si un dato no llega (sin Qbox, sin state bag ni metadata), se omite
+--- y la interfaz no muestra esa barra.
 function PXDInv.view(pd, extra, clothing, wearing)
-    pd = type(pd) == 'table' and pd or {}
+    extra = extra or {}
+    local hasPd = type(pd) == 'table'
+    pd = hasPd and pd or {}
     local ci = type(pd.charinfo) == 'table' and pd.charinfo or {}
-    local money = type(pd.money) == 'table' and pd.money or {}
+    local money = type(pd.money) == 'table' and pd.money or nil
     local meta = type(pd.metadata) == 'table' and pd.metadata or {}
     local st = extra.state or {}
     local name = ((ci.firstname or '') .. ' ' .. (ci.lastname or '')):gsub('^%s+', ''):gsub('%s+$', '')
@@ -78,19 +91,24 @@ function PXDInv.view(pd, extra, clothing, wearing)
     for _, s in ipairs(clothing) do
         slots[#slots + 1] = { id = s.id, label = s.label, icon = s.icon, side = s.side, on = wearing[s.id] == true }
     end
+    local stateOr = function(k) local v = st[k]; if v == nil then v = meta[k] end; return pct(v) end
+    local vitals = {
+        hunger = stateOr('hunger'),
+        thirst = stateOr('thirst'),
+        stress = stateOr('stress'),
+        health = extra.health ~= nil and PXDInv.healthPercent(extra.health, extra.maxHealth) or nil,
+        armour = pct(extra.armour),
+    }
     return {
+        contract = PXDInv.CONTRACT,
         name = name ~= '' and name or nil,
         id = type(meta.pxd_id) == 'string' and meta.pxd_id or nil,
-        cash = math.floor(tonumber(money.cash) or 0),
-        bank = math.floor(tonumber(money.bank) or 0),
-        vitals = {
-            hunger = math.floor(clamp(st.hunger or meta.hunger or 100, 0, 100) + 0.5),
-            thirst = math.floor(clamp(st.thirst or meta.thirst or 100, 0, 100) + 0.5),
-            stress = math.floor(clamp(st.stress or meta.stress or 0, 0, 100) + 0.5),
-            health = PXDInv.healthPercent(extra.health, extra.maxHealth),
-            armour = math.floor(clamp(extra.armour, 0, 100) + 0.5),
-        },
+        -- Misma fuente que pxd_hud: el dinero de qbx_core (GetPlayerData().money).
+        cash = money and tonumber(money.cash) and math.floor(tonumber(money.cash)) or nil,
+        bank = money and tonumber(money.bank) and math.floor(tonumber(money.bank)) or nil,
+        vitals = vitals,
         clothing = slots,
+        preview = extra.preview,
         notices = extra.notices or {},
         now = extra.now,
     }
