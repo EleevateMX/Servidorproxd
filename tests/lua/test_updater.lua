@@ -6,7 +6,7 @@ local BASE = 'https://raw.githubusercontent.com/EleevateMX/Servidorproxd/HEAD/'
 local function fileUrl(res, path) return BASE .. 'server-data/resources/%5Bproxima%5D/' .. res .. '/' .. path end
 
 local sha
-local function boot(remote, localFiles, states)
+local function boot(remote, localFiles, states, extra)
     Fx.reset({ resourceName = 'pxd_updater', resourceStates = states or { pxd_login = 'started', pxd_props = 'started', pxd_updater = 'started' } })
     PXDUpdater = nil
     Config = nil
@@ -18,7 +18,9 @@ local function boot(remote, localFiles, states)
         files[#files + 1] = { resource = f[1], path = f[2], size = #f[3], sha256 = sha(f[3]), config = f[2] == 'config.lua' or nil }
         Fx.http[fileUrl(f[1], f[2])] = { 200, f[3] }
     end
-    Fx.http[BASE .. 'update-manifest.json'] = { 200, Fx.json.encode({ format = 1, files = files }) }
+    local manifest = { format = 1, files = files }
+    for k, v in pairs(extra or {}) do manifest[k] = v end
+    Fx.http[BASE .. 'update-manifest.json'] = { 200, Fx.json.encode(manifest) }
 end
 
 local function run(mode)
@@ -82,12 +84,6 @@ T.describe('pxd_updater', function()
         T.eq(Fx.files['pxd_login/config.lua'], 'config v2')
     end)
 
-    T.it('avisa de recursos nuevos que aún no están en el servidor', function()
-        boot({ { 'pxd_jobs', 'fxmanifest.lua', 'x' } }, {}, { pxd_updater = 'started' })
-        run()
-        T.truthy(logged('Recurso nuevo «pxd_jobs»'))
-    end)
-
     T.it('manifiesto ilegible: no hace nada', function()
         boot({})
         Fx.http[BASE .. 'update-manifest.json'] = { 500, 'error' }
@@ -117,5 +113,44 @@ T.describe('pxd_updater', function()
         T.eq(#asked, 1); T.eq(asked[1].path, 'html/assets/ciudad-1.png')
         TriggerEvent('pxd_updater:assetLog', 0, 'Arte descargado: 1 de 1.')
         T.truthy(logged('Arte descargado: 1 de 1'))
+    end)
+
+    T.it('instala recursos nuevos enteros (vía assets.js) y no en modo check', function()
+        boot({ { 'pxd_nuevo', 'fxmanifest.lua', 'fx' }, { 'pxd_nuevo', 'server/main.lua', 'print(1)' } }, {},
+            { pxd_updater = 'started' })
+        local got
+        AddEventHandler('pxd_updater:installResources', function(packages) got = packages end)
+        run('check')
+        T.truthy(logged('recurso nuevo: pxd_nuevo %(2 archivos%)'))
+        T.falsy(got, 'check no instala')
+        run()
+        T.eq(#got, 1); T.eq(got[1].name, 'pxd_nuevo'); T.eq(#got[1].files, 2)
+        T.eq(got[1].files[2].body, 'print(1)'); T.eq(got[1].files[2].sha256, sha('print(1)'))
+    end)
+
+    T.it('tras instalar: refresca y arranca lo del plan, parando lo que sustituye', function()
+        boot({}, {}, { pxd_updater = 'started', pxd_nuevo = 'stopped', qbx_hud = 'started' },
+            { plan = { autostart = { 'pxd_nuevo' }, replaces = { pxd_nuevo = { 'qbx_hud' } }, patches = {} } })
+        run()   -- nada que actualizar: guarda el plan y lo aplica
+        T.eq(table.concat(Fx.restarted, ','), 'stop qbx_hud,start pxd_nuevo')
+        Fx.restarted = {}
+        TriggerEvent('pxd_updater:installDone', 0, { { name = 'pxd_nuevo', ok = true } })
+        T.eq(Fx.executed[#Fx.executed], 'refresh')
+        T.truthy(logged('Recursos nuevos instalados: 1'))
+    end)
+
+    T.it('ajusta la configuración de terceros solo si hace falta', function()
+        local patch = { resource = 'qbx_core', path = 'config/client.lua', find = 'useExternalCharacters = false',
+            replace = 'useExternalCharacters = true', requires = 'pxd_multichar' }
+        local cfg = 'characters = {\n    useExternalCharacters = false, -- comentario\n}'
+        boot({}, { ['qbx_core/config/client.lua'] = cfg }, { pxd_updater = 'started', qbx_core = 'started' },
+            { plan = { autostart = {}, replaces = {}, patches = { patch } } })
+        run()
+        T.eq(Fx.files['qbx_core/config/client.lua'], cfg, 'sin pxd_multichar no se toca')
+        boot({}, { ['qbx_core/config/client.lua'] = cfg }, { pxd_updater = 'started', qbx_core = 'started', pxd_multichar = 'started' },
+            { plan = { autostart = {}, replaces = {}, patches = { patch } } })
+        run()
+        T.truthy(Fx.files['qbx_core/config/client.lua']:find('useExternalCharacters = true, %-%- comentario'))
+        T.truthy(logged('Reinicia el servidor'))
     end)
 end)

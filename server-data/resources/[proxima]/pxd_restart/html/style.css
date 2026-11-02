@@ -1,0 +1,48 @@
+:root {
+  --night-950: #05070f;
+  --text: #eef2ff;
+  --muted: #9aa6c7;
+  --star: #5ce1ff;
+  --nova: #ff4fd8;
+  --line: rgba(140, 170, 255, 0.18);
+  --font: "Segoe UI", "Inter", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; overflow: hidden; background: transparent; color: var(--text); font-family: var(--font); }
+.hidden { display: none !important; }
+
+/* Aviso pequeño, arriba al centro */
+.toast { position: fixed; top: 4vh; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 10px; padding: 12px 18px; border-radius: 12px;
+  background: rgba(10, 14, 28, .82); border: 1px solid var(--line); backdrop-filter: blur(8px); font-size: 15px; font-weight: 600;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, .45); animation: drop .4s ease; }
+.toast::after { content: ''; position: absolute; left: 14px; right: 14px; bottom: 0; height: 2px; border-radius: 2px; background: linear-gradient(90deg, var(--star), var(--nova)); transform-origin: left; animation: shrink 9s linear forwards; }
+.toast__star { width: 16px; height: 16px; fill: var(--star); filter: drop-shadow(0 0 6px rgba(92, 225, 255, .9)); }
+@keyframes drop { from { opacity: 0; transform: translate(-50%, -10px); } }
+@keyframes shrink { to { transform: scaleX(0); } }
+
+/* Pantalla completa */
+.screen { position: fixed; inset: 0; display: grid; place-items: center; animation: fade .6s ease; }
+@keyframes fade { from { opacity: 0; } }
+.sky { position: absolute; inset: 0; background: radial-gradient(1200px 700px at 50% 30%, #1d2360 0%, #0c1030 45%, var(--night-950) 100%); overflow: hidden; }
+.stars { position: absolute; inset: -50%; opacity: .6;
+  background-image: radial-gradient(1.5px 1.5px at 20px 30px, #fff 50%, transparent 51%), radial-gradient(1px 1px at 140px 80px, #cfe9ff 50%, transparent 51%), radial-gradient(1px 1px at 260px 160px, #fff 50%, transparent 51%);
+  background-size: 300px 220px; animation: twinkle 5s ease-in-out infinite alternate; }
+.glow { position: absolute; left: 50%; top: 42%; width: 900px; height: 900px; transform: translate(-50%, -50%); background: radial-gradient(circle, rgba(255, 79, 216, .14), transparent 60%); }
+@keyframes twinkle { from { opacity: .3; } to { opacity: .8; } }
+.content { position: relative; text-align: center; max-width: 980px; padding: 0 24px; }
+.logo { height: 46px; margin-bottom: 34px; filter: drop-shadow(0 4px 24px rgba(92, 225, 255, .35)); }
+.orb { position: relative; width: 132px; height: 132px; margin: 0 auto; border-radius: 50%; background: radial-gradient(circle, rgba(92, 225, 255, .12), rgba(10, 14, 28, .6) 70%); box-shadow: 0 0 60px rgba(92, 225, 255, .25), inset 0 0 0 1px var(--line); }
+.orb__ring { position: absolute; inset: 0; transform: rotate(-90deg); }
+.orb__track { fill: none; stroke: rgba(140, 170, 255, .15); stroke-width: 4; }
+.orb__fill { fill: none; stroke: url(#none); stroke: var(--star); stroke-width: 4; stroke-linecap: round; stroke-dasharray: 339.3; stroke-dashoffset: 0; transition: stroke-dashoffset 1s linear; filter: drop-shadow(0 0 6px rgba(92, 225, 255, .8)); }
+.orb__star { position: absolute; inset: 34px; width: 64px; height: 64px; fill: #fff; filter: drop-shadow(0 0 14px rgba(92, 225, 255, .9)) drop-shadow(0 0 30px rgba(255, 79, 216, .45)); animation: spin 2.4s cubic-bezier(.6, 0, .4, 1) infinite; }
+@keyframes spin { 50% { transform: rotate(180deg) scale(1.1); } 100% { transform: rotate(360deg); } }
+.count { margin: 18px 0 0; font-size: 13px; font-weight: 700; letter-spacing: .22em; text-transform: uppercase; color: var(--star); font-variant-numeric: tabular-nums; min-height: 1em; }
+.title { margin: 10px 0 0; font-size: clamp(30px, 3.2vw, 48px); font-weight: 800; letter-spacing: -.01em; }
+.lead { margin: 12px auto 0; max-width: 520px; font-size: 17px; line-height: 1.5; color: var(--muted); }
+.steps { list-style: none; margin: 36px 0 0; padding: 0; display: flex; justify-content: center; gap: 14px; counter-reset: step; }
+.steps li { position: relative; width: 200px; padding: 16px 14px 14px; border-radius: 14px; text-align: left; background: rgba(10, 14, 28, .55); border: 1px solid var(--line); backdrop-filter: blur(8px); counter-increment: step; }
+.steps li::before { content: counter(step); position: absolute; top: 14px; right: 14px; font-size: 12px; font-weight: 800; color: rgba(154, 166, 199, .6); }
+.steps svg { width: 22px; height: 22px; fill: none; stroke: var(--nova); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 0 6px rgba(255, 79, 216, .5)); }
+.steps b { display: block; margin-top: 10px; font-size: 14px; }
+.steps span { display: block; margin-top: 4px; font-size: 12.5px; line-height: 1.4; color: var(--muted); }

@@ -48,3 +48,22 @@ test('solo acepta https, recursos pxd_* y rutas dentro de html/assets', () => {
   assert.equal(items.length, 1);
   assert.equal(items[0].dest, '/srv/res/html/assets/ok.png');
 });
+
+test('instala recursos nuevos: comprueba huellas, rutas y no pisa carpetas', async () => {
+  const { installResources } = require(cjs);
+  const { createHash } = await import('node:crypto');
+  const sha = (t) => createHash('sha256').update(Buffer.from(t, 'utf8')).digest('hex');
+  const root = mkdtempSync(join(tmpdir(), 'pxd-res-'));
+  const body = 'print("hola ñ")';
+  const res = installResources([
+    { name: 'pxd_nuevo', files: [{ path: 'server/main.lua', sha256: sha(body), body }] },
+    { name: 'pxd_malo', files: [{ path: '../fuera.lua', sha256: sha('x'), body: 'x' }] },
+    { name: 'pxd_huella', files: [{ path: 'a.lua', sha256: 'f'.repeat(64), body: 'x' }] },
+    { name: 'qbx_core', files: [{ path: 'a.lua', sha256: sha('x'), body: 'x' }] },
+  ], root);
+  assert.equal(readFileSync(join(root, 'pxd_nuevo/server/main.lua'), 'utf8'), body);
+  assert.deepEqual(res.map((r) => r.ok), [true, false, false, false]);
+  assert.ok(!existsSync(join(root, 'pxd_malo')) && !existsSync(join(root, '.pxd_huella.part')));
+  const again = installResources([{ name: 'pxd_nuevo', files: [{ path: 'b.lua', sha256: sha('y'), body: 'y' }] }], root);
+  assert.equal(again[0].ok, false, 'no pisa un recurso que ya existe');
+});

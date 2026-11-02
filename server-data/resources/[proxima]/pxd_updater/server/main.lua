@@ -66,9 +66,22 @@ local function run(src, mode)
             end
         end
 
-        for res in pairs(missing) do
-            log(src, ('Recurso nuevo «%s»: súbelo una vez a resources/[proxima]/ y añade ensure %s.'):format(res, res))
+        -- Recursos nuevos (aún no existen en el servidor): se instalan enteros.
+        local installs = {}
+        for _, f in ipairs(manifest.files) do
+            if missing[f.resource] and f.resource:match('^pxd_[%w_]+$') then
+                if not installs[f.resource] then
+                    installs[f.resource] = {}
+                    installs[#installs + 1] = f.resource
+                end
+                local list = installs[f.resource]
+                list[#list + 1] = f
+            end
         end
+        for _, name in ipairs(installs) do
+            log(src, (' + recurso nuevo: %s (%d archivos)'):format(name, #installs[name]))
+        end
+        state.plan = type(manifest.plan) == 'table' and manifest.plan or state.plan
         for _, key in ipairs(skipped) do
             log(src, ('Se respeta %s porque lo editaste (usa «pxd_update force» para sobrescribirlo).'):format(key))
         end
@@ -81,7 +94,36 @@ local function run(src, mode)
             end
         end
         for _, a in ipairs(newAssets) do log(src, ' + arte: ' .. a.resource .. '/' .. a.path) end
-        if #changes == 0 and #newAssets == 0 then return log(src, 'Todo está al día.') end
+        if #changes == 0 and #installs == 0 and mode ~= 'check' then
+            SaveResourceFile(RES, Config.stateFile, json.encode(state), -1)
+            PXDUpdater.applyPatches(src)
+            PXDUpdater.startPlanned(src)
+        end
+        if #changes == 0 and #installs == 0 and #newAssets == 0 then return log(src, 'Todo está al día.') end
+        if #changes == 0 and #installs > 0 then
+            if mode == 'check' then
+                return log(src, ('%d recurso(s) nuevo(s) por instalar. Ejecuta «pxd_update» para instalarlos.'):format(#installs))
+            end
+            -- Descarga y verificación en Lua (son archivos de texto); la escritura de
+            -- carpetas nuevas la hace server/assets.js, porque SaveResourceFile solo
+            -- escribe en recursos que ya existen.
+            local packages = {}
+            for _, name in ipairs(installs) do
+                local files = {}
+                for _, f in ipairs(installs[name]) do
+                    local d = fetch('server-data/resources/[proxima]/' .. f.resource .. '/' .. f.path)
+                    if d.code ~= 200 or type(d.body) ~= 'string' or #d.body ~= f.size or PXDUpdater.sha256(d.body) ~= f.sha256 then
+                        return log(src, ('Descarga incorrecta de %s/%s (HTTP %s). No se ha instalado nada.'):format(f.resource, f.path, tostring(d.code)))
+                    end
+                    files[#files + 1] = { path = f.path, sha256 = f.sha256, body = d.body }
+                    state[f.resource .. '/' .. f.path] = f.sha256
+                end
+                packages[#packages + 1] = { name = name, files = files }
+            end
+            SaveResourceFile(RES, Config.stateFile, json.encode(state), -1)
+            TriggerEvent('pxd_updater:installResources', packages, src)
+            return log(src, 'Instalando recursos nuevos… (los resultados aparecerán aquí)')
+        end
         if mode == 'check' and #changes == 0 then
             return log(src, ('%d archivo(s) de arte por descargar. Ejecuta «pxd_update» para aplicarlos.'):format(#newAssets))
         end
@@ -128,6 +170,7 @@ local function run(src, mode)
             end
         end
         log(src, ('Listo: %d archivo(s) en %d recurso(s).'):format(#staged, #order))
+        if #installs > 0 then log(src, 'Hay recursos nuevos por instalar: vuelve a ejecutar «pxd_update».') end
         if #newAssets > 0 then log(src, 'Hay arte nuevo por descargar: vuelve a ejecutar «pxd_update».') end
         if self then
             log(src, 'El actualizador también cambió: se reinicia ahora.')
@@ -145,6 +188,70 @@ end
 
 AddEventHandler('pxd_updater:assetLog', function(src, msg)
     log(tonumber(src) or 0, tostring(msg))
+end)
+
+--- Arranca los recursos del plan (manifest.plan.autostart, en orden) que no estén
+--- iniciados, y para los que sustituyen (plan.replaces). Así no hace falta tocar el
+--- server.cfg al añadir un recurso nuevo. StartResource/StopResource no piden ACE.
+function PXDUpdater.startPlanned(src)
+    local plan = (loadState().plan) or {}
+    local replaces = type(plan.replaces) == 'table' and plan.replaces or {}
+    for _, name in ipairs(type(plan.autostart) == 'table' and plan.autostart or {}) do
+        local st = GetResourceState(name)
+        if st ~= 'missing' then
+            for _, old in ipairs(type(replaces[name]) == 'table' and replaces[name] or {}) do
+                if GetResourceState(old) == 'started' then
+                    StopResource(old)
+                    log(src, ('%s sustituye a %s: %s detenido.'):format(name, old, old))
+                end
+            end
+            if st ~= 'started' and st ~= 'starting' then
+                if StartResource(name) then log(src, 'Iniciado ' .. name .. '.')
+                else log(src, ('No se pudo iniciar %s: revisa la consola.'):format(name)) end
+            end
+        end
+    end
+end
+
+--- Cambios de configuración en recursos de terceros (plan.patches): texto exacto
+--- a sustituir, solo si el recurso que lo necesita está instalado. Requieren reiniciar
+--- el servidor para aplicarse, porque el recurso parcheado ya está en marcha.
+function PXDUpdater.applyPatches(src)
+    local plan = (loadState().plan) or {}
+    for _, p in ipairs(type(plan.patches) == 'table' and plan.patches or {}) do
+        if type(p.resource) == 'string' and type(p.path) == 'string' and type(p.find) == 'string' and type(p.replace) == 'string'
+            and GetResourceState(p.requires or p.resource) ~= 'missing' and GetResourceState(p.resource) ~= 'missing' then
+            local text = LoadResourceFile(p.resource, p.path)
+            if text and not text:find(p.replace, 1, true) then
+                local i, j = text:find(p.find, 1, true)
+                if i then
+                    text = text:sub(1, i - 1) .. p.replace .. text:sub(j + 1)
+                    if SaveResourceFile(p.resource, p.path, text, #text) then
+                        log(src, ('Ajustado %s/%s (%s). Reinicia el servidor para aplicarlo.'):format(p.resource, p.path, p.why or 'configuración'))
+                    end
+                end
+            end
+        end
+    end
+end
+
+AddEventHandler('pxd_updater:installDone', function(src, results)
+    src = tonumber(src) or 0
+    ExecuteCommand('refresh')
+    local ok = 0
+    for _, r in ipairs(type(results) == 'table' and results or {}) do
+        if r.ok then ok = ok + 1 else log(src, ('No se pudo instalar %s: %s'):format(tostring(r.name), tostring(r.message))) end
+    end
+    log(src, ('Recursos nuevos instalados: %d.'):format(ok))
+    PXDUpdater.applyPatches(src)
+    PXDUpdater.startPlanned(src)
+end)
+
+-- Al encender el servidor: arranca lo que el plan diga (con un pequeño margen para
+-- que termine de leer el server.cfg).
+AddEventHandler('onResourceStart', function(name)
+    if name ~= RES then return end
+    SetTimeout(3000, function() PXDUpdater.startPlanned(0) end)
 end)
 
 RegisterCommand('pxd_update', function(src, args)

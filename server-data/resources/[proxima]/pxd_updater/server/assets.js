@@ -65,7 +65,58 @@ function prepare(list, getRoot) {
   return items;
 }
 
+const crypto = require('crypto');
+const SAFE_NAME = /^pxd_[a-z0-9_]+$/;
+const SAFE_FILE = /^[A-Za-z0-9_\-./]+$/;
+
+/** Ruta relativa segura: sin «..», sin absoluta, sin caracteres raros. */
+function safeRel(p) {
+  return typeof p === 'string' && SAFE_FILE.test(p) && !p.startsWith('/') && !p.split('/').some((s) => s === '..' || s === '');
+}
+
+/**
+ * Escribe recursos nuevos completos en `root` (la carpeta [proxima]). Cada archivo
+ * se comprueba otra vez con SHA-256 antes de escribir; un recurso se escribe en una
+ * carpeta temporal y se renombra al final, para no dejarlo a medias.
+ */
+function installResources(packages, root) {
+  const results = [];
+  for (const pkg of Array.isArray(packages) ? packages : []) {
+    const name = pkg && pkg.name;
+    try {
+      if (!SAFE_NAME.test(String(name))) throw new Error('nombre no permitido');
+      const files = Array.isArray(pkg.files) ? pkg.files : [];
+      if (files.length === 0) throw new Error('sin archivos');
+      const final = path.join(root, name);
+      if (fs.existsSync(final)) throw new Error('la carpeta ya existe');
+      const tmp = path.join(root, `.${name}.part`);
+      fs.rmSync(tmp, { recursive: true, force: true });
+      for (const f of files) {
+        if (!safeRel(f.path)) throw new Error(`ruta no permitida: ${f.path}`);
+        const buf = Buffer.from(String(f.body), 'utf8');
+        const sha = crypto.createHash('sha256').update(buf).digest('hex');
+        if (sha !== f.sha256) throw new Error(`huella incorrecta en ${f.path}`);
+        const dest = path.join(tmp, f.path);
+        fs.mkdirSync(path.dirname(dest), { recursive: true });
+        fs.writeFileSync(dest, buf);
+      }
+      fs.renameSync(tmp, final);
+      results.push({ name, ok: true });
+    } catch (e) {
+      try { fs.rmSync(path.join(root, `.${name}.part`), { recursive: true, force: true }); } catch (_) { /* nada */ }
+      results.push({ name: String(name), ok: false, message: e.message });
+    }
+  }
+  return results;
+}
+
 if (typeof on === 'function') {
+  on('pxd_updater:installResources', (packages, src) => {
+    const root = path.dirname(GetResourcePath(GetCurrentResourceName()));
+    const results = installResources(packages, root);
+    setImmediate(() => emit('pxd_updater:installDone', src, results));
+  });
+
   // Evento local (no de red): solo lo puede disparar el propio servidor.
   on('pxd_updater:downloadAssets', (list, src) => {
     const items = prepare(list, (res) => GetResourcePath(res));
@@ -75,4 +126,4 @@ if (typeof on === 'function') {
   });
 }
 
-if (typeof module !== 'undefined') module.exports = { fetchBuffer, downloadAll, prepare };
+if (typeof module !== 'undefined') module.exports = { fetchBuffer, downloadAll, prepare, installResources, safeRel };

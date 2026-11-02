@@ -264,6 +264,61 @@
    "sha256": "d4a65094756bf056dbed315d051ff0461a4059248d5bdc6de9c2c78000f7e6e1"
   },
   {
+   "resource": "pxd_restart",
+   "path": "client/main.lua",
+   "size": 582,
+   "sha256": "d64ac5654019219ecf91f34e0b20469e235a3def59011cdea5acb305808d88af"
+  },
+  {
+   "resource": "pxd_restart",
+   "path": "config.lua",
+   "size": 749,
+   "sha256": "d2b6095c322ae2356e678589638fcd3a354348d3aa62428868445a1aa95ac9a6",
+   "config": true
+  },
+  {
+   "resource": "pxd_restart",
+   "path": "fxmanifest.lua",
+   "size": 445,
+   "sha256": "3c9359948c88ca95f03f9353a56ccac3a6bcbbfd304d23fcc3a4b365318d89eb"
+  },
+  {
+   "resource": "pxd_restart",
+   "path": "html/app.js",
+   "size": 3191,
+   "sha256": "b4af240be93071ec02eda0b317452ed76e10099cbbd45848df457f02b88fd38f"
+  },
+  {
+   "resource": "pxd_restart",
+   "path": "html/index.html",
+   "size": 1385,
+   "sha256": "69cf069dc2ef99901dee61d7a84f78dcb937378e9b496a12b44d08af30dffa9f"
+  },
+  {
+   "resource": "pxd_restart",
+   "path": "html/logo.svg",
+   "size": 1335,
+   "sha256": "7a98455a0e55f769f346a8977fca200177c322b15cf60579109cc79f7d9d7c35"
+  },
+  {
+   "resource": "pxd_restart",
+   "path": "html/style.css",
+   "size": 4748,
+   "sha256": "77e35fd4327cec50114714a0044a08a0494a233537e53f20e76f84336a78cd1a"
+  },
+  {
+   "resource": "pxd_restart",
+   "path": "server/main.lua",
+   "size": 912,
+   "sha256": "ccbea4232666de05ee9b9e5549279e0543cb3e2f81195376ccda72fd11c3e3ef"
+  },
+  {
+   "resource": "pxd_restart",
+   "path": "shared/restart.lua",
+   "size": 797,
+   "sha256": "77852160674a409909ee40e81e749327fedf56f07619c528bfb2668077af4ba2"
+  },
+  {
    "resource": "pxd_updater",
    "path": "config.lua",
    "size": 631,
@@ -279,14 +334,14 @@
   {
    "resource": "pxd_updater",
    "path": "server/assets.js",
-   "size": 3312,
-   "sha256": "9cbd198424b1f5930207c994bdbf0986b0b92e1d9885acb574a5ce70a5d31c6d"
+   "size": 5589,
+   "sha256": "e40d7fbc9ab719a7794e73cae20dd6919e7f4a047020cbffed897fa76e8d8e57"
   },
   {
    "resource": "pxd_updater",
    "path": "server/main.lua",
-   "size": 7581,
-   "sha256": "92d14ff387f7a360abbdb7e51238bf5618588561d400c84064236a16991c7fe8"
+   "size": 13275,
+   "sha256": "85b5b11227c6378e56ed5146c0ccb50ccacdc1d5e84812b1d1e98f95256023d2"
   },
   {
    "resource": "pxd_updater",
@@ -351,5 +406,12 @@
    "path": "html/assets/ciudad-4.png",
    "url": "https://d2ol7oe51mr4n9.cloudfront.net/user_37Ov13C5FiPPOO8dlkIS8XYZnE7/8897b50d-9f3e-4317-9d61-a6fdc8d47896.png"
   }
- ]
+ ],
+ "plan": {
+  "autostart": [
+   "pxd_restart"
+  ],
+  "replaces": {},
+  "patches": []
+ }
 }

@@ -1,0 +1,15 @@
+{
+ "_comment": "Plan de pxd_updater: qué recursos nuevos arranca solo (en este orden), a cuáles sustituyen y qué ajustes hace en recursos de terceros. Solo se publica lo que existe en el repo.",
+ "autostart": ["pxd_progress", "pxd_restart", "pxd_jobs", "pxd_panel", "pxd_multichar", "pxd_hud"],
+ "replaces": { "pxd_hud": ["qbx_hud"] },
+ "patches": [
+  {
+   "resource": "qbx_core",
+   "path": "config/client.lua",
+   "find": "useExternalCharacters = false",
+   "replace": "useExternalCharacters = true",
+   "requires": "pxd_multichar",
+   "why": "pantalla de personajes de Próxima"
+  }
+ ]
+}

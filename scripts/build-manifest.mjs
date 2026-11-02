@@ -36,7 +36,15 @@ export function buildManifest() {
   // Arte (binario, en Higgsfield): se descarga solo si falta en el servidor.
   const brand = JSON.parse(readFileSync(join(root, 'scripts/brand-assets.json'), 'utf8'));
   const assets = brand.files.map((f) => ({ resource: 'pxd_loadscreen', path: `html/assets/${f.dest}`, url: f.url }));
-  return { format: 1, files, assets };
+  // Plan: arranque automático, sustituciones y ajustes, solo de recursos que existen.
+  const raw = JSON.parse(readFileSync(join(root, 'scripts/update-plan.json'), 'utf8'));
+  const exists = (r) => existsSync(join(res, r));
+  const plan = {
+    autostart: raw.autostart.filter(exists),
+    replaces: Object.fromEntries(Object.entries(raw.replaces).filter(([r]) => exists(r))),
+    patches: raw.patches.filter((p) => exists(p.requires)),
+  };
+  return { format: 1, files, assets, plan };
 }
 
 const out = join(root, 'update-manifest.json');

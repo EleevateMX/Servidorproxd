@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Próxima RP — reinicio</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="toast hidden" id="toast" role="status">
+    <svg class="toast__star" viewBox="0 0 160 160" aria-hidden="true"><path d="M80 12 C85 62 98 75 148 80 C98 85 85 98 80 148 C75 98 62 85 12 80 C62 75 75 62 80 12Z"/></svg>
+    <span id="toast-text"></span>
+  </div>
+
+  <section class="screen hidden" id="screen" aria-live="assertive">
+    <div class="sky" aria-hidden="true"><div class="stars"></div><div class="glow"></div></div>
+    <div class="content">
+      <img class="logo" src="logo.svg" alt="Próxima RP">
+      <div class="orb" aria-hidden="true">
+        <svg class="orb__ring" viewBox="0 0 120 120">
+          <circle cx="60" cy="60" r="54" class="orb__track"/>
+          <circle cx="60" cy="60" r="54" class="orb__fill" id="ring"/>
+        </svg>
+        <svg class="orb__star" viewBox="0 0 160 160"><path d="M80 12 C85 62 98 75 148 80 C98 85 85 98 80 148 C75 98 62 85 12 80 C62 75 75 62 80 12Z"/></svg>
+      </div>
+      <p class="count" id="count"></p>
+      <h1 class="title" id="title"></h1>
+      <p class="lead">Estamos aplicando cambios. En un momento puedes volver a entrar.</p>
+      <ol class="steps" id="steps"></ol>
+    </div>
+  </section>
+  <script src="app.js"></script>
+</body>
+</html>
