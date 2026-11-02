@@ -60,27 +60,41 @@
     bgTimer = setInterval(nextBg, 9000);
   }
 
-  // ── Avisos ──────────────────────────────────────────
-  const news = Array.isArray(data.news) ? data.news.filter((n) => n && n.title) : [];
-  let newsIndex = 0;
-  function renderNews() {
-    const box = $('news');
-    if (!news.length) { box.classList.add('hidden'); return; }
-    const n = news[newsIndex];
-    $('news-tag').textContent = n.tag || '';
-    $('news-title').textContent = n.title;
-    const safe = typeof n.image === 'string' && /^[\w.-]+$/.test(n.image) ? n.image : '';
-    $('news-bg').style.backgroundImage = safe ? `url("assets/${safe}"), linear-gradient(135deg, #1c2647, #3a1747)` : 'linear-gradient(135deg, #1c2647, #3a1747)';
-    box.style.cursor = n.url ? 'pointer' : 'default';
-    $('news-dots').replaceChildren(...news.map((_, i) => {
-      const d = document.createElement('span');
-      if (i === newsIndex) d.className = 'is-on';
-      return d;
-    }));
+  // ── Código de la ciudad: normas (de pxd_login) y avisos, en rotación ─
+  const rules = Array.isArray(hand.rules) ? hand.rules : (demo ? [
+    'Rol ante todo: actúa como lo haría tu personaje.',
+    'Nada de metagaming: lo que sabes fuera del personaje no lo sabe tu personaje.',
+    'Respeto a la comunidad y al staff, dentro y fuera del rol.',
+  ] : []);
+  const items = [
+    ...rules.filter((r) => typeof r === 'string' && r).map((r, i, all) => ({ label: 'Código de la ciudad', count: `${i + 1}/${all.length}`, text: r })),
+    ...(Array.isArray(data.news) ? data.news : []).filter((n) => n && n.title).map((n) => ({ label: n.tag || 'Aviso', text: n.title, url: n.url })),
+  ];
+  const ITEM_MS = 7000;
+  let itemIndex = -1;
+  function showItem() {
+    if (!items.length) { $('codex').classList.add('hidden'); return; }
+    itemIndex = (itemIndex + 1) % items.length;
+    const it = items[itemIndex];
+    const text = $('codex-text');
+    text.classList.add('is-out');
+    setTimeout(() => {
+      $('codex-label').textContent = it.label;
+      $('codex-count').textContent = it.count || '';
+      text.textContent = it.text;
+      text.classList.remove('is-out');
+      $('codex').classList.toggle('is-link', Boolean(it.url));
+      const bar = $('codex-bar');
+      bar.classList.remove('is-running');
+      bar.style.transitionDuration = '0ms';
+      void bar.offsetWidth; // reinicia la animación
+      bar.style.transitionDuration = `${ITEM_MS - 400}ms`;
+      bar.classList.add('is-running');
+    }, itemIndex === 0 && !text.textContent ? 0 : 350);
   }
-  $('news').addEventListener('click', () => openUrl(news[newsIndex]?.url));
-  renderNews();
-  if (news.length > 1) setInterval(() => { newsIndex = (newsIndex + 1) % news.length; renderNews(); }, 6000);
+  $('codex').addEventListener('click', () => openUrl(items[itemIndex]?.url));
+  showItem();
+  if (items.length > 1) setInterval(showItem, ITEM_MS);
 
   // ── Discord y redes ─────────────────────────────────
   if (data.discord) {

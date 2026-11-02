@@ -120,7 +120,9 @@ local function connect(src, name, deferrals)
     dirty = true
 
     -- Datos para la pantalla de carga (window.nuiHandoverData).
-    deferrals.handover({ name = name, firstTime = firstTime, serverName = Config.serverName })
+    -- Datos para la pantalla de carga (window.nuiHandoverData): las normas se muestran
+    -- allí en rotación («Código de la ciudad»), sin interrumpir.
+    deferrals.handover({ name = name, firstTime = firstTime, serverName = Config.serverName, rules = Config.rules })
     Wait(0)
     deferrals.done()
 end

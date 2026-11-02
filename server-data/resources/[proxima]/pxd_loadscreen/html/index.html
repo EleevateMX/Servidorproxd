@@ -29,13 +29,14 @@
   <section class="dock" aria-label="Información del servidor">
     <p class="online"><span class="pulse" aria-hidden="true"></span><b id="online">—</b> en línea</p>
 
-    <article class="news" id="news" aria-live="polite">
-      <div class="news__bg" id="news-bg"></div>
-      <div class="news__body">
-        <span class="news__tag" id="news-tag"></span>
-        <h2 class="news__title" id="news-title"></h2>
+    <article class="codex" id="codex" aria-live="polite">
+      <div class="codex__head">
+        <svg class="codex__star" viewBox="0 0 160 160" aria-hidden="true"><path d="M80 12 C85 62 98 75 148 80 C98 85 85 98 80 148 C75 98 62 85 12 80 C62 75 75 62 80 12Z"/></svg>
+        <span id="codex-label">Código de la ciudad</span>
+        <span class="codex__count" id="codex-count"></span>
       </div>
-      <div class="news__dots" id="news-dots"></div>
+      <p class="codex__text" id="codex-text"></p>
+      <div class="codex__bar"><span id="codex-bar"></span></div>
     </article>
 
     <div class="bar">

@@ -119,8 +119,8 @@
   {
    "resource": "pxd_loadscreen",
    "path": "config.lua",
-   "size": 1232,
-   "sha256": "d6e8b9730ee86eaba1a9496b9e10532413d56a3ce7a1eefe077b86366980180e",
+   "size": 996,
+   "sha256": "1fe61570b4681500cbf64a4797b36857786c91506abeb25e32fffb8ee0b2e9ce",
    "config": true
   },
   {
@@ -132,14 +132,14 @@
   {
    "resource": "pxd_loadscreen",
    "path": "html/app.js",
-   "size": 9168,
-   "sha256": "e401663dd106784858ce803101ad18a696c446bd54226da76461d6c2a52e90cc"
+   "size": 9711,
+   "sha256": "1a3d8d5a97102ff2b6918b0db4ab42cbebd4b54c582cf68c25a28fa82d81cd1a"
   },
   {
    "resource": "pxd_loadscreen",
    "path": "html/index.html",
-   "size": 3525,
-   "sha256": "2d70a7528ae418a9760634e623dee5574a8bcd578456ecb26a5a665af5e97f66"
+   "size": 3732,
+   "sha256": "15721e1a228feecdeb19a80f330788a369429ecb0a3fbd138b343334f22225e1"
   },
   {
    "resource": "pxd_loadscreen",
@@ -150,8 +150,8 @@
   {
    "resource": "pxd_loadscreen",
    "path": "html/style.css",
-   "size": 8781,
-   "sha256": "fae25ba0aeb67cd0e1c7c0daa45756c58bb82637923b1ad1595b428ba9a449ea"
+   "size": 9237,
+   "sha256": "9383f15fbc0acd4aaf321f95197fb339d9df47f251f0458f44e4a1082c9c6a18"
   },
   {
    "resource": "pxd_loadscreen",
@@ -199,8 +199,8 @@
   {
    "resource": "pxd_login",
    "path": "server/main.lua",
-   "size": 5857,
-   "sha256": "9fc0cd80ac065268efa31c12f41ab4656dd222382bfe07f17f11c57ce3a52311"
+   "size": 6038,
+   "sha256": "2430d5f892671c4d77e576da5a3ae5fc209c0d2c5df409dc59a92cb5385297d6"
   },
   {
    "resource": "pxd_login",
