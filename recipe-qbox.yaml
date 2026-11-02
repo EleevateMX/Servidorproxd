@@ -632,7 +632,13 @@ tasks:  #  Download Base Files
     file: ./resources/[qbx]/qbx_police/server/main.lua
     mode: literal
     search: "AddEventHandler\\('onServerResourceStart', function\\(resource\\)\\n    if resource ~= 'ox_inventory' then return end"
-    replace: "AddEventHandler('onServerResourceStart', function(resource)\n    if resource ~= 'ox_inventory' and resource ~= GetCurrentResourceName() then return end -- Próxima\n    if GetResourceState('ox_inventory') ~= 'started' then return end"
+    replace: "AddEventHandler('onServerResourceStart', function(resource)\n    if resource ~= 'ox_inventory' and resource ~= GetCurrentResourceName() then return end -- Próxima\n    if GetResourceState('ox_inventory') ~= 'started' then return end\n    -- Próxima: ox_inventory publica RegisterStash al terminar de cargar la base de datos; se reintenta\n    -- con la misma taquilla que se registra abajo (registrarla dos veces solo la sobrescribe).\n    for _ = 1, 120 do\n        if pcall(function() exports.ox_inventory:RegisterStash('policelocker', 'Police Locker', 30, 100000, true) end) then break end\n        Wait(500)\n    end"
+
+  - action: replace_string # EMS: armería y taquillas cuando ox_inventory termine de cargar
+    file: ./resources/[qbx]/qbx_ambulancejob/server/main.lua
+    mode: literal
+    search: "    registerArmory\\(\\)\\n    registerStashes\\(\\)\\nend\\)"
+    replace: "    CreateThread(function()\n        -- Próxima: ox_inventory publica RegisterShop al terminar de cargar; se reintenta hasta 60 s\n        for _ = 1, 120 do\n            if pcall(registerArmory) then break end\n            Wait(500)\n        end\n        registerStashes()\n    end)\nend)"
 
   - action: replace_string # el ítem radio abre qbx_radio (mm_radio no está instalado)
     file: ./resources/[ox]/ox_inventory/data/items.lua

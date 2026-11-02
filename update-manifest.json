@@ -1444,9 +1444,9 @@
     "resource": "qbx_police",
     "path": "server/main.lua",
     "find": "AddEventHandler('onServerResourceStart', function(resource)\n    if resource ~= 'ox_inventory' then return end",
-    "replace": "AddEventHandler('onServerResourceStart', function(resource)\n    if resource ~= 'ox_inventory' and resource ~= GetCurrentResourceName() then return end -- Próxima\n    if GetResourceState('ox_inventory') ~= 'started' then return end",
+    "replace": "AddEventHandler('onServerResourceStart', function(resource)\n    if resource ~= 'ox_inventory' and resource ~= GetCurrentResourceName() then return end -- Próxima\n    if GetResourceState('ox_inventory') ~= 'started' then return end\n    -- Próxima: ox_inventory publica RegisterStash al terminar de cargar la base de datos; se reintenta\n    -- con la misma taquilla que se registra abajo (registrarla dos veces solo la sobrescribe).\n    for _ = 1, 120 do\n        if pcall(function() exports.ox_inventory:RegisterStash('policelocker', 'Police Locker', 30, 100000, true) end) then break end\n        Wait(500)\n    end",
     "requires": "pxd_compat",
-    "why": "registrar las papeleras de policía aunque ox_inventory arranque antes"
+    "why": "registrar las papeleras y taquillas de policía cuando ox_inventory termine de cargar"
    },
    {
     "resource": "ox_inventory",
@@ -1527,6 +1527,14 @@
     "replace": "<svg id=\"eyeSvg\" xmlns=\"http://www.w3.org/2000/svg\" height=\"36px\" viewBox=\"0 0 24 24\" width=\"36px\"><path d=\"M12 1.8C12.75 9.3 14.7 11.25 22.2 12C14.7 12.75 12.75 14.7 12 22.2C11.25 14.7 9.3 12.75 1.8 12C9.3 11.25 11.25 9.3 12 1.8Z\"/></svg>",
     "requires": "pxd_theme",
     "why": "destello de Próxima en la mirilla de ox_target"
+   },
+   {
+    "resource": "qbx_ambulancejob",
+    "path": "server/main.lua",
+    "find": "    registerArmory()\n    registerStashes()\nend)",
+    "replace": "    CreateThread(function()\n        -- Próxima: ox_inventory publica RegisterShop al terminar de cargar; se reintenta hasta 60 s\n        for _ = 1, 120 do\n            if pcall(registerArmory) then break end\n            Wait(500)\n        end\n        registerStashes()\n    end)\nend)",
+    "requires": "pxd_compat",
+    "why": "armería y taquillas de EMS: esperar a que ox_inventory termine de cargar (evita «No such export RegisterShop»)"
    }
   ],
   "external": []

@@ -86,3 +86,10 @@ test('proxima.cfg: cada ajuste coincide con server.qbox.cfg (misma fuente)', () 
   assert.ok(lines.length >= 9);
   for (const l of lines) assert.ok(qbox.includes(l), `server.qbox.cfg no tiene: ${l}`);
 });
+
+test('ningún .cfg lleva «;»: FXServer parte ahí los comandos, también dentro de comentarios', () => {
+  for (const f of readdirSync(join(root, 'server-data')).filter((n) => n.endsWith('.cfg'))) {
+    const lines = readFileSync(join(root, 'server-data', f), 'utf8').split('\n');
+    lines.forEach((l, i) => assert.ok(!l.includes(';'), `${f}:${i + 1} tiene «;»`));
+  }
+});
