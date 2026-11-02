@@ -3,6 +3,8 @@
 -- Cada opción: { label, icon?, distance?, canInteract?(ctx), onSelect?(ctx), event?, serverEvent?, args? }
 -- ctx = { entity?, coords, dist, serverId?, zone? }
 local zones, entities, models, playerOpts, temp = {}, {}, {}, {}, {}
+local providers = {}   -- internos (maletero…): fn(ped, pos, inVehicle) → candidato o nil
+local P = PXDInteract.PRIORITY
 local nextId = 0
 local disabled = false
 local shown, selected, signature = {}, 1, ''
@@ -69,6 +71,9 @@ end
 function API.removeTemporary(id) temp[id] = nil end
 
 function API.disable(state) disabled = state and true or false end
+
+--- Interno (no exportado): proveedores dinámicos de este recurso, p. ej. el maletero.
+function PXDInteractAddProvider(fn) providers[#providers + 1] = fn end
 function API.isActive() return #shown > 0 end
 
 for name, fn in pairs(API) do exports(name, fn) end
@@ -139,7 +144,7 @@ local function collect()
             local d = #(pos - z.coords)
             if d <= z.radius then
                 local ctx = { coords = z.coords, dist = d, zone = id }
-                push('z' .. id, d, filter(z.options, ctx), ctx, z.priority)
+                push('z' .. id, d, filter(z.options, ctx), ctx, z.priority or P.zone)
             end
         end
     end
@@ -150,7 +155,7 @@ local function collect()
                 local d = #(pos - c)
                 if d <= e.distance then
                     local ctx = { entity = e.entity, coords = c, dist = d }
-                    push('e' .. id, d, filter(e.options, ctx), ctx)
+                    push('e' .. id, d, filter(e.options, ctx), ctx, P.npc)
                 end
             end
         end
@@ -160,7 +165,7 @@ local function collect()
             if reg and DoesEntityExist(hit.entity) then
                 local c = GetEntityCoords(hit.entity)
                 local ctx = { entity = hit.entity, coords = c, dist = #(pos - c) }
-                push('m' .. hit.id .. ':' .. i, ctx.dist, filter(reg.options, ctx), ctx)
+                push('m' .. hit.id .. ':' .. i, ctx.dist, filter(reg.options, ctx), ctx, P.npc)
             end
         end
         if next(playerOpts) then
@@ -176,14 +181,46 @@ local function collect()
                         for _, reg in pairs(playerOpts) do
                             for _, o in ipairs(filter(reg.options, ctx)) do opts[#opts + 1] = o end
                         end
-                        push('p' .. ctx.serverId, d, opts, ctx)
+                        push('p' .. ctx.serverId, d, opts, ctx, P.player)
                     end
                 end
             end
         end
     end
+    for i, fn in ipairs(providers) do
+        local ok, c = pcall(fn, ped, pos, inVehicle)
+        if ok and c then push(c.key or ('x' .. i), c.dist or 0, filter(c.options, c.ctx), c.ctx, c.priority) end
+    end
     return list
 end
+
+-- ── Ceder la E a otros recursos ─────────────────────────────────────────────
+-- ox_doorlock (puertas), qbx_teleports y otros muestran su aviso con ox_lib textUI y
+-- leen la E (control 38) por su cuenta; qbx_tackle usa E al correr; qbx_vehiclepush,
+-- Mayús + E; ox_fuel (sin ox_target), E a menos de 3 m de un surtidor. En esos casos
+-- pxd_interact no muestra nada ni actúa.
+local function nearPump(pos)
+    if GetResourceState('ox_fuel') ~= 'started' then return false end
+    for _, model in ipairs(Config.fuelPumps or {}) do
+        if GetClosestObjectOfType(pos.x, pos.y, pos.z, 3.0, GetHashKey(model), false, false, false) ~= 0 then return true end
+    end
+    return false
+end
+
+local function yieldState(ped)
+    local s = { sprinting = IsPedSprinting(ped) or IsPedRunning(ped), shift = IsControlPressed(0, 21) }
+    if GetResourceState('ox_lib') == 'started' then
+        local ok, open = pcall(function() return exports.ox_lib:isTextUIOpen() end)
+        s.textUI = ok and open == true
+    end
+    if GetResourceState('ox_doorlock') == 'started' then
+        local ok, door = pcall(function() return exports.ox_doorlock:getClosestDoor() end)
+        s.door = ok and type(door) == 'table' and (door.distance or 99) < (door.maxDistance or 0)
+    end
+    s.pump = nearPump(GetEntityCoords(ped))
+    return s
+end
+PXDInteractYielding = function() return PXDInteract.shouldYield(yieldState(PlayerPedId())) end
 
 -- ── NUI ─────────────────────────────────────────────────────────────────────
 local function render(list)
@@ -197,7 +234,7 @@ local function render(list)
     else
         local view = {}
         for i, o in ipairs(list) do view[i] = { label = o.label, icon = o.icon } end
-        SendNUIMessage({ action = 'options', list = view, selected = selected, key = Config.key })
+        SendNUIMessage({ action = 'options', list = view, selected = selected, key = Config.keys.interact })
     end
 end
 
@@ -220,10 +257,11 @@ end
 -- Tecla (cambiable en Ajustes → Asignación de teclas → FiveM).
 RegisterCommand('+pxd_interact', function()
     if disabled or IsPauseMenuActive() or IsNuiFocused() then return end
-    if #shown > 0 then run(shown[selected]) end
+    if #shown == 0 or PXDInteractYielding() then return end
+    run(shown[selected])
 end, false)
 RegisterCommand('-pxd_interact', function() end, false)
-RegisterKeyMapping('+pxd_interact', 'Interactuar (Próxima RP)', 'keyboard', Config.key)
+RegisterKeyMapping('+pxd_interact', 'Interactuar (Próxima RP)', 'keyboard', Config.keys.interact)
 
 -- Bucle de búsqueda (adaptativo) y bucle de navegación (solo con varias opciones).
 CreateThread(function()
@@ -233,6 +271,8 @@ CreateThread(function()
         if disabled or IsPauseMenuActive() or IsNuiFocused() or IsPedDeadOrDying(ped, true) then
             render({})
             sleep = 500
+        elseif PXDInteract.shouldYield(yieldState(ped)) then
+            render({})
         else
             local list = PXDInteract.flatten(collect(), Config.maxOptions)
             render(list)
@@ -245,13 +285,12 @@ end)
 CreateThread(function()
     while true do
         if #shown > 1 then
-            -- Rueda del ratón (14/15) y flechas (27 arriba / 173 abajo): elegir opción.
+            -- Rueda del ratón (14/15): elegir opción. Sin flechas: la flecha arriba abre el teléfono.
             DisableControlAction(0, 14, true)
             DisableControlAction(0, 15, true)
-            DisableControlAction(0, 27, true)
             local delta = 0
-            if IsDisabledControlJustPressed(0, 15) or IsDisabledControlJustPressed(0, 27) then delta = -1 end
-            if IsDisabledControlJustPressed(0, 14) or IsDisabledControlJustPressed(0, 173) then delta = 1 end
+            if IsDisabledControlJustPressed(0, 15) then delta = -1 end
+            if IsDisabledControlJustPressed(0, 14) then delta = 1 end
             if delta ~= 0 then
                 selected = PXDInteract.wrap(selected + delta, #shown)
                 SendNUIMessage({ action = 'select', selected = selected })

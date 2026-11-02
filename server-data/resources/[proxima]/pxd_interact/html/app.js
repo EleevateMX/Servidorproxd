@@ -13,6 +13,7 @@
     car: 'M5 16h14M6 16l1.5-5h9L18 16M7 19a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM17 19a1 1 0 1 0 0-2 1 1 0 0 0 0 2z',
     check: 'M5 12l4 4 10-10',
     close: 'M6 6l12 12M18 6L6 18',
+    lock: 'M6 11h12v9H6zM8 11V8a4 4 0 0 1 8 0v3',
     star: 'M12 3l2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5z',
   };
   const STAR = 'M80 12 C85 62 98 75 148 80 C98 85 85 98 80 148 C75 98 62 85 12 80 C62 75 75 62 80 12Z';
@@ -70,6 +71,12 @@
       if (on) { on.classList.add('is-pressed'); setTimeout(() => on.classList.remove('is-pressed'), 150); }
     }
     else if (m.action === 'notify') toast(String(m.text || ''));
+    else if (m.action === 'pickup') {
+      if (!m.label) { $('pickup').classList.add('hidden'); return; }
+      $('pickup-key').textContent = String(m.key || 'B').toUpperCase().slice(0, 3);
+      $('pickup-label').textContent = String(m.label);
+      $('pickup').classList.remove('hidden');
+    }
   });
 
   // Vista previa: index.html?demo=1 (una opción) | ?demo=many | ?demo=invite
@@ -89,8 +96,10 @@
         { label: 'Ignorar', icon: 'close' },
       ] });
       post({ action: 'notify', text: 'PROX-7KQ2 quiere presentarse.' });
+    } else if (demo === 'pickup') {
+      post({ action: 'pickup', key: 'B', label: 'Recoger botella de agua ×2' });
     } else {
-      post({ action: 'options', key: 'E', selected: 1, list: [{ label: 'Recoger', icon: 'hand' }] });
+      post({ action: 'options', key: 'E', selected: 1, list: [{ label: 'Abrir maletero', icon: 'box' }] });
     }
   }
 })();

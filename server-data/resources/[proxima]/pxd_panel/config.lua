@@ -2,8 +2,8 @@
 Config = {}
 
 -- Tecla por defecto. Cada jugador puede cambiarla en Ajustes de FiveM → Asignación de teclas → FiveM.
--- OJO: ox_inventory usa TAB para la barra rápida (convar inventory:keys, 3.ª tecla). Si quieres el
--- panel en TAB, mueve la barra rápida: setr inventory:keys '["F2","K","F3"]' en el server.cfg.
+-- La barra rápida de ox_inventory va en F1 (convar inventory:keys, ver docs/28-controles.md),
+-- así que TAB queda solo para el panel.
 Config.key = 'TAB'
 Config.command = 'panel'           -- también se abre con /panel
 
@@ -23,6 +23,7 @@ Config.hiddenGangs = { none = true }
 
 -- Ayuda: cómo pedir soporte. Solo comandos que existen en el servidor.
 Config.support = {
+    { title = 'Teclas principales', text = 'I inventario · E interactuar (también abre maleteros) · B recoger del suelo · Ctrl izquierdo agacharse · TAB este panel · F1 barra rápida · ↑ teléfono · N hablar (doble N gritar, J susurrar) · F9 soporte. Puedes cambiarlas en Ajustes → Asignación de teclas → FiveM.' },
     { title = 'Soporte del staff', text = 'Pulsa F9 en el juego para pedir ayuda al staff. También puedes abrir un ticket en Discord.', link = 'https://discord.gg/qUcD5gCf6v' },
     { title = 'Reportar a un jugador', text = 'Pulsa F9 → «Reportar a un jugador», con su ID (/id te dice el tuyo) y lo que pasó.' },
     { title = 'Hablar fuera de personaje', text = 'Usa /b (o /ooc) para mensajes fuera de rol a los que están cerca. Úsalo poco y con respeto.' },
