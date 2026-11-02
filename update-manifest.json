@@ -282,8 +282,8 @@
   {
    "resource": "pxd_hud",
    "path": "client/main.lua",
-   "size": 9904,
-   "sha256": "401a2cc7cd46f88ceedb5c04d98b8d7f4e27827b30e93e43046d9bd5e09873f9"
+   "size": 10084,
+   "sha256": "01758573654763869e2ef7de575e6545a1915f3760d0b1f31b9137cea3bfa55d"
   },
   {
    "resource": "pxd_hud",
@@ -304,20 +304,20 @@
   {
    "resource": "pxd_hud",
    "path": "html/app.js",
-   "size": 7185,
-   "sha256": "4913cc0d651889515b35a699192a1334ebce7bc213a48bbedd9b2c629312b299"
+   "size": 7356,
+   "sha256": "80e61516d3e72c2002670be865e5fec0cae36fb5acce040d2b8657e9f20427c9"
   },
   {
    "resource": "pxd_hud",
    "path": "html/index.html",
-   "size": 6204,
-   "sha256": "1a93ff9c227c2b774a7f602cd05899691ded56848b6b4d44a544fba9d97a81a4"
+   "size": 6461,
+   "sha256": "398ec077315f33d373bcad4332b8c6a36ab956a81411b32c5b841dea16d83fe7"
   },
   {
    "resource": "pxd_hud",
    "path": "html/style.css",
-   "size": 9834,
-   "sha256": "4b69ac7e5920842bfd8dddc2c9dd0179d395aa42d6ddc17f7c1a8eeae4d997e8"
+   "size": 10395,
+   "sha256": "52905bbe00622f6f3dd9c2de6efa9820a607cc5d59310c164212cc23f10d1fd4"
   },
   {
    "resource": "pxd_hud",
@@ -487,6 +487,37 @@
    "path": "shared/jobs.lua",
    "size": 9823,
    "sha256": "f01a46dfbca02b64ce3afd6c6e67e1437af1a8cd276d84d66aa754abbb9f97f8"
+  },
+  {
+   "resource": "pxd_justice",
+   "path": "config.lua",
+   "size": 1434,
+   "sha256": "74cf2b1c7f6f60c4d5f778c34d1754a47b2d9225061185758a6c56b58c9cbba8",
+   "config": true
+  },
+  {
+   "resource": "pxd_justice",
+   "path": "fxmanifest.lua",
+   "size": 419,
+   "sha256": "e95a6078c32332671dce33d8c575eb4ffc28798e524e385b7c7006d5511a748b"
+  },
+  {
+   "resource": "pxd_justice",
+   "path": "server/main.lua",
+   "size": 17185,
+   "sha256": "8bbe8231f64d66a181a83a537b6e9a9c3900a80b8292f341f1bfb4ef1025b0a3"
+  },
+  {
+   "resource": "pxd_justice",
+   "path": "server/store.lua",
+   "size": 4804,
+   "sha256": "6311bd4b5ddbda5a72e91ebc1251da86b9b7ef28b96ddde587e997b941caf7c3"
+  },
+  {
+   "resource": "pxd_justice",
+   "path": "shared/fines.lua",
+   "size": 4132,
+   "sha256": "333a4e36b7856014fc2ffebda36083535895b82eaabceef6d2ba5e5d1f806ba0"
   },
   {
    "resource": "pxd_loadscreen",
@@ -691,8 +722,8 @@
   {
    "resource": "pxd_panel",
    "path": "client/main.lua",
-   "size": 2717,
-   "sha256": "ca053a90e7a195b04577f818e0a5f66bc53cbccc9de32ca348695b13dd514b62"
+   "size": 3357,
+   "sha256": "73c6e3140734ba1ac6a193526673d76464a283bfde5d38b508691ad9b79c0b81"
   },
   {
    "resource": "pxd_panel",
@@ -713,8 +744,8 @@
   {
    "resource": "pxd_panel",
    "path": "html/app.js",
-   "size": 42998,
-   "sha256": "19c61371ca3d6702a88b646c0c01f7c146425165e311fd5785406b79884689d8"
+   "size": 50608,
+   "sha256": "3c416d1507c6f23111a897d25ad87732771f9be41c52303de34e4dba0c9edc61"
   },
   {
    "resource": "pxd_panel",
@@ -731,8 +762,8 @@
   {
    "resource": "pxd_panel",
    "path": "html/style.css",
-   "size": 26607,
-   "sha256": "d9089ce4bbf9c77cb4fb5c251a0195859b9e1e4d9ff35d58cdfa68748e1aaae5"
+   "size": 27805,
+   "sha256": "1a424ce68cb706c53b2f288f5cf8cbaf936a27da8486fac8f8c880bc4bcd0e47"
   },
   {
    "resource": "pxd_panel",
@@ -749,8 +780,8 @@
   {
    "resource": "pxd_panel",
    "path": "server/main.lua",
-   "size": 4726,
-   "sha256": "d6c4d9048a2b2c07e440ee16381a849b90ffaffd4f387826610464c0ad26c9f9"
+   "size": 6331,
+   "sha256": "16ef5b05df2b32de608be68759111942e1e21191ed754d6792990c37f776ed2d"
   },
   {
    "resource": "pxd_panel",
@@ -1087,6 +1118,7 @@
    "pxd_restart",
    "pxd_interact",
    "pxd_jobs",
+   "pxd_justice",
    "pxd_panel",
    "pxd_multichar",
    "pxd_hud",
@@ -1238,6 +1270,14 @@
     "replace": "    wipeInvOnRespawn = false, -- Enable to disable removing all items from player on respawn",
     "requires": "pxd_compat",
     "why": "no borrar el inventario al reaparecer (pxd_compat retira solo lo confiscable)"
+   },
+   {
+    "resource": "qbx_police",
+    "path": "server/main.lua",
+    "find": "RegisterNetEvent('police:server:IssueFine', function(targetSrc, lawViolated, fineAmount, notes)\n    local src = source\n",
+    "replace": "RegisterNetEvent('police:server:IssueFine', function(targetSrc, lawViolated, fineAmount, notes)\n    if GetResourceState('pxd_justice') == 'started' then return end -- Próxima: multas en pxd_justice\n    local src = source\n",
+    "requires": "pxd_justice",
+    "why": "las multas quedan registradas como pendientes en pxd_justice"
    }
   ],
   "external": []

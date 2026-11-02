@@ -630,6 +630,12 @@ tasks:  #  Download Base Files
     search: "    wipeInvOnRespawn = true, -- Enable to disable removing all items from player on respawn"
     replace: "    wipeInvOnRespawn = false, -- Enable to disable removing all items from player on respawn"
 
+  - action: replace_string # las multas quedan registradas como pendientes en pxd_justice
+    file: ./resources/[qbx]/qbx_police/server/main.lua
+    mode: literal
+    search: "RegisterNetEvent\\('police:server:IssueFine', function\\(targetSrc, lawViolated, fineAmount, notes\\)\\n    local src = source\\n"
+    replace: "RegisterNetEvent('police:server:IssueFine', function(targetSrc, lawViolated, fineAmount, notes)\n    if GetResourceState('pxd_justice') == 'started' then return end -- Próxima: multas en pxd_justice\n    local src = source\n"
+
   # Clean up
   - action: remove_path
     path: ./tmp
