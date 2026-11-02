@@ -21,7 +21,7 @@ local function stopSpectate()
     local s = spec.saved
     RequestCollisionAtCoord(s.x, s.y, s.z)
     SetEntityCoords(ped, s.x, s.y, s.z, false, false, false, false)
-    FreezeEntityPosition(ped, false)
+    FreezeEntityPosition(ped, LocalPlayer.state.pxd_frozen == true)
     SetEntityVisible(ped, true, false)
     spec = nil
     SendNUIMessage({ action = 'spectate', on = false })
@@ -190,45 +190,92 @@ end)
 
 -- ── Herramientas de staff (las autoriza el servidor) ────────────────────────
 
-local tools = { noclip = false, invisible = false }
+local tools = { invisible = false, devtools = false }
+
+local function toast(text, kind)
+    SendNUIMessage({ action = 'toast', title = 'Administración', text = text, kind = kind or 'success' })
+end
+
+-- Noclip: guarda el estado anterior y lo restaura al salir. Natives verificados en
+-- runtime.fivem.net/doc/natives.json: GET_ENTITY_COLLISION_DISABLED, GET_PLAYER_INVINCIBLE,
+-- SET_ENTITY_COLLISION, FREEZE_ENTITY_POSITION, SET_ENTITY_VISIBLE, SET_LOCAL_PLAYER_VISIBLE_LOCALLY,
+-- SET_ENTITY_ALPHA / RESET_ENTITY_ALPHA, SET_ENTITY_COORDS_NO_OFFSET, GET_GAMEPLAY_CAM_ROT.
+local nc = { on = false, saved = nil, speeds = { 0.2, 0.5, 1.0, 2.0, 4.0, 8.0 }, idx = 3, invisible = true }
+
+local function ncTargets()
+    local ped = PlayerPedId()
+    if IsPedInAnyVehicle(ped, false) then return GetVehiclePedIsIn(ped, false), ped end
+    return ped, ped
+end
+
+local function noclipStop(tellServer)
+    if not nc.on then return end
+    nc.on = false
+    local s = nc.saved or {}
+    local ped = PlayerPedId()
+    if s.ent and DoesEntityExist(s.ent) then
+        SetEntityCollision(s.ent, not s.collisionDisabled, not s.collisionDisabled)
+        -- Solo queda congelado si un miembro del staff lo había congelado (state bag del servidor).
+        FreezeEntityPosition(s.ent, s.ent == ped and LocalPlayer.state.pxd_frozen == true)
+        SetEntityVisible(s.ent, true, false)
+        ResetEntityAlpha(s.ent)
+    end
+    SetEntityVisible(ped, s.visible ~= false and not tools.invisible, false)
+    ResetEntityAlpha(ped)
+    SetPlayerInvincible(PlayerId(), s.invincible == true)
+    nc.saved = nil
+    SendNUIMessage({ action = 'noclip', on = false })
+    if tellServer then TriggerServerEvent('pxd_admin:server:noclipOff') end
+end
+
+local NC_DISABLED = { 14, 15, 16, 17, 21, 22, 24, 25, 30, 31, 32, 33, 34, 35, 36, 37, 44, 73, 140, 141, 142 }
 
 local function noclipLoop()
-    local speed = 1.0
-    while tools.noclip do
-        local ped = PlayerPedId()
-        local ent = IsPedInAnyVehicle(ped, false) and GetVehiclePedIsIn(ped, false) or ped
-        for _, c in ipairs({ 21, 22, 32, 33, 34, 35, 36 }) do DisableControlAction(0, c, true) end
+    while nc.on do
+        local ent, ped = ncTargets()
+        if IsEntityDead(ped) then noclipStop(true) break end
+        for _, c in ipairs(NC_DISABLED) do DisableControlAction(0, c, true) end
+        if IsDisabledControlJustPressed(0, 15) and nc.idx < #nc.speeds then nc.idx = nc.idx + 1; SendNUIMessage({ action = 'noclip', on = true, speed = nc.speeds[nc.idx] }) end
+        if IsDisabledControlJustPressed(0, 14) and nc.idx > 1 then nc.idx = nc.idx - 1; SendNUIMessage({ action = 'noclip', on = true, speed = nc.speeds[nc.idx] }) end
         local rot = GetGameplayCamRot(2)
         local rz, rx = math.rad(rot.z), math.rad(rot.x)
         local fwd = vector3(-math.sin(rz) * math.cos(rx), math.cos(rz) * math.cos(rx), math.sin(rx))
         local right = vector3(math.cos(rz), math.sin(rz), 0.0)
-        local mul = IsDisabledControlPressed(0, 21) and 3.0 or 1.0
+        local mul = IsDisabledControlPressed(0, 21) and 3.0 or 1.0          -- Shift: rápido
         local move = vector3(0.0, 0.0, 0.0)
-        if IsDisabledControlPressed(0, 32) then move = move + fwd end
-        if IsDisabledControlPressed(0, 33) then move = move - fwd end
-        if IsDisabledControlPressed(0, 34) then move = move - right end
-        if IsDisabledControlPressed(0, 35) then move = move + right end
-        if IsDisabledControlPressed(0, 22) then move = move + vector3(0.0, 0.0, 1.0) end
-        if IsDisabledControlPressed(0, 36) then move = move - vector3(0.0, 0.0, 1.0) end
-        local pos = GetEntityCoords(ent) + move * (speed * mul)
+        if IsDisabledControlPressed(0, 32) then move = move + fwd end        -- W
+        if IsDisabledControlPressed(0, 33) then move = move - fwd end        -- S
+        if IsDisabledControlPressed(0, 34) then move = move - right end      -- A
+        if IsDisabledControlPressed(0, 35) then move = move + right end      -- D
+        if IsDisabledControlPressed(0, 22) then move = move + vector3(0.0, 0.0, 1.0) end   -- Espacio: sube
+        if IsDisabledControlPressed(0, 73) then move = move - vector3(0.0, 0.0, 1.0) end   -- X: baja
+        local pos = GetEntityCoords(ent) + move * (nc.speeds[nc.idx] * mul)
         SetEntityCoordsNoOffset(ent, pos.x, pos.y, pos.z, true, true, true)
         SetEntityHeading(ent, rot.z)
+        if nc.invisible then SetLocalPlayerVisibleLocally(true) end
         Wait(0)
     end
 end
 
-local function setNoclip(on)
-    local ped = PlayerPedId()
-    local ent = IsPedInAnyVehicle(ped, false) and GetVehiclePedIsIn(ped, false) or ped
-    tools.noclip = on
-    SetEntityCollision(ent, not on, not on)
-    FreezeEntityPosition(ent, on)
-    SetEntityVisible(ped, not on and not tools.invisible, false)
-    if on then CreateThread(noclipLoop) end
-end
-
-local function toast(text, kind)
-    SendNUIMessage({ action = 'toast', title = 'Staff', text = text, kind = kind or 'success' })
+local function noclipStart(opts)
+    if nc.on then return end
+    local ent, ped = ncTargets()
+    nc.saved = { ent = ent, collisionDisabled = GetEntityCollisionDisabled(ent), visible = IsEntityVisible(ped),
+        invincible = GetPlayerInvincible(PlayerId()) }
+    if type(opts.speeds) == 'table' and #opts.speeds > 0 then nc.speeds = opts.speeds end
+    nc.idx = math.max(1, math.min(#nc.speeds, tonumber(opts.speed) or 3))
+    nc.invisible = opts.invisible ~= false
+    nc.on = true
+    SetEntityCollision(ent, false, false)
+    FreezeEntityPosition(ent, true)
+    SetPlayerInvincible(PlayerId(), true)
+    if nc.invisible then
+        SetEntityVisible(ped, false, false)
+        if ent ~= ped then SetEntityVisible(ent, false, false) end
+        SetEntityAlpha(ped, 120, false)   -- uno mismo se ve en semitransparente
+    end
+    SendNUIMessage({ action = 'noclip', on = true, speed = nc.speeds[nc.idx], invisible = nc.invisible })
+    CreateThread(noclipLoop)
 end
 
 local function nearestVehicle(maxDist)
@@ -242,9 +289,27 @@ local function nearestVehicle(maxDist)
     return best
 end
 
+local function closePanel()
+    setFocus(false)
+    SendNUIMessage({ action = 'hide' })
+end
+
+local function here()
+    local ped = PlayerPedId()
+    local c, h = GetEntityCoords(ped), GetEntityHeading(ped)
+    local s1, s2 = GetStreetNameAtCoord(c.x, c.y, c.z)
+    local street = GetStreetNameFromHashKey(s1)
+    if s2 and s2 ~= 0 then street = street .. ' / ' .. GetStreetNameFromHashKey(s2) end
+    return { x = c.x, y = c.y, z = c.z, h = h, street = street, interior = GetInteriorFromEntity(ped) }
+end
+
 local TOOLS = {}
 
-function TOOLS.noclip() setNoclip(not tools.noclip); toast(tools.noclip and 'Noclip activado.' or 'Noclip desactivado.') end
+function TOOLS.noclip(opts)
+    opts = type(opts) == 'table' and opts or {}
+    if opts.on then noclipStart(opts); toast('Noclip activado · rueda del ratón: velocidad · Espacio/X: subir/bajar.')
+    else noclipStop(false); toast('Noclip desactivado.') end
+end
 
 function TOOLS.invisible()
     tools.invisible = not tools.invisible
@@ -279,10 +344,28 @@ function TOOLS.repair()
     toast('Vehículo reparado.')
 end
 
+function TOOLS.clean()
+    local veh = nearestVehicle(6.0)
+    if not veh then return toast('No hay vehículo cerca.', 'error') end
+    SetVehicleDirtLevel(veh, 0.0)
+    toast('Vehículo limpio.')
+end
+
 function TOOLS.dv()
     local veh = nearestVehicle(6.0)
     if not veh then return toast('No hay vehículo cerca.', 'error') end
     TriggerServerEvent('pxd_admin:server:deleteVehicle', NetworkGetNetworkIdFromEntity(veh))
+end
+
+function TOOLS.vehinfo()
+    local veh = nearestVehicle(6.0)
+    if not veh then return toast('No hay vehículo cerca.', 'error') end
+    SendNUIMessage({ action = 'result', kind = 'vehicleLocal', data = {
+        name = GetDisplayNameFromVehicleModel(GetEntityModel(veh)),
+        engine = math.floor(GetVehicleEngineHealth(veh)), body = math.floor(GetVehicleBodyHealth(veh)),
+        dirt = math.floor(GetVehicleDirtLevel(veh)),
+    } })
+    TriggerServerEvent('pxd_admin:server:vehicleInfo', NetworkGetNetworkIdFromEntity(veh))
 end
 
 function TOOLS.car(model)
@@ -305,9 +388,68 @@ function TOOLS.car(model)
     toast(('Vehículo «%s» listo.'):format(model))
 end
 
+function TOOLS.coords()
+    SendNUIMessage({ action = 'result', kind = 'coords', data = here() })
+end
+
+-- Herramientas de desarrollo: coordenadas, rumbo y vehículo en pantalla.
+local function devText(x, y, text)
+    SetTextFont(4)
+    SetTextScale(0.0, 0.36)
+    SetTextColour(92, 225, 255, 230)
+    SetTextOutline()
+    BeginTextCommandDisplayText('STRING')
+    AddTextComponentSubstringPlayerName(text)
+    EndTextCommandDisplayText(x, y)
+end
+
+function TOOLS.devtools()
+    tools.devtools = not tools.devtools
+    toast(tools.devtools and 'Herramientas de desarrollo en pantalla.' or 'Herramientas de desarrollo ocultas.')
+    if not tools.devtools then return end
+    CreateThread(function()
+        while tools.devtools do
+            local h = here()
+            devText(0.012, 0.30, ('X %.2f  Y %.2f  Z %.2f  H %.1f'):format(h.x, h.y, h.z, h.h))
+            devText(0.012, 0.325, ('%s · interior %d'):format(h.street or '', h.interior or 0))
+            local ped = PlayerPedId()
+            if IsPedInAnyVehicle(ped, false) then
+                local veh = GetVehiclePedIsIn(ped, false)
+                devText(0.012, 0.35, ('Vehículo %s · %s · motor %d'):format(GetDisplayNameFromVehicleModel(GetEntityModel(veh)),
+                    GetVehicleNumberPlateText(veh), math.floor(GetVehicleEngineHealth(veh))))
+            end
+            Wait(0)
+        end
+    end)
+end
+
+-- Editor de props: lo abre su propio comando, que vuelve a pedir permiso a pxd_props.
+function TOOLS.props()
+    closePanel()
+    ExecuteCommand('props')
+end
+
+-- Menú avanzado de Qbox (qbx_adminmenu): trabajo, banda, datos, ropa… con sus propios permisos.
+function TOOLS.qbxmenu()
+    if GetResourceState('qbx_adminmenu') ~= 'started' then return toast('qbx_adminmenu no está en marcha.', 'error') end
+    closePanel()
+    TriggerEvent('qbx_admin:client:openMenu')
+end
+
 RegisterNetEvent('pxd_admin:client:tool', function(name, arg)
     if not fromServer() or not TOOLS[name] then return end
     TOOLS[name](arg)
+end)
+
+RegisterNetEvent('pxd_admin:client:result', function(kind, data)
+    if not fromServer() then return end
+    SendNUIMessage({ action = 'result', kind = kind, data = data })
+end)
+
+RegisterNetEvent('pxd_admin:client:warning', function(w)
+    if not fromServer() or type(w) ~= 'table' then return end
+    SendNUIMessage({ action = 'warning', reason = w.reason, by = w.by })
+    setFocus(true)
 end)
 
 RegisterNetEvent('pxd_admin:client:announce', function(a)
@@ -328,12 +470,21 @@ RegisterCommand('soporte', function()
 end, false)
 RegisterKeyMapping('soporte', 'Soporte y reportes', 'keyboard', Config.keySupport)
 
-RegisterCommand('staff', function()
+-- Nombre de comando nuevo a propósito: FiveM conserva la tecla que cada jugador tenía
+-- guardada para un comando; con un nombre nuevo se aplica la tecla por defecto (F10).
+RegisterCommand('pxd_panel_admin', function()
     if spec then return stopSpectate() end   -- la misma tecla sale de espectar
     if uiOpen then return end
     TriggerServerEvent('pxd_admin:server:openStaff')
 end, false)
-RegisterKeyMapping('staff', 'Panel de staff', 'keyboard', Config.keyStaff)
+RegisterKeyMapping('pxd_panel_admin', 'Próxima: panel de administración', 'keyboard', Config.keyStaff)
+
+CreateThread(function()
+    Wait(1000)
+    TriggerEvent('chat:addSuggestion', '/admin', 'Abrir el panel de administración')
+    TriggerEvent('chat:addSuggestion', '/noclip', 'Vuelo libre de staff')
+    TriggerEvent('chat:removeSuggestion', '/pxd_panel_admin')
+end)
 
 -- ── NUI → servidor ──────────────────────────────────────────────────────────
 
@@ -354,11 +505,14 @@ cb('refreshStaff', function() TriggerServerEvent('pxd_admin:server:refreshStaff'
 cb('openStaff', function() TriggerServerEvent('pxd_admin:server:openStaff') end)
 cb('action', function(d) TriggerServerEvent('pxd_admin:server:action', d.action, d.target, d.payload) end)
 cb('reportAction', function(d) TriggerServerEvent('pxd_admin:server:reportAction', d.action, d.id, d.text) end)
+cb('query', function(d) TriggerServerEvent('pxd_admin:server:query', d.kind, d.args) end)
+cb('localTool', function(d) if d.tool == 'coords' then TOOLS.coords() end end)
 
 AddEventHandler('onResourceStop', function(name)
     if name ~= GetCurrentResourceName() then return end
     if spec then stopSpectate() end
-    if tools.noclip then setNoclip(false) end
+    if nc.on then noclipStop(true) end
+    tools.devtools = false
     if tools.invisible then SetEntityVisible(PlayerPedId(), true, false) end
     if duty.on then SetPlayerInvincible(PlayerId(), false); SetEntityInvincible(PlayerPedId(), false) end
     if uiOpen then SetNuiFocus(false, false) end

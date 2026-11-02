@@ -1,4 +1,6 @@
--- pxd_admin (servidor): reportes, panel de staff y acciones. Todo se valida aquí.
+-- pxd_admin (servidor): reportes, centro de administración y acciones. Todo se valida aquí:
+-- permiso (ACE pxd.admin.<permiso>, ver shared/admin.lua), tipos, objetivo y motivo.
+-- Cada acción queda en el registro propio y en la auditoría común (pxd_audit). docs/37.
 local RES = GetCurrentResourceName()
 
 local reports, staffLog = {}, {}
@@ -7,85 +9,119 @@ local backPos = {}      -- [src] = { x, y, z, bucket } antes de ir/traer
 local frozen = {}       -- [src] = true
 local spectating = {}   -- [staffSrc] = { bucket = n }
 local onDuty = {}       -- [staffSrc] = true (modo servicio)
+local noclipOn = {}     -- [staffSrc] = true (autorizado por el servidor)
 
 local reportLimiter = PXDAdmin.newLimiter(Config.reportsPerWindow, Config.reportWindowSec)
 local replyLimiter = PXDAdmin.newLimiter(Config.repliesPerMinute, 60)
+local queryLimiter = PXDAdmin.newLimiter(20, 10)
 
 -- ── Utilidades ──────────────────────────────────────────────────────────────
 
 local function now() return os.time() end
+local function started(res) return GetResourceState(res) == 'started' end
 
 local function online(src)
     src = tonumber(src)
-    return src and GetPlayerName(src) ~= nil and src or nil
-end
-
-local function isStaff(src)
-    return IsPlayerAceAllowed(src, Config.ace)
+    return src and src > 0 and GetPlayerName(src) ~= nil and src or nil
 end
 
 local function aceOf(src)
     return function(ace) return IsPlayerAceAllowed(src, ace) end
 end
 
+local function has(src, perm)
+    if src == 0 then return true end
+    return PXDAdmin.has(perm, aceOf(src))
+end
+
+local function isStaff(src) return has(src, 'panel') end
+
 local function license(src)
     return GetPlayerIdentifierByType(src, 'license')
 end
 
+local function staffName(src)
+    if src == 0 then return 'Consola' end
+    return GetPlayerName(src) or ('#' .. tostring(src))
+end
+
 local function notify(src, title, text, kind)
+    if src == 0 then return print(('[pxd_admin] %s: %s'):format(title, text)) end
     TriggerClientEvent('pxd_admin:client:notify', src, { title = title, text = text, kind = kind or 'info' })
 end
 
-local function qbxPlayer(src)
-    if GetResourceState('qbx_core') ~= 'started' then return nil end
+local function qbxObject(src)
+    if not started('qbx_core') then return nil end
     local ok, p = pcall(function() return exports.qbx_core:GetPlayer(src) end)
-    return ok and p and p.PlayerData or nil
+    return ok and p or nil
+end
+
+local function qbxPlayer(src)
+    local p = qbxObject(src)
+    return p and p.PlayerData or nil
 end
 
 local function progress(src)
-    if GetResourceState('pxd_progress') ~= 'started' then return nil end
+    if not started('pxd_progress') then return nil end
     local ok, p = pcall(function() return exports.pxd_progress:GetProfile(src) end)
     return ok and type(p) == 'table' and p or nil
 end
 
---- Datos de un jugador. `full` añade lo que solo ve el staff.
-local function playerRow(src, full)
+local function publicId(src, pd)
+    if started('pxd_interact') then
+        local ok, id = pcall(function() return exports.pxd_interact:GetPublicId(src) end)
+        if ok and id then return id end
+    end
+    return pd and pd.metadata and pd.metadata.pxd_id or nil
+end
+
+local function db()
+    return MySQL ~= nil and started('oxmysql')
+end
+
+--- Datos de un jugador. `viewer` = mapa de permisos de quien mira (nil = vista mínima).
+local function playerRow(src, viewer)
     local pd = qbxPlayer(src)
     local row = { id = src, name = GetPlayerName(src) }
     if pd then
         local ci = pd.charinfo or {}
         row.charName = ((ci.firstname or '') .. ' ' .. (ci.lastname or '')):gsub('^%s+', ''):gsub('%s+$', '')
         row.citizenid = pd.citizenid
-        row.proxId = pd.metadata and pd.metadata.pxd_id or nil
         if pd.job then
             row.job = pd.job.label
             row.grade = pd.job.grade and pd.job.grade.name or nil
             row.onduty = pd.job.onduty == true
         end
     end
-    if not full then return row end
+    row.proxId = publicId(src, pd)
+    if not viewer then return row end
     row.ping = GetPlayerPing(src)
     row.bucket = GetPlayerRoutingBucket(src)
-    row.license = license(src)
-    row.discord = GetPlayerIdentifierByType(src, 'discord')
     row.frozen = frozen[src] == true
-    if pd and pd.money then row.cash, row.bank = pd.money.cash, pd.money.bank end
-    local pr = progress(src)
-    if pr then row.level, row.playtime, row.playtimeToday = pr.level, pr.playtime, pr.playtimeToday end
+    row.staff = onDuty[src] == true
+    if viewer['players.identity'] then
+        row.license = license(src)
+        row.discord = GetPlayerIdentifierByType(src, 'discord')
+        row.fivem = GetPlayerIdentifierByType(src, 'fivem')
+        if pd and pd.money then row.cash, row.bank = pd.money.cash, pd.money.bank end
+        local pr = progress(src)
+        if pr then row.level, row.playtime, row.playtimeToday = pr.level, pr.playtime, pr.playtimeToday end
+    end
+    if viewer['players.ip'] then row.ip = GetPlayerIdentifierByType(src, 'ip') end
     return row
 end
 
-local function allRows(full)
+local function allRows(viewer)
     local out = {}
-    for _, id in ipairs(GetPlayers()) do out[#out + 1] = playerRow(tonumber(id), full) end
+    for _, id in ipairs(GetPlayers()) do out[#out + 1] = playerRow(tonumber(id), viewer) end
     return PXDAdmin.filterPlayers(out, '')
 end
 
-local function staffOnline()
+local function staffWith(perm)
     local out = {}
     for _, id in ipairs(GetPlayers()) do
         id = tonumber(id)
-        if isStaff(id) then out[#out + 1] = id end
+        if has(id, 'panel') and has(id, perm) then out[#out + 1] = id end
     end
     return out
 end
@@ -99,7 +135,7 @@ local function findByLicense(lic)
     return nil
 end
 
--- ── Guardado ────────────────────────────────────────────────────────────────
+-- ── Guardado y auditoría ────────────────────────────────────────────────────
 
 local function load()
     local raw = LoadResourceFile(RES, Config.reportsFile)
@@ -117,11 +153,37 @@ local function saveReports()
     SaveResourceFile(RES, Config.reportsFile, json.encode({ nextId = nextId, reports = reports }), -1)
 end
 
-local function log(staffSrc, action, target, detail)
-    local entry = PXDAdmin.logEntry(GetPlayerName(staffSrc) or 'Consola', action, target, detail, now())
+--- Registra una acción: responsable, objetivo, fecha y motivo. `target` = id de jugador o texto.
+local function audit(src, action, target, info)
+    info = info or {}
+    local targetKey, targetLabel
+    if type(target) == 'number' then
+        targetKey = license(target) or ('id:' .. target)
+        targetLabel = ('%s (#%d)'):format(GetPlayerName(target) or '?', target)
+    elseif type(target) == 'table' then
+        targetKey, targetLabel = target.key, target.label
+    elseif target ~= nil then
+        targetKey, targetLabel = tostring(target), tostring(target)
+    end
+    local entry = PXDAdmin.logEntry(staffName(src), action, targetLabel, info.detail, now())
+    entry.reason = info.reason
+    entry.targetKey = targetKey
     PXDAdmin.pushCapped(staffLog, entry, Config.maxLog)
     SaveResourceFile(RES, Config.logFile, json.encode(staffLog), -1)
-    print(('[pxd_admin] %s → %s %s %s'):format(entry.staff, action, tostring(target or ''), tostring(detail or '')))
+    print(('[pxd_admin] %s → %s %s %s'):format(entry.staff, action, tostring(targetLabel or ''),
+        info.reason and ('· motivo: ' .. info.reason) or tostring(info.detail or '')))
+    if started('pxd_audit') then
+        local ok, err = pcall(function()
+            return exports.pxd_audit:Log({
+                category = 'admin', action = action,
+                actor = src == 0 and 'console' or (license(src) or ('id:' .. src)),
+                target = targetKey,
+                data = { staff = staffName(src), target_name = targetLabel, reason = info.reason,
+                         detail = info.detail and tostring(info.detail):sub(1, 300) or nil },
+            })
+        end)
+        if not ok then print('[pxd_admin] ^3No se pudo escribir en pxd_audit: ' .. tostring(err) .. '^7') end
+    end
 end
 
 -- Lo que ve el jugador de sus propios reportes (sin datos del staff ni licencias).
@@ -153,7 +215,7 @@ end
 
 local function broadcastReport(r, alert)
     local payload = reportsForStaff()
-    for _, s in ipairs(staffOnline()) do
+    for _, s in ipairs(staffWith('reports')) do
         TriggerClientEvent('pxd_admin:client:reports', s, payload)
         if alert then
             TriggerClientEvent('pxd_admin:client:staffAlert', s, { id = r.id, kind = r.kind, categoryLabel = r.categoryLabel,
@@ -191,7 +253,7 @@ RegisterNetEvent('pxd_admin:server:createReport', function(input)
         return notify(src, 'Soporte', ('Ya tienes %d reportes abiertos. Espera a que el staff los atienda.'):format(Config.maxOpenPerPlayer), 'error')
     end
     if data.kind == 'player' then
-        local t = PXDAdmin.resolveTarget(allRows(false), data.target)
+        local t = PXDAdmin.resolveTarget(allRows(nil), data.target)
         if not t then return notify(src, 'Soporte', 'No encontramos a ese jugador conectado. Revisa el ID o el PROX-ID.', 'error') end
         if t.id == src then return notify(src, 'Soporte', 'No puedes reportarte a ti mismo/a.', 'error') end
         data.targetInfo = { id = t.id, name = t.name, charName = t.charName, proxId = t.proxId, citizenid = t.citizenid }
@@ -199,7 +261,7 @@ RegisterNetEvent('pxd_admin:server:createReport', function(input)
     local ok, wait = PXDAdmin.allow(reportLimiter, lic, now())
     if not ok then return notify(src, 'Soporte', ('Has enviado varios reportes seguidos. Prueba en %d s.'):format(wait), 'error') end
 
-    local me = playerRow(src, false)
+    local me = playerRow(src, nil)
     local r = PXDAdmin.newReport(nextId, data, { license = lic, name = me.name, charName = me.charName or '', src = src }, now())
     nextId = nextId + 1
     reports[#reports + 1] = r
@@ -223,31 +285,63 @@ RegisterNetEvent('pxd_admin:server:playerReply', function(id, text)
     broadcastReport(r, false)
 end)
 
--- ── Staff ───────────────────────────────────────────────────────────────────
+-- ── Panel de administración ─────────────────────────────────────────────────
+
+local function logFor(src)
+    if not has(src, 'audit') then return {} end
+    local out = {}
+    for i = #staffLog, math.max(1, #staffLog - 199), -1 do out[#out + 1] = staffLog[i] end
+    return out
+end
 
 local function sendStaff(src)
+    local perms = PXDAdmin.permMap(aceOf(src))
     TriggerClientEvent('pxd_admin:client:staff', src, {
-        players = allRows(true),
-        reports = reportsForStaff(),
-        log = (function()
-            local out = {}
-            for i = #staffLog, math.max(1, #staffLog - 199), -1 do out[#out + 1] = staffLog[i] end
-            return out
-        end)(),
+        players = allRows(perms),
+        reports = perms.reports and reportsForStaff() or {},
+        log = logFor(src),
         me = src,
-        canKick = PXDAdmin.can('kick', aceOf(src)),
-        txAdminHint = Config.txAdminHint,
+        perms = perms,
+        role = PXDAdmin.roleLabel(aceOf(src)),
+        banHint = Config.banHint,
         spectating = spectating[src] ~= nil,
         onDuty = onDuty[src] == true,
+        noclip = noclipOn[src] == true,
+        requireDuty = Config.requireDuty == true,
+        limits = { maxMoney = Config.maxMoneyCorrection, maxBanHours = Config.maxBanHours },
         commands = PXDAdmin.COMMANDS,
+        qbxMenu = started('qbx_adminmenu'),
+        economy = started('pxd_economy'),
     })
 end
 
-RegisterNetEvent('pxd_admin:server:openStaff', function()
-    local src = source
-    if not isStaff(src) then return notify(src, 'Staff', 'No tienes permiso de staff.', 'error') end
+local NO_ACCESS = 'No tienes permisos de staff (falta pxd.admin.panel). Pide a un administrador que te añada a un rol: '
+    .. 'group.support, group.mod, group.admin, group.superadmin o group.dev.'
+
+local function openStaff(src)
+    if not isStaff(src) then return notify(src, 'Administración', NO_ACCESS, 'error') end
     sendStaff(src)
-end)
+end
+
+RegisterNetEvent('pxd_admin:server:openStaff', function() openStaff(source) end)
+
+RegisterCommand('admin', function(src)
+    if src == 0 then return print('[pxd_admin] /admin se usa dentro del juego. Para revisar permisos: pxd_admin_permisos <id>') end
+    openStaff(src)
+end, false)
+
+-- Diagnóstico desde la consola: qué rol y permisos tiene un jugador conectado.
+RegisterCommand('pxd_admin_permisos', function(src, args)
+    if src ~= 0 then return end
+    local id = online(args[1])
+    if not id then return print('[pxd_admin] Uso: pxd_admin_permisos <id de jugador conectado>') end
+    local perms, list = PXDAdmin.permMap(aceOf(id)), {}
+    for p, ok in pairs(perms) do if ok then list[#list + 1] = p end end
+    table.sort(list)
+    print(('[pxd_admin] %s (#%d) · rol: %s · licencia: %s'):format(GetPlayerName(id), id,
+        tostring(PXDAdmin.roleLabel(aceOf(id)) or 'ninguno'), tostring(license(id))))
+    print('[pxd_admin] permisos: ' .. (#list > 0 and table.concat(list, ', ') or 'ninguno (no ve el panel)'))
+end, true)
 
 local function coordsOf(src)
     local c = GetEntityCoords(GetPlayerPed(src))
@@ -256,7 +350,7 @@ end
 
 -- Cambiar de bucket con la función de Qbox (mantiene su estado `instance`); sin Qbox, el native.
 local function setBucket(src, bucket)
-    if GetResourceState('qbx_core') == 'started' then
+    if started('qbx_core') then
         local ok = pcall(function() exports.qbx_core:SetPlayerBucket(src, bucket) end)
         if ok then return end
     end
@@ -265,7 +359,7 @@ end
 
 -- Si está en una partida de pxd_gamemodes, sacarlo antes (si no, el lobby lo sigue contando).
 local function pullFromMatch(src, reason)
-    if GetResourceState('pxd_gamemodes') ~= 'started' then return false end
+    if not started('pxd_gamemodes') then return false end
     local ok, left = pcall(function() return exports.pxd_gamemodes:LeavePlayer(src, reason) end)
     return ok and left == true
 end
@@ -275,6 +369,15 @@ local function teleport(src, pos)
     SetEntityCoords(GetPlayerPed(src), pos.x + 0.0, pos.y + 0.0, pos.z + 0.0, false, false, false, false)
 end
 
+local function tool(src, name, arg)
+    TriggerClientEvent('pxd_admin:client:tool', src, name, arg)
+end
+
+local function text(v, max)
+    return (tostring(v or ''):gsub('%c', ' '):gsub('^%s+', ''):gsub('%s+$', ''):sub(1, max))
+end
+
+-- Cada acción devuelve: ok, mensaje para quien la hace, detalle para el registro, objetivo del registro.
 local ACTIONS = {}
 
 ACTIONS['goto'] = function(src, target)
@@ -312,12 +415,13 @@ function ACTIONS.freeze(src, target)
     local on = not frozen[target]
     frozen[target] = on or nil
     FreezeEntityPosition(GetPlayerPed(target), on)
+    Player(target).state:set('pxd_frozen', on or nil, true)
     if target ~= src then notify(target, 'Staff', on and 'Un miembro del staff te ha congelado.' or 'Ya puedes moverte.', 'staff') end
-    return true, on and 'Congelado.' or 'Descongelado.'
+    return true, on and 'Congelado.' or 'Descongelado.', on and 'congelar' or 'descongelar'
 end
 
 function ACTIONS.revive(src, target)
-    if GetResourceState('qbx_medical') == 'started' then
+    if started('qbx_medical') then
         exports.qbx_medical:Revive(target)
     else
         TriggerClientEvent('pxd_admin:client:revive', target)
@@ -326,7 +430,7 @@ function ACTIONS.revive(src, target)
 end
 
 function ACTIONS.heal(src, target)
-    if GetResourceState('qbx_medical') == 'started' then
+    if started('qbx_medical') then
         exports.qbx_medical:Heal(target)
     else
         TriggerClientEvent('pxd_admin:client:heal', target)
@@ -346,19 +450,59 @@ function ACTIONS.spectate(src, target)
 end
 
 function ACTIONS.message(src, target, payload)
-    local text = tostring(type(payload) == 'table' and payload.text or ''):gsub('^%s+', ''):gsub('%s+$', ''):sub(1, 300)
-    if #text < 1 then return false, 'Escribe un mensaje.' end
-    notify(target, 'Mensaje del staff', text, 'staff')
-    return true, 'Mensaje enviado.', text
+    local msg = text(payload.text, 300)
+    if #msg < 1 then return false, 'Escribe un mensaje.' end
+    notify(target, 'Mensaje del staff', msg, 'staff')
+    return true, 'Mensaje enviado.', msg
 end
 
 function ACTIONS.kick(src, target, payload)
     if target == src then return false, 'No puedes expulsarte a ti mismo/a.' end
-    local reason = tostring(type(payload) == 'table' and payload.reason or ''):gsub('^%s+', ''):gsub('%s+$', ''):sub(1, 200)
-    if #reason < 3 then return false, 'Indica el motivo.' end
     local name = GetPlayerName(target)
-    DropPlayer(target, 'Expulsado/a por el staff de Próxima RP: ' .. reason)
-    return true, name .. ' ha sido expulsado/a.', reason
+    DropPlayer(target, 'Expulsado/a por el staff de Próxima RP: ' .. payload.reason)
+    return true, name .. ' ha sido expulsado/a.'
+end
+
+function ACTIONS.warn(src, target, payload)
+    if target == src then return false, 'No puedes advertirte a ti mismo/a.' end
+    TriggerClientEvent('pxd_admin:client:warning', target, { reason = payload.reason, by = staffName(src) })
+    return true, 'Advertencia registrada y mostrada al jugador.'
+end
+
+function ACTIONS.ban(src, target, payload)
+    if target == src then return false, 'No puedes banearte a ti mismo/a.' end
+    if not db() then return false, 'La base de datos no está disponible: no se ha baneado.' end
+    local expire, why = PXDAdmin.banExpire(payload.hours, now(), Config.maxBanHours)
+    if not expire then return false, why end
+    local name, lic = GetPlayerName(target), license(target)
+    if not lic then return false, 'No se pudo leer la licencia del jugador.' end
+    -- Misma tabla y columnas que qbx_core (storage.insertBan) y qbx_adminmenu.
+    local ok, err = pcall(function()
+        return MySQL.insert.await('INSERT INTO bans (name, license, discord, ip, reason, expire, bannedby) VALUES (?, ?, ?, ?, ?, ?, ?)', {
+            name, lic, GetPlayerIdentifierByType(target, 'discord'), GetPlayerIdentifierByType(target, 'ip'),
+            payload.reason, expire, staffName(src),
+        })
+    end)
+    if not ok then
+        print('[pxd_admin] ^1No se pudo guardar el baneo: ' .. tostring(err) .. '^7')
+        return false, 'No se pudo guardar el baneo (revisa la consola). No se ha expulsado a nadie.'
+    end
+    local untilText = expire == PXDAdmin.PERMANENT and 'permanente' or ('hasta el ' .. os.date('%d/%m/%Y %H:%M', expire))
+    DropPlayer(target, ('Baneado/a de Próxima RP (%s): %s'):format(untilText, payload.reason))
+    return true, ('%s baneado/a (%s).'):format(name, untilText), untilText
+end
+
+-- Levantar un baneo: se adelanta su fin (no se borra la fila; queda constancia).
+function ACTIONS.unban(src, _, payload)
+    if not db() then return false, 'La base de datos no está disponible.' end
+    local id = tonumber(payload.banId)
+    if not id or id ~= math.floor(id) then return false, 'Baneo no válido.' end
+    local ok, changed = pcall(function()
+        return MySQL.update.await('UPDATE bans SET expire = ? WHERE id = ? AND expire > ?', { now() - 1, id, now() })
+    end)
+    if not ok then return false, 'No se pudo actualizar el baneo.' end
+    if (tonumber(changed) or 0) < 1 then return false, 'Ese baneo no existe o ya terminó.' end
+    return true, ('Baneo #%d levantado.'):format(id), nil, ('ban:%d'):format(id)
 end
 
 function ACTIONS.duty(src)
@@ -366,11 +510,11 @@ function ACTIONS.duty(src)
     onDuty[src] = on or nil
     Player(src).state:set('pxd_staff', on or nil, true)
     TriggerClientEvent('pxd_admin:client:duty', src, on)
-    return true, on and 'Estás de servicio: atuendo STAFF, invencible y comandos activos.' or 'Has salido de servicio.'
+    return true, on and 'Estás de servicio: atuendo STAFF, etiqueta e invencible.' or 'Has salido de servicio.'
 end
 
 function ACTIONS.needs(src, target)
-    if GetResourceState('qbx_core') ~= 'started' then return false, 'Hace falta qbx_core.' end
+    if not started('qbx_core') then return false, 'Hace falta qbx_core.' end
     for key, value in pairs({ hunger = 100, thirst = 100, stress = 0 }) do
         pcall(function() exports.qbx_core:SetMetadata(target, key, value) end)
     end
@@ -388,94 +532,346 @@ function ACTIONS.wounds(src, target)
     return true, n == 0 and ('Sin heridas · %s'):format(w.state) or ('%d zona(s) herida(s) · %s'):format(n, w.state)
 end
 
-for _, tool in ipairs({ 'noclip', 'invisible', 'tpm', 'repair', 'dv' }) do
-    ACTIONS[tool] = function(src)
-        TriggerClientEvent('pxd_admin:client:tool', src, tool)
+function ACTIONS.noclip(src)
+    local on = not noclipOn[src]
+    noclipOn[src] = on or nil
+    tool(src, 'noclip', { on = on, invisible = Config.noclip.invisible == true,
+        speeds = Config.noclip.speeds, speed = Config.noclip.defaultSpeed })
+    return true, nil, on and 'activado' or 'desactivado'
+end
+
+for _, name in ipairs({ 'invisible', 'tpm', 'repair', 'clean', 'dv', 'vehinfo', 'coords', 'devtools', 'props', 'qbxmenu' }) do
+    ACTIONS[name] = function(src)
+        tool(src, name)
         return true, nil
     end
 end
 
 function ACTIONS.car(src, _, payload)
-    local model = PXDAdmin.validModel(type(payload) == 'table' and payload.model or payload)
+    local model = PXDAdmin.validModel(payload.model)
     if not model then return false, 'Modelo no válido.' end
-    TriggerClientEvent('pxd_admin:client:tool', src, 'car', model)
+    tool(src, 'car', model)
     return true, nil, model
 end
 
 function ACTIONS.announce(src, _, payload)
-    local text = tostring(type(payload) == 'table' and payload.text or payload or ''):gsub('^%s+', ''):gsub('%s+$', ''):sub(1, 240)
-    if #text < 3 then return false, 'Escribe el anuncio.' end
-    TriggerClientEvent('pxd_admin:client:announce', -1, { text = text })
-    TriggerEvent('pxd_admin:server:announced', text)   -- pxd_chat lo pinta en el chat
-    return true, 'Anuncio enviado.', text
+    local msg = text(payload.text, 240)
+    if #msg < 3 then return false, 'Escribe el anuncio.' end
+    TriggerClientEvent('pxd_admin:client:announce', -1, { text = msg })
+    TriggerEvent('pxd_admin:server:announced', msg)   -- pxd_chat lo pinta en el chat
+    return true, 'Anuncio enviado.', msg
+end
+
+function ACTIONS.money(src, target, payload)
+    local m, why = PXDAdmin.validMoney(payload, Config.maxMoneyCorrection)
+    if not m then return false, why end
+    local p = qbxObject(target)
+    if not p then return false, 'Ese jugador no tiene personaje cargado.' end
+    local reason = 'pxd-admin: ' .. payload.reason
+    local before = tonumber(p.Functions.GetMoney(m.account)) or 0
+    local ok
+    if m.amount > 0 then
+        ok = p.Functions.AddMoney(m.account, m.amount, reason)
+    else
+        if before < -m.amount then return false, ('Solo tiene $%d: el saldo no puede quedar en negativo.'):format(before) end
+        ok = p.Functions.RemoveMoney(m.account, -m.amount, reason)
+    end
+    if not ok then return false, 'Qbox rechazó el movimiento: no se ha cambiado nada.' end
+    local label = m.account == 'cash' and 'efectivo' or 'banco'
+    local after = tonumber(p.Functions.GetMoney(m.account)) or 0
+    if target ~= src then
+        notify(target, 'Staff', ('Corrección de %s: %s$%d.'):format(label, m.amount > 0 and '+' or '−', math.abs(m.amount)), 'staff')
+    end
+    return true, ('%s: %s$%d (antes $%d, ahora $%d).'):format(label, m.amount > 0 and '+' or '−', math.abs(m.amount), before, after),
+        ('%s %+d (%d → %d)'):format(m.account, m.amount, before, after)
+end
+
+-- Titularidad de un vehículo (qbx_vehicles): solo superadministración.
+function ACTIONS.vehowner(src, _, payload)
+    if not started('qbx_vehicles') then return false, 'qbx_vehicles no está en marcha.' end
+    local plate = PXDAdmin.validPlate(payload.plate)
+    local cid = PXDAdmin.validCitizenId(payload.citizenid)
+    if not plate then return false, 'Matrícula no válida.' end
+    if not cid then return false, 'Citizen ID no válido.' end
+    local vehicleId = exports.qbx_vehicles:GetVehicleIdByPlate(plate)
+    if not vehicleId then return false, ('No hay ningún vehículo con matrícula %s.'):format(plate) end
+    if not db() then return false, 'La base de datos no está disponible.' end
+    local exists = MySQL.scalar.await('SELECT citizenid FROM players WHERE citizenid = ?', { cid })
+    if not exists then return false, ('No existe el personaje %s.'):format(cid) end
+    local before = exports.qbx_vehicles:GetPlayerVehicle(vehicleId)
+    local ok, err = exports.qbx_vehicles:SetPlayerVehicleOwner(vehicleId, cid)
+    if not ok then return false, 'qbx_vehicles rechazó el cambio: ' .. tostring(err and err.message or 'sin motivo') end
+    return true, ('El vehículo %s pasa a %s.'):format(plate, cid),
+        ('%s: %s → %s'):format(plate, tostring(before and before.citizenid or '¿?'), cid), 'vehicle:' .. plate
 end
 
 --- Ejecuta una acción de staff con todas las comprobaciones (panel y comandos).
 local function runAction(src, action, target, payload)
     if type(action) ~= 'string' or not ACTIONS[action] or not PXDAdmin.ACTIONS[action] then return end
-    if not PXDAdmin.can(action, aceOf(src)) then return notify(src, 'Staff', 'No tienes permiso para esa acción.', 'error') end
-    if PXDAdmin.needsDuty(action) and not onDuty[src] then
-        return notify(src, 'Staff', 'Activa el modo servicio con /duty para usar esto.', 'error')
+    if not PXDAdmin.can(action, aceOf(src)) then return notify(src, 'Administración', 'No tienes permiso para esa acción.', 'error') end
+    if PXDAdmin.needsDuty(action, Config.requireDuty) and not onDuty[src] then
+        return notify(src, 'Administración', 'Activa el modo servicio con /duty para usar esto.', 'error')
     end
-    local kind = PXDAdmin.ACTIONS[action].target
-    if kind == 'self' or kind == 'none' then target = src end
-    target = online(target)
-    if not target then return notify(src, 'Staff', 'Ese jugador ya no está conectado.', 'error') end
-    local ok, msg, detail = ACTIONS[action](src, target, payload)
-    if msg then notify(src, 'Staff', msg, ok and 'success' or 'error') end
+    local def = PXDAdmin.ACTIONS[action]
+    payload = type(payload) == 'table' and payload or {}
+    if def.reason then
+        local reason, why = PXDAdmin.validReason(payload.reason)
+        if not reason then return notify(src, 'Administración', why, 'error') end
+        payload.reason = reason
+    end
+    if def.target == 'self' then
+        target = src
+    elseif def.target == 'none' then
+        target = nil
+    else
+        target = online(target)
+        if not target then return notify(src, 'Administración', 'Ese jugador ya no está conectado.', 'error') end
+    end
+    -- Se anota el objetivo antes de actuar: tras expulsar o banear ya no hay identificadores.
+    local snap = (target and def.target ~= 'self') and {
+        key = license(target) or ('id:' .. target), label = ('%s (#%d)'):format(GetPlayerName(target) or '?', target),
+    } or nil
+    local ok, msg, detail, auditTarget = ACTIONS[action](src, target, payload)
+    if msg then notify(src, 'Administración', msg, ok and 'success' or 'error') end
     if ok then
-        log(src, action, kind == 'self' and nil or ('%s (#%d)'):format(GetPlayerName(target) or '?', target), detail)
+        local t = auditTarget or snap
+        audit(src, action, t, { reason = payload.reason, detail = detail })
     end
     return ok
 end
 
 RegisterNetEvent('pxd_admin:server:action', function(action, target, payload)
     local src = source
-    if runAction(src, action, target, payload) and action ~= 'spectate' then sendStaff(src) end
+    if runAction(src, action, target, payload) and action ~= 'spectate' and isStaff(src) then sendStaff(src) end
 end)
 
--- Vehículo creado por el cliente con /coche: le damos las llaves (qbx_vehiclekeys).
+-- El cliente avisa de que el noclip terminó por su cuenta (muerte, recurso parado…).
+RegisterNetEvent('pxd_admin:server:noclipOff', function()
+    local src = source
+    if not noclipOn[src] then return end
+    noclipOn[src] = nil
+    audit(src, 'noclip', nil, { detail = 'desactivado (cliente)' })
+end)
+
+-- Vehículo creado por el cliente: le damos las llaves (qbx_vehiclekeys).
 RegisterNetEvent('pxd_admin:server:carSpawned', function(netId)
     local src = source
-    if not onDuty[src] or not PXDAdmin.can('car', aceOf(src)) then return end
+    if not PXDAdmin.can('car', aceOf(src)) then return end
     local veh = NetworkGetEntityFromNetworkId(tonumber(netId) or 0)
     if not veh or veh == 0 or not DoesEntityExist(veh) then return end
     if #(GetEntityCoords(veh) - GetEntityCoords(GetPlayerPed(src))) > 15.0 then return end
-    if GetResourceState('qbx_vehiclekeys') == 'started' then
+    if started('qbx_vehiclekeys') then
         pcall(function() exports.qbx_vehiclekeys:GiveKeys(src, veh, true) end)
     end
 end)
 
--- /dv: el cliente elige el vehículo; el servidor comprueba distancia y lo borra.
+local function nearVehicle(src, netId, maxDist)
+    local veh = NetworkGetEntityFromNetworkId(tonumber(netId) or 0)
+    if not veh or veh == 0 or not DoesEntityExist(veh) then return nil, 'No hay vehículo.' end
+    if #(GetEntityCoords(veh) - GetEntityCoords(GetPlayerPed(src))) > maxDist then return nil, 'El vehículo está demasiado lejos.' end
+    return veh
+end
+
+-- Borrar: el cliente elige el vehículo; el servidor comprueba permiso y distancia y lo borra.
 RegisterNetEvent('pxd_admin:server:deleteVehicle', function(netId)
     local src = source
-    if not onDuty[src] or not PXDAdmin.can('dv', aceOf(src)) then return end
-    local veh = NetworkGetEntityFromNetworkId(tonumber(netId) or 0)
-    if not veh or veh == 0 or not DoesEntityExist(veh) then return notify(src, 'Staff', 'No hay vehículo.', 'error') end
-    if #(GetEntityCoords(veh) - GetEntityCoords(GetPlayerPed(src))) > 10.0 then
-        return notify(src, 'Staff', 'El vehículo está demasiado lejos.', 'error')
-    end
+    if not PXDAdmin.can('dv', aceOf(src)) then return end
+    if PXDAdmin.needsDuty('dv', Config.requireDuty) and not onDuty[src] then return end
+    local veh, why = nearVehicle(src, netId, 10.0)
+    if not veh then return notify(src, 'Administración', why, 'error') end
+    local plate = text(GetVehicleNumberPlateText(veh), 8)
     DeleteEntity(veh)
-    notify(src, 'Staff', 'Vehículo borrado.', 'success')
+    notify(src, 'Administración', 'Vehículo borrado.', 'success')
+    audit(src, 'dv', plate ~= '' and ('vehicle:' .. plate) or nil, {})
 end)
 
--- Comandos de chat: misma validación que el panel.
+local function vehicleOwner(plate)
+    if not plate or not started('qbx_vehicles') then return nil end
+    local ok, id = pcall(function() return exports.qbx_vehicles:GetVehicleIdByPlate(plate) end)
+    if not ok or not id then return nil end
+    local ok2, v = pcall(function() return exports.qbx_vehicles:GetPlayerVehicle(id) end)
+    return ok2 and v and { id = id, citizenid = v.citizenid, garage = v.garage, state = v.state } or { id = id }
+end
+
+local function result(src, kind, data)
+    TriggerClientEvent('pxd_admin:client:result', src, kind, data)
+end
+
+RegisterNetEvent('pxd_admin:server:vehicleInfo', function(netId)
+    local src = source
+    if not PXDAdmin.can('vehinfo', aceOf(src)) then return end
+    local veh, why = nearVehicle(src, netId, 10.0)
+    if not veh then return notify(src, 'Administración', why, 'error') end
+    local plate = text(GetVehicleNumberPlateText(veh), 8)
+    result(src, 'vehicle', { plate = plate, model = GetEntityModel(veh), netId = tonumber(netId),
+        owner = vehicleOwner(plate), canOwner = has(src, 'vehicles.owner') })
+end)
+
+-- ── Consultas del panel (solo lectura) ──────────────────────────────────────
+
+local function auditQuery(filter)
+    if started('pxd_audit') then
+        local ok, rows = pcall(function() return exports.pxd_audit:Query(filter) end)
+        if ok and type(rows) == 'table' then
+            local out = {}
+            for _, r in ipairs(rows) do
+                local d = type(r.data) == 'table' and r.data or {}
+                out[#out + 1] = { at = tonumber(r.created_at), staff = d.staff or r.actor, action = r.action,
+                    target = d.target_name or r.target, reason = d.reason, detail = d.detail }
+            end
+            return out
+        end
+    end
+    -- Sin pxd_audit: el registro propio.
+    local out = {}
+    for i = #staffLog, 1, -1 do
+        local e = staffLog[i]
+        if (not filter.action or e.action == filter.action) and (not filter.target or e.targetKey == filter.target) then
+            out[#out + 1] = e
+            if #out >= (filter.limit or 100) then break end
+        end
+    end
+    return out
+end
+
+local QUERY = {}
+
+function QUERY.detail(src, args)
+    local t = online(args.target)
+    if not t then return nil, 'Ese jugador ya no está conectado.' end
+    return playerRow(t, PXDAdmin.permMap(aceOf(src)))
+end
+
+function QUERY.history(src, args)
+    local t = online(args.target)
+    if not t then return nil, 'Ese jugador ya no está conectado.' end
+    local lic = license(t)
+    local out = { target = t }
+    if has(src, 'reports') then
+        out.reports = {}
+        for _, r in ipairs(PXDAdmin.reportsOf(reports, lic, 20)) do out.reports[#out.reports + 1] = forPlayer(r) end
+        out.reported = {}
+        for i = #reports, 1, -1 do
+            local r = reports[i]
+            if r.target and r.target.id == t then out.reported[#out.reported + 1] = forPlayer(r) end
+            if #out.reported >= 20 then break end
+        end
+    end
+    if has(src, 'players.warn') and lic then out.warnings = auditQuery({ category = 'admin', action = 'warn', target = lic, limit = 50 }) end
+    if has(src, 'players.identity') and lic then out.actions = auditQuery({ category = 'admin', target = lic, limit = 30 }) end
+    if has(src, 'players.ban') and lic and db() then
+        local ok, rows = pcall(function()
+            return MySQL.query.await('SELECT id, reason, expire, bannedby FROM bans WHERE license = ? ORDER BY id DESC LIMIT 20', { lic })
+        end)
+        out.bans = ok and rows or {}
+    end
+    return out
+end
+
+function QUERY.buckets()
+    local by, list = {}, {}
+    for _, id in ipairs(GetPlayers()) do
+        id = tonumber(id)
+        local b = GetPlayerRoutingBucket(id)
+        if not by[b] then by[b] = { bucket = b, players = {} }; list[#list + 1] = by[b] end
+        by[b].players[#by[b].players + 1] = { id = id, name = GetPlayerName(id) }
+    end
+    table.sort(list, function(a, b) return a.bucket < b.bucket end)
+    return list
+end
+
+function QUERY.bans()
+    if not db() then return nil, 'La base de datos no está disponible.' end
+    local ok, rows = pcall(function()
+        return MySQL.query.await('SELECT id, name, license, reason, expire, bannedby FROM bans WHERE expire > ? ORDER BY id DESC LIMIT 100', { now() })
+    end)
+    if not ok then return nil, 'No se pudo leer la tabla de baneos.' end
+    return { rows = rows or {}, permanent = PXDAdmin.PERMANENT }
+end
+
+function QUERY.audit(_, args)
+    local action = args.action and PXDAdmin.ACTIONS[args.action] and args.action or nil
+    return auditQuery({ category = 'admin', limit = 200, action = action })
+end
+
+function QUERY.economy(_, args)
+    local out = {}
+    if started('pxd_economy') then
+        local ok, s = pcall(function() return exports.pxd_economy:GetFlowSummary(tonumber(args.hours) or 24) end)
+        if ok then out.summary = s end
+    end
+    if db() then
+        local ok, rows = pcall(function()
+            return MySQL.query.await('SELECT id, job_label, issuer_name, client_name, concept, amount, paid, status, issued_at FROM pxd_invoices ORDER BY id DESC LIMIT 30', {})
+        end)
+        if ok then out.invoices = rows end
+    end
+    return out
+end
+
+local function citizenOf(args)
+    local t = online(args.target)
+    local pd = t and qbxPlayer(t)
+    return pd and pd.citizenid or PXDAdmin.validCitizenId(args.citizenid)
+end
+
+function QUERY.fines(_, args)
+    local cid = citizenOf(args)
+    if not cid then return nil, 'Indica un jugador o un Citizen ID.' end
+    if not started('pxd_justice') then return nil, 'pxd_justice no está en marcha.' end
+    local ok, v = pcall(function() return exports.pxd_justice:ListFines(cid, { withNotes = true, limit = 25 }) end)
+    if not ok then return nil, 'No se pudieron leer las multas.' end
+    return { citizenid = cid, fines = v }
+end
+
+function QUERY.invoices(_, args)
+    local cid = citizenOf(args)
+    if not cid then return nil, 'Indica un jugador o un Citizen ID.' end
+    if not db() then return nil, 'La base de datos no está disponible.' end
+    local ok, rows = pcall(function()
+        return MySQL.query.await('SELECT id, job_label, issuer_name, concept, amount, paid, status, issued_at FROM pxd_invoices WHERE citizenid = ? ORDER BY id DESC LIMIT 25', { cid })
+    end)
+    if not ok then return nil, 'No se pudieron leer las facturas (¿está pxd_economy instalado?).' end
+    return { citizenid = cid, invoices = rows or {} }
+end
+
+function QUERY.vehicle(_, args)
+    local plate = PXDAdmin.validPlate(args.plate)
+    if not plate then return nil, 'Matrícula no válida.' end
+    return { plate = plate, owner = vehicleOwner(plate) }
+end
+
+RegisterNetEvent('pxd_admin:server:query', function(kind, args)
+    local src = source
+    if type(kind) ~= 'string' or not QUERY[kind] or not PXDAdmin.QUERIES[kind] then return end
+    if not isStaff(src) or not has(src, PXDAdmin.QUERIES[kind]) then
+        return notify(src, 'Administración', 'No tienes permiso para consultar eso.', 'error')
+    end
+    if not PXDAdmin.allow(queryLimiter, src, GetGameTimer() / 1000) then return end
+    local data, why = QUERY[kind](src, type(args) == 'table' and args or {})
+    if data == nil then return notify(src, 'Administración', why or 'Sin datos.', 'error') end
+    result(src, kind, data)
+end)
+
+-- ── Comandos de chat: misma validación que el panel ─────────────────────────
+
 for _, c in ipairs(PXDAdmin.COMMANDS) do
     RegisterCommand(c.name, function(src, args)
         if c.action == 'announce' and PXDAdmin.announceBypass(src, function(ace) return IsPlayerAceAllowed(src, ace) end) then
             -- Consola o ACE de compatibilidad pxd.chat.announce: sin modo servicio.
             local ok, msg = ACTIONS.announce(src, nil, { text = table.concat(args, ' ') })
             if src == 0 then return print('[pxd_admin] ' .. tostring(msg)) end
-            if ok then log(src, 'announce', nil, table.concat(args, ' ')) end
+            if ok then audit(src, 'announce', nil, { detail = table.concat(args, ' ') }) end
             return notify(src, 'Staff', msg, ok and 'success' or 'error')
         end
         if src == 0 then return print('[pxd_admin] Este comando se usa dentro del juego.') end
-        if not isStaff(src) then return end
-        local payload
-        if c.action == 'car' then payload = { model = args[1] }
-        elseif c.action == 'announce' then payload = { text = table.concat(args, ' ') } end
+        if not isStaff(src) then return notify(src, 'Administración', NO_ACCESS, 'error') end
+        local payload = {}
+        if c.action == 'car' then payload.model = args[1]
+        elseif c.action == 'announce' then payload.text = table.concat(args, ' ')
+        elseif c.action == 'spectate' then payload.reason = table.concat(args, ' ', 2) end
         local target, why = PXDAdmin.commandTarget(c.action, args[1], src)
-        if not target then return notify(src, 'Staff', why, 'error') end
+        if not target then return notify(src, 'Administración', why, 'error') end
         runAction(src, c.action, target, payload)
     end, false)
 end
@@ -493,28 +889,28 @@ RegisterNetEvent('pxd_admin:server:refreshStaff', function()
     if isStaff(src) then sendStaff(src) end
 end)
 
-RegisterNetEvent('pxd_admin:server:reportAction', function(action, id, text)
+RegisterNetEvent('pxd_admin:server:reportAction', function(action, id, msg)
     local src = source
-    if not isStaff(src) then return end
+    if not isStaff(src) or not has(src, 'reports') then return end
     local r = findReport(id)
     if not r or not PXDAdmin.canTransition(r, action) then return notify(src, 'Staff', 'Ese reporte ya no admite esa acción.', 'error') end
-    local staffName = GetPlayerName(src)
+    local name = staffName(src)
     local reporter = findByLicense(r.reporter.license)
     if action == 'claim' then
-        PXDAdmin.claim(r, staffName, now())
-        if reporter then notify(reporter, 'Soporte', ('%s está atendiendo tu reporte #%d.'):format(staffName, r.id), 'staff') end
+        PXDAdmin.claim(r, name, now())
+        if reporter then notify(reporter, 'Soporte', ('%s está atendiendo tu reporte #%d.'):format(name, r.id), 'staff') end
     elseif action == 'reply' then
-        local ok, why = PXDAdmin.reply(r, staffName, text, now(), true)
+        local ok, why = PXDAdmin.reply(r, name, msg, now(), true)
         if not ok then return notify(src, 'Staff', why, 'error') end
-        if reporter then notify(reporter, ('Respuesta a tu reporte #%d'):format(r.id), tostring(text):sub(1, 300), 'staff') end
+        if reporter then notify(reporter, ('Respuesta a tu reporte #%d'):format(r.id), tostring(msg):sub(1, 300), 'staff') end
     elseif action == 'close' then
-        PXDAdmin.close(r, staffName, text, now())
+        PXDAdmin.close(r, name, msg, now())
         if reporter then notify(reporter, 'Soporte', ('Tu reporte #%d se ha cerrado. ¡Gracias!'):format(r.id), 'success') end
     elseif action == 'goto' then
         if not reporter then return notify(src, 'Staff', 'Quien reportó ya no está conectado.', 'error') end
         if not runAction(src, 'goto', reporter) then return end
     end
-    log(src, 'report:' .. action, ('#%d'):format(r.id), action == 'reply' and text or nil)
+    audit(src, 'report:' .. action, ('report:%d'):format(r.id), { detail = action == 'reply' and msg or nil })
     saveReports()
     if reporter then sendSupport(reporter) end
     broadcastReport(r, false)
@@ -523,8 +919,10 @@ end)
 
 AddEventHandler('playerDropped', function()
     local src = source
-    backPos[src], frozen[src], spectating[src], onDuty[src] = nil, nil, nil, nil
+    if noclipOn[src] then audit(src, 'noclip', nil, { detail = 'desactivado (desconexión)' }) end
+    backPos[src], frozen[src], spectating[src], onDuty[src], noclipOn[src] = nil, nil, nil, nil, nil
 end)
 
 load()
-PXDAdmin.server = { reports = function() return reports end, log = function() return staffLog end, onDuty = onDuty }   -- para pruebas
+PXDAdmin.server = { reports = function() return reports end, log = function() return staffLog end, onDuty = onDuty,
+    noclip = noclipOn, run = runAction }   -- para pruebas
