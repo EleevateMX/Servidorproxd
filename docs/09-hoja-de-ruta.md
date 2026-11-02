@@ -77,3 +77,20 @@ Regla general: **ninguna interfaz por defecto de FiveM/ox**. Todo con la UI prop
 | Inmersión | Ropa y coches importados optimizados | Pendiente (necesita los paquetes; catálogo del propietario en Pack6) |
 | Comunidad | Normativa clara (PG, MG, VDM, RDM, valorar la vida) | Hecho (Ayuda → Reglas del panel) |
 | Comunidad | Discord organizado, staff imparcial | Fuera del servidor (Discord del propietario) |
+
+## Consolidación (desde el 2 de noviembre de 2026)
+
+Nuevo enfoque del propietario: **una plataforma integrada, no una colección de scripts**. Antes de crear sistemas nuevos se consolida lo que ya existe.
+
+- **Auditoría** (solo lectura, con evidencia): `docs/auditoria/2026-11-02-*.md`. En resumen: base sólida, pocas cosas probadas dentro del juego, fallos de economía, duplicidades y un despliegue sin copia de seguridad.
+- **Backlog P0/P1/P2, decisiones y contratos entre sistemas**: `docs/26-consolidacion.md`.
+- **Fases**:
+  - Fase 0: proteger el despliegue.
+  - Fase 1: errores críticos.
+  - Fase 2: normalizar la arquitectura (una fuente de verdad por sistema).
+  - Fase 3: integrar por partes las ramas de interfaz.
+  - Fase 4: profundidad de rol (economía y empresas, progresión, propiedades, organizaciones, servicios públicos, crimen, vida cotidiana).
+  - Fase 5: pruebas de integración dentro de FiveM.
+- **Regla**: nada se despliega en Nodecraft sin la autorización del propietario. Antes de cada despliegue, copia de archivos y de MariaDB.
+
+El estado de las tablas anteriores de esta hoja («Hecho») significa «hecho en el repositorio». Lo que se ha probado de verdad dentro del juego está en la auditoría.

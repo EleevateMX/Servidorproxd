@@ -106,6 +106,31 @@
    "sha256": "05b19ed70bda75e9a7963c0834e02c00d2f6bc5b1b71250b575a9343b8fac935"
   },
   {
+   "resource": "pxd_compat",
+   "path": "config.lua",
+   "size": 419,
+   "sha256": "1b7301b7505f076dc66123d8889721eae7bb9a2c512988d9be1b2a41123f30c5",
+   "config": true
+  },
+  {
+   "resource": "pxd_compat",
+   "path": "fxmanifest.lua",
+   "size": 266,
+   "sha256": "e16b812c6e0f7b04d1eb563e587075b35947e337d2d3d894b8478b8918dd03ec"
+  },
+  {
+   "resource": "pxd_compat",
+   "path": "server/wear.lua",
+   "size": 1320,
+   "sha256": "a214090a24e3619a662956a74a1e484048456709107cb49af87e72ba939dc1f9"
+  },
+  {
+   "resource": "pxd_compat",
+   "path": "shared/wear.lua",
+   "size": 871,
+   "sha256": "7d702389f06b4e990b22ce8be180585f9751b84880fadd49b0d9f4e7db5edeb7"
+  },
+  {
    "resource": "pxd_gamemodes",
    "path": "client/bridge.lua",
    "size": 2784,
@@ -999,7 +1024,8 @@
    "pxd_voice",
    "pxd_admin",
    "pxd_inventory",
-   "pxd_chat"
+   "pxd_chat",
+   "pxd_compat"
   ],
   "replaces": {
    "pxd_hud": [
@@ -1064,86 +1090,7 @@
     "why": "al crear personaje solo modelos freemode"
    }
   ],
-  "external": [
-   {
-    "name": "qbx_mechanicjob",
-    "category": "[qbx]",
-    "repo": "qbox-project/qbx_mechanicjob",
-    "ref": "main"
-   },
-   {
-    "name": "qbx_towjob",
-    "category": "[qbx]",
-    "repo": "qbox-project/qbx_towjob",
-    "ref": "main"
-   },
-   {
-    "name": "qbx_taxijob",
-    "category": "[qbx]",
-    "repo": "qbox-project/qbx_taxijob",
-    "ref": "main"
-   },
-   {
-    "name": "qbx_truckerjob",
-    "category": "[qbx]",
-    "repo": "qbox-project/qbx_truckerjob",
-    "ref": "main"
-   },
-   {
-    "name": "qbx_garbagejob",
-    "category": "[qbx]",
-    "repo": "qbox-project/qbx_garbagejob",
-    "ref": "main"
-   },
-   {
-    "name": "qbx_busjob",
-    "category": "[qbx]",
-    "repo": "qbox-project/qbx_busjob",
-    "ref": "main"
-   },
-   {
-    "name": "qbx_newsjob",
-    "category": "[qbx]",
-    "repo": "qbox-project/qbx_newsjob",
-    "ref": "main"
-   },
-   {
-    "name": "qbx_recyclejob",
-    "category": "[qbx]",
-    "repo": "qbox-project/qbx_recyclejob",
-    "ref": "main"
-   },
-   {
-    "name": "qbx_diving",
-    "category": "[qbx]",
-    "repo": "qbox-project/qbx_diving",
-    "ref": "main"
-   },
-   {
-    "name": "qbx_divegear",
-    "category": "[qbx]",
-    "repo": "qbox-project/qbx_divegear",
-    "ref": "main"
-   },
-   {
-    "name": "qbx_vineyard",
-    "category": "[qbx]",
-    "repo": "qbox-project/qbx_vineyard",
-    "ref": "main"
-   },
-   {
-    "name": "qbx_scrapyard",
-    "category": "[qbx]",
-    "repo": "qbox-project/qbx_scrapyard",
-    "ref": "main"
-   },
-   {
-    "name": "qbx_properties",
-    "category": "[qbx]",
-    "repo": "qbox-project/qbx_properties",
-    "ref": "main"
-   }
-  ]
+  "external": []
  },
  "overlays": [
   {
