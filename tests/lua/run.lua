@@ -15,6 +15,7 @@ local suites = {
     'test_multichar',
     'test_jobs',
     'test_panel',
+    'test_hud',
 }
 for _, s in ipairs(suites) do
     io.write('\n# ', s, '\n')
