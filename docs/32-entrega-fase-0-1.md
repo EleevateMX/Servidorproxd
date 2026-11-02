@@ -45,10 +45,7 @@ Procedimiento detallado en `docs/27-respaldo-y-restauracion.md`.
 
    No toca las carpetas `data/`: props, jugadores, progreso, auditoría y multas.
 2. **CFG Editor.** Haz exactamente los cambios de la sección 4 y guarda.
-3. **Reinicia el servidor.** Al arrancar, en la consola deben salir:
-   - «Iniciado pxd_…» para pxd_compat, pxd_justice, pxd_interact, pxd_voice, pxd_admin, pxd_inventory y pxd_chat;
-   - las tablas `pxd_fines` y `pxd_fine_events` creadas;
-   - ningún `SCRIPT ERROR`.
+3. **Reinicia el servidor.** Arrancan los pxd_* que ya tenías, con el código nuevo. Los nuevos se inician en el paso 5. Guía detallada con resultados esperados y cuándo detenerse: `docs/33-guia-nodecraft.md`.
 4. **Live Console:** `pxd_update check`.
    - Los archivos pxd_* deben estar «al día», porque el paquete es la misma versión.
    - Verás la lista de **parches pendientes** en recursos de terceros.
