@@ -63,6 +63,25 @@ RegisterNUICallback('claimAchievement', function(body, cb)
     cb({})
 end)
 
+RegisterNetEvent('pxd_panel:client:fineSearch', function(result)
+    if type(result) ~= 'table' then return end
+    SendNUIMessage({ type = 'fineSearch', data = result })
+end)
+
+RegisterNUICallback('payFine', function(body, cb)
+    if type(body) == 'table' then
+        TriggerServerEvent('pxd_panel:server:payFine', tonumber(body.id), tonumber(body.amount), tostring(body.method or ''))
+    end
+    cb({})
+end)
+
+RegisterNUICallback('searchFines', function(body, cb)
+    if type(body) == 'table' and type(body.query) == 'string' then
+        TriggerServerEvent('pxd_panel:server:searchFines', body.query:sub(1, 64))
+    end
+    cb({})
+end)
+
 RegisterNUICallback('logout', function(_, cb)
     setOpen(false)
     TriggerServerEvent('pxd_panel:server:logout')

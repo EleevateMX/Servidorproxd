@@ -18,6 +18,17 @@ local function progress(fn, ...)
     return a, b
 end
 
+--- Llama a un export de pxd_justice (multas) de forma segura. nil si falta o falla.
+local function justice(fn, ...)
+    if not started('pxd_justice') then return nil end
+    local ok, a, b = pcall(function(...) return exports.pxd_justice[fn](exports.pxd_justice, ...) end, ...)
+    if not ok then
+        print(('[pxd_panel] pxd_justice:%s falló: %s'):format(fn, tostring(a)))
+        return nil
+    end
+    return a, b
+end
+
 local function playerData(src)
     if not started('qbx_core') then return nil end
     local ok, player = pcall(function() return exports.qbx_core:GetPlayer(src) end)
@@ -72,6 +83,7 @@ local function dynamicData(src)
         progress = hasProgress,
         framework = pd ~= nil,
     }
+    if pd then data.fines = justice('GetPlayerView', src) end
     if hasProgress then
         data.daily = progress('GetDaily', src)
         data.achievements = progress('GetAchievements', src)
@@ -107,6 +119,27 @@ RegisterNetEvent('pxd_panel:server:claimAchievement', function(id)
     if not started('pxd_progress') then return answer(src, false, 'Los logros no están disponibles.') end
     local ok, message = progress('ClaimAchievement', src, id)
     answer(src, ok, message)
+end)
+
+-- Multas (pxd_justice decide todo: propietario, importe, fondos y bloqueo por multa).
+RegisterNetEvent('pxd_panel:server:payFine', function(id, amount, method)
+    local src = source
+    if not allowed(src) then return end
+    local function int(v) v = tonumber(v) return v and math.tointeger(v) end
+    id, amount = int(id), int(amount)
+    if not id or not amount or id < 1 or amount < 1 or (method ~= 'cash' and method ~= 'bank') then return end
+    if not started('pxd_justice') then return answer(src, false, 'Las multas no están disponibles.') end
+    local ok, message = justice('PayFine', src, id, amount, method)
+    answer(src, ok, message)
+end)
+
+RegisterNetEvent('pxd_panel:server:searchFines', function(query)
+    local src = source
+    if not allowed(src) then return end
+    if type(query) ~= 'string' or #query > 64 then return end
+    local view, err = justice('SearchFines', src, query)
+    TriggerClientEvent('pxd_panel:client:fineSearch', src, view and { ok = true, result = view }
+        or { ok = false, message = type(err) == 'string' and err or 'Las multas no están disponibles.' })
 end)
 
 -- Volver a la selección de personaje (qbx_core: export Logout).

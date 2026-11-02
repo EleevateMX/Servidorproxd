@@ -36,6 +36,17 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: transparent;
 .map-frame__star { display: none; }
 .hud.no-map .map-frame { opacity: 0; }
 
+/* ── Multas pendientes (pxd_justice) ──────────────── */
+.fines {
+  position: fixed; top: 2.2vh; right: 2.2vw; display: none; align-items: center; gap: 7px; padding: 6px 12px; border-radius: 10px;
+  background: var(--glass-strong); border: 1px solid var(--line); box-shadow: var(--px-shadow-s);
+  font-size: 14px; font-variant-numeric: tabular-nums;
+}
+.fines.is-on { display: flex; }
+.fines .ic { color: var(--red); }
+.fines span { color: var(--muted); font-weight: 600; }
+.fines b { color: var(--red); font-weight: 750; }
+
 /* ── Dinero ──────────────────────────────────────── */
 .wallet {
   position: fixed; left: var(--map-left); bottom: calc(var(--map-bottom) + var(--map-h) + 6px + var(--needs-h) + 6px);

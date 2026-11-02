@@ -91,6 +91,10 @@
       if (d.thirst !== undefined) setStat('thirst', d.thirst, { warn: cfg.warn.thirst });
       if (d.stress !== undefined) setStat('stress', d.stress, { hideWhen: (v) => v <= 0, inverse: true, warn: 50 });
       if (d.oxygen !== undefined) setStat('oxygen', d.oxygen, { hideWhen: (v) => v < 0, warn: 30 });
+      if (d.fines !== undefined) {
+        $('fines').classList.toggle('is-on', d.fines > 0);
+        $('fines-amount').textContent = money(d.fines);
+      }
       if (d.dead !== undefined) hud.classList.toggle('is-dead', !!d.dead);
       if (d.clock !== undefined) $('clock').textContent = d.clock;
       if (d.talking !== undefined) $('voice').classList.toggle('is-talking', !!d.talking);
@@ -136,7 +140,7 @@
     send({
       action: 'tick', show: true, cash: 95846, bank: 778358, health: 82, armor: inCar ? 0 : 46, hunger: 22, thirst: 64,
       stress: inCar ? 0 : 38, oxygen: -1, dead: false, talking: true, voice: 'Normal', voiceIndex: 2, radio: inCar ? 0 : 3,
-      clock: '08:35', vehicle: inCar, speed: inCar ? 128 : 0, fuel: inCar ? 17 : 0, engine: 62, seatbelt: false, harness: false,
+      clock: '08:35', fines: 1300, vehicle: inCar, speed: inCar ? 128 : 0, fuel: inCar ? 17 : 0, engine: 62, seatbelt: false, harness: false,
       cruise: inCar, street: inCar ? 'Avenida Strawberry · Calle Davis' : '',
     });
     setTimeout(() => send({ action: 'money', cash: 96346, bank: 778358, changed: 'cash', amount: 500, minus: false }), 300);
