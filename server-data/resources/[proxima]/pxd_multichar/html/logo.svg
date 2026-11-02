@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 730 160" role="img" aria-labelledby="t">
+  <title id="t">Próxima RP</title>
+  <defs>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset=".35" stop-color="#5ce1ff"/>
+      <stop offset="1" stop-color="#5ce1ff" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="rp" x1="0" x2="1">
+      <stop offset="0" stop-color="#5ce1ff"/>
+      <stop offset="1" stop-color="#22c8f0"/>
+    </linearGradient>
+  </defs>
+  <!-- Estrella Próxima: destello de cuatro puntas con halo -->
+  <circle cx="72" cy="80" r="58" fill="url(#glow)" opacity=".55"/>
+  <path d="M72 18 C76 62 90 76 134 80 C90 84 76 98 72 142 C68 98 54 84 10 80 C54 76 68 62 72 18Z" fill="#ffffff"/>
+  <circle cx="72" cy="80" r="7" fill="#5ce1ff"/>
+  <!-- Wordmark -->
+  <text x="158" y="103" font-family="'Segoe UI', Inter, Roboto, Arial, sans-serif" font-size="64" font-weight="800" letter-spacing="10" textLength="424" lengthAdjust="spacingAndGlyphs" fill="#eef2ff">PRÓXIMA</text>
+  <rect x="598" y="50" width="116" height="66" rx="14" fill="url(#rp)"/>
+  <text x="656" y="101" text-anchor="middle" font-family="'Segoe UI', Inter, Roboto, Arial, sans-serif" font-size="50" font-weight="900" letter-spacing="4" fill="#031018">RP</text>
+</svg>
