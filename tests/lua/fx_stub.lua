@@ -127,8 +127,25 @@ function Fx.reset(opts)
     G.DeleteEntity = function(ent) Fx.entities[ent] = nil end
     G.SetEntityRoutingBucket = function(ent, b) Fx.entities[ent].bucket = b end
     G.NetworkGetNetworkIdFromEntity = function(ent) return ent + 100000 end
-    G.SaveResourceFile = function(_, path, data) Fx.files[path] = data return true end
-    G.LoadResourceFile = function(_, path) return Fx.files[path] end
+    -- Archivos: los del recurso actual van por ruta; los de otros, como "recurso/ruta".
+    local function fkey(res, path) return (res == Fx.resourceName) and path or (res .. '/' .. path) end
+    G.SaveResourceFile = function(res, path, data, len)
+        if Fx.readOnly and Fx.readOnly[fkey(res, path)] then return false end
+        Fx.files[fkey(res, path)] = (len and len >= 0) and data:sub(1, len) or data
+        return true
+    end
+    G.LoadResourceFile = function(res, path) return Fx.files[fkey(res, path)] end
+    -- HTTP simulado: Fx.http[url sin query] = { code, body }
+    Fx.http = opts.http or {}
+    Fx.httpLog = {}
+    G.PerformHttpRequest = function(url, cb)
+        local clean = url:gsub('%?.*$', '')
+        Fx.httpLog[#Fx.httpLog + 1] = clean
+        local r = Fx.http[clean] or { 404, '' }
+        cb(r[1], r[2], {}, nil)
+    end
+    Fx.executed = {}
+    G.ExecuteCommand = function(cmd) Fx.executed[#Fx.executed + 1] = cmd end
     G.SetHttpHandler = function(fn) Fx.httpHandler = fn end
     G.GetResourcePath = function() return '/tmp' end
 end

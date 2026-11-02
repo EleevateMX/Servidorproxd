@@ -4,7 +4,8 @@
   "description": "Próxima RP — entorno de pruebas FiveM: modos de juego, editor de props, login y pantalla de carga",
   "type": "module",
   "scripts": {
-    "test": "npm run test:lua && npm run test:js",
+    "test": "npm run test:lua && npm run test:js && node scripts/build-manifest.mjs --check",
+    "manifest": "node scripts/build-manifest.mjs",
     "test:lua": "lua5.4 tests/lua/run.lua",
     "test:js": "node --test tests/js/*.test.mjs",
     "test:web": "node tests/web/screens.mjs",
