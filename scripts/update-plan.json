@@ -13,7 +13,8 @@
   "pxd_admin",
   "pxd_inventory",
   "pxd_chat",
-  "pxd_compat"
+  "pxd_compat",
+  "pxd_phone"
  ],
  "replaces": {
   "pxd_hud": [
@@ -173,6 +174,14 @@
    "replace": "  name = 'crouch',\n  description = 'Crouch',\n  defaultKey = '', -- Próxima: agacharse con Ctrl izquierdo (pxd_interact)",
    "requires": "pxd_interact",
    "why": "K queda libre: agacharse va con Ctrl izquierdo"
+  },
+  {
+   "resource": "npwd",
+   "path": "dist/html/index.html",
+   "find": "<link rel=\"stylesheet\" href=\"./assets/index-b0f1ff4a.css\">",
+   "replace": "<link rel=\"stylesheet\" href=\"./assets/index-b0f1ff4a.css\"> <link rel=\"stylesheet\" href=\"https://cfx-nui-pxd_phone/html/phone.css\"> <script src=\"https://cfx-nui-pxd_phone/html/phone.js\" defer></script>",
+   "requires": "pxd_phone",
+   "why": "teléfono con el diseño de Próxima (npwd 3.14.3)"
   }
  ],
  "_comment_overlays": "Archivos de pxd_* que se copian a recursos de terceros (solo con la versión indicada). Requieren add_filesystem_permission pxd_updater write <recurso> y reiniciar el servidor.",

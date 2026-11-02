@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Teléfono Próxima — maqueta</title>
+<!-- Maqueta del DOM de npwd 3.14.3 (estructura de PhoneWrapper/Phone.tsx) para revisar
+     la capa de pxd_phone en un navegador. No incluye código de npwd.
+     ?npwdcss=<ruta> carga además el CSS real de la release si lo tienes en local. -->
+<style>
+  html, body { margin: 0; height: 100%; background: #6b7a8f url('') center/cover; font-family: sans-serif; }
+  body { background: linear-gradient(160deg, #8aa0b8, #3d4a5c); }
+  .PhoneWrapper { width: 100vw; height: 100vh; position: relative; }
+  .Phone { position: absolute; right: 0; width: 500px; height: 1000px; }
+  .PhoneFrame { position: absolute; z-index: 999; width: 500px; height: 1000px; pointer-events: none; }
+  .PhoneScreen { overflow: hidden; position: absolute; background: black; bottom: 100px; left: 50px; right: 50px; top: 100px;
+    display: flex; flex-direction: column; background-position: center; background-size: cover; border-radius: 20px; }
+  .PhoneAppContainer { height: 90%; width: 100%; display: flex; flex-direction: column; position: relative; }
+  .status { display: flex; justify-content: space-between; align-items: center; padding: 0 22px; height: 30px; font-size: 13px; color: #fff; }
+  .nav { height: 56px; display: flex; justify-content: space-around; align-items: center; color: #9aa6c7; }
+  .MuiGrid-container { display: flex; flex-wrap: wrap; }
+  .MuiGrid-container a { width: 25%; text-align: center; padding: 10px 0; }
+  .MuiBadge-invisible { display: none; }
+</style>
+<script>
+  const q = new URLSearchParams(location.search);
+  if (q.get('npwdcss')) document.write(`<link rel="stylesheet" href="${q.get('npwdcss')}">`);
+  document.write('<link rel="stylesheet" href="../../server-data/resources/[proxima]/pxd_phone/html/phone.css">');
+  // url() de la variable se resuelve respecto a phone.css
+  document.documentElement.style.setProperty('--pxd-wallpaper', 'url("img/fondo.jpg")');
+</script>
+</head>
+<body>
+<div id="root"><div><div class="PhoneWrapper">
+  <div class="Phone" style="position: fixed; transform-origin: right bottom; transform: scale(0.9); bottom: 0;">
+    <div class="PhoneFrame"></div>
+    <div id="phone" class="PhoneScreen">
+      <div class="status"><span>09:42</span><span>▮▮▮ ◔</span></div>
+      <div class="PhoneAppContainer" id="notificationAppContainer">
+        <div><div class="MuiGrid-container" id="npwdGrid"></div></div>
+      </div>
+      <div class="nav"><button>▦</button><button>○</button><button>‹</button></div>
+    </div>
+  </div>
+</div></div></div>
+<script>
+  // Enlaces como los de GridMenu de npwd (HashRouter) con su Badge de MUI.
+  const apps = [['/phone', 0], ['/messages', 3], ['/contacts', 0], ['/marketplace', 0], ['/camera', 0], ['/notes', 0],
+    ['/calculator', 0], ['/settings', 0], ['/twitter', 0], ['/match', 0], ['/darkchat', 0], ['/npwd_qbx_garages', 1], ['/npwd_qbx_mail', 0]];
+  const grid = document.getElementById('npwdGrid');
+  for (const [path, n] of apps) {
+    const a = document.createElement('a'); a.href = '#' + path;
+    a.innerHTML = '<button><span class="MuiBadge-root"><div><svg viewBox="0 0 24 24" width="24" height="24"><circle cx="12" cy="12" r="8" fill="#fff"/></svg></div>'
+      + `<span class="MuiBadge-badge${n ? '' : ' MuiBadge-invisible'}">${n}</span></span></button>`;
+    grid.appendChild(a);
+  }
+  // Respuestas de ejemplo del recurso pxd_phone.
+  const view = q.get('view');
+  window.__pxdPhoneDemo = async (action, data) => {
+    if (action === 'd8_list') return {
+      sale: [{ id: 3, name: 'Del Perro Heights, apto. 7', price: 185000, forSale: true },
+             { id: 8, name: 'Tinsel Towers, apto. 42', price: 240000, forSale: true },
+             { id: 12, name: 'Motel Pink Cage, hab. 4', price: 1200, rentHours: 24, forSale: true }],
+      mine: [{ id: 1, name: 'Integrity Way, apto. 28', price: 0, forSale: false, mine: true }],
+    };
+    if (action === 'sos_send') return { ok: true, sent: 2, message: 'Aviso enviado a 2 persona(s) de servicio.' };
+    if (action === 'taxi_state') return q.get('driver')
+      ? { driver: true, drivers: 2, pending: [{ id: 14, text: 'Estoy en la puerta del hospital Pillbox', ageSec: 120 }, { id: 15, text: '', ageSec: 30 }] }
+      : { driver: false, drivers: 2 };
+    return { ok: true };
+  };
+</script>
+<script src="../../server-data/resources/[proxima]/pxd_phone/html/phone.js"></script>
+<script>
+  if (view) setTimeout(() => {
+    const names = { d8: 'Dynasty 8', sos: 'Emergencias', taxi: 'Taxi' };
+    for (const b of document.querySelectorAll('.pxd-app')) if (b.textContent.includes(names[view])) { b.click(); break; }
+  }, 300);
+</script>
+</body>
+</html>

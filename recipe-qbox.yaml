@@ -553,6 +553,11 @@ tasks:  #  Download Base Files
     search: '"toggleKey": "m"'
     replace: '"toggleKey": "UP"'
 
+  - action: replace_string # teléfono con el diseño de Próxima (lo sirve pxd_phone)
+    file: ./resources/[npwd]/npwd/dist/html/index.html
+    search: '<link rel="stylesheet" href="./assets/index-b0f1ff4a.css">'
+    replace: '<link rel="stylesheet" href="./assets/index-b0f1ff4a.css"> <link rel="stylesheet" href="https://cfx-nui-pxd_phone/html/phone.css"> <script src="https://cfx-nui-pxd_phone/html/phone.js" defer></script>'
+
   - action: download_file
     path: ./tmp/npwd_qbx_garages.zip
     url: https://github.com/Qbox-project/npwd_qbx_garages/releases/download/v1.1.0/npwd_qbx_garages.zip

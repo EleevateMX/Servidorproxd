@@ -828,6 +828,49 @@
    ]
   },
   {
+   "resource": "pxd_phone",
+   "path": "client/main.lua",
+   "size": 2274,
+   "sha256": "a83ea2feef94a291d7ef4e0e7ddd9ef4b8183dda88b1bd43d8b8b0ff3ccb8d58"
+  },
+  {
+   "resource": "pxd_phone",
+   "path": "config.lua",
+   "size": 752,
+   "sha256": "f3cd0a165a26704dedadc50760abd3460bf9eb325f4eeedf9d001f0dcdcf2c00",
+   "config": true
+  },
+  {
+   "resource": "pxd_phone",
+   "path": "fxmanifest.lua",
+   "size": 617,
+   "sha256": "6db9d19dbdc6ccd3fcb13faaa9d2db3b7ec681aadf851e0c4b278373b7c22239"
+  },
+  {
+   "resource": "pxd_phone",
+   "path": "html/phone.css",
+   "size": 10975,
+   "sha256": "9c0f1530fce9612a0e9a5ab42a69131025cd7f0663d09b33b3b925bfa2a599f9"
+  },
+  {
+   "resource": "pxd_phone",
+   "path": "html/phone.js",
+   "size": 20234,
+   "sha256": "0a5c8b559b385989f07042a58e24f23095d4fa73aa5663cd8964f254540eafda"
+  },
+  {
+   "resource": "pxd_phone",
+   "path": "server/main.lua",
+   "size": 7763,
+   "sha256": "d4bfb0e55258698d50ee3d486a12ce49d7a05ea41d160fa944079f7cb3efe92b"
+  },
+  {
+   "resource": "pxd_phone",
+   "path": "shared/phone.lua",
+   "size": 4820,
+   "sha256": "f848cb7536849d87408072cf952857138e258b6f208478c924b182c202c30a64"
+  },
+  {
    "resource": "pxd_progress",
    "path": "config.lua",
    "size": 9649,
@@ -1154,7 +1197,8 @@
    "pxd_admin",
    "pxd_inventory",
    "pxd_chat",
-   "pxd_compat"
+   "pxd_compat",
+   "pxd_phone"
   ],
   "replaces": {
    "pxd_hud": [
@@ -1314,6 +1358,14 @@
     "replace": "  name = 'crouch',\n  description = 'Crouch',\n  defaultKey = '', -- Próxima: agacharse con Ctrl izquierdo (pxd_interact)",
     "requires": "pxd_interact",
     "why": "K queda libre: agacharse va con Ctrl izquierdo"
+   },
+   {
+    "resource": "npwd",
+    "path": "dist/html/index.html",
+    "find": "<link rel=\"stylesheet\" href=\"./assets/index-b0f1ff4a.css\">",
+    "replace": "<link rel=\"stylesheet\" href=\"./assets/index-b0f1ff4a.css\"> <link rel=\"stylesheet\" href=\"https://cfx-nui-pxd_phone/html/phone.css\"> <script src=\"https://cfx-nui-pxd_phone/html/phone.js\" defer></script>",
+    "requires": "pxd_phone",
+    "why": "teléfono con el diseño de Próxima (npwd 3.14.3)"
    }
   ],
   "external": []
