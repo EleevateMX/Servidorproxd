@@ -2,6 +2,61 @@
  "format": 1,
  "files": [
   {
+   "resource": "pxd_admin",
+   "path": "client/main.lua",
+   "size": 15260,
+   "sha256": "12d140c61035c66bdf977308db68001d97e3687e02d5e7a39f924e53b116f69f"
+  },
+  {
+   "resource": "pxd_admin",
+   "path": "config.lua",
+   "size": 2638,
+   "sha256": "b06475e1e6c6069a1d993409e1bdbc06867fce56e5b08ad93cb0b35df48f3682",
+   "config": true
+  },
+  {
+   "resource": "pxd_admin",
+   "path": "fxmanifest.lua",
+   "size": 425,
+   "sha256": "21a465ebf1ed5996c02410067d52b67452d483bb96b887d210744c4e392aeba0"
+  },
+  {
+   "resource": "pxd_admin",
+   "path": "html/app.js",
+   "size": 27569,
+   "sha256": "017305b4996ab22c90ab8b3295c83e6f5523ca5305b15e0beea7900a8edfc5ff"
+  },
+  {
+   "resource": "pxd_admin",
+   "path": "html/index.html",
+   "size": 7218,
+   "sha256": "804c89f776d0d3735f6552afae4aef9cf62b26a72a0b2573458fa9e719e233c1"
+  },
+  {
+   "resource": "pxd_admin",
+   "path": "html/logo.svg",
+   "size": 1335,
+   "sha256": "7a98455a0e55f769f346a8977fca200177c322b15cf60579109cc79f7d9d7c35"
+  },
+  {
+   "resource": "pxd_admin",
+   "path": "html/style.css",
+   "size": 14992,
+   "sha256": "b7fd173b8b63c59e1390af6c89804ce7962745c255de9c6e6e23b0713faf278f"
+  },
+  {
+   "resource": "pxd_admin",
+   "path": "server/main.lua",
+   "size": 21407,
+   "sha256": "6d156baa2bcf29e68750fb47ac056c396195548a8be5693a165498682613ef9d"
+  },
+  {
+   "resource": "pxd_admin",
+   "path": "shared/admin.lua",
+   "size": 14112,
+   "sha256": "6eef9e308ddc14929a3a18d6ba7ef33b96cc32f6fc4372741fb1006201f5706f"
+  },
+  {
    "resource": "pxd_gamemodes",
    "path": "client/bridge.lua",
    "size": 2784,
@@ -113,8 +168,8 @@
   {
    "resource": "pxd_hud",
    "path": "client/main.lua",
-   "size": 9692,
-   "sha256": "d239d9cbad73836e2eb0ea1fe5522ecc2e45fec15f3c69f66a30f586b17b1e39"
+   "size": 9904,
+   "sha256": "401a2cc7cd46f88ceedb5c04d98b8d7f4e27827b30e93e43046d9bd5e09873f9"
   },
   {
    "resource": "pxd_hud",
@@ -648,6 +703,31 @@
    "path": "shared/sha256.lua",
    "size": 2564,
    "sha256": "0fea6c8f79ccbacbb89f1273e03cca1c5b7e51fb1b1419f12f7531583371178e"
+  },
+  {
+   "resource": "pxd_voice",
+   "path": "client/main.lua",
+   "size": 2654,
+   "sha256": "6429956685e44d2120134c8314c8104884586d7befb23ee91d86d629cc23e680"
+  },
+  {
+   "resource": "pxd_voice",
+   "path": "config.lua",
+   "size": 1348,
+   "sha256": "0ac44157ba3efa17603730eba9ec7e36f5d8a30b23634599d454b3cdb622ac40",
+   "config": true
+  },
+  {
+   "resource": "pxd_voice",
+   "path": "fxmanifest.lua",
+   "size": 285,
+   "sha256": "c6a5878b8039a443701699b6fbdee25e5506a3412205fa86a731817c9b850aca"
+  },
+  {
+   "resource": "pxd_voice",
+   "path": "shared/voice.lua",
+   "size": 1971,
+   "sha256": "b5aee0849caa2a979ae37efd1c99578062b86cdf8657c25ed07a7f62d5a78584"
   }
  ],
  "assets": [
@@ -720,7 +800,9 @@
    "pxd_jobs",
    "pxd_panel",
    "pxd_multichar",
-   "pxd_hud"
+   "pxd_hud",
+   "pxd_voice",
+   "pxd_admin"
   ],
   "replaces": {
    "pxd_hud": [

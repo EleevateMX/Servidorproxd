@@ -49,6 +49,7 @@ Antes rellena `deploy/.env` (ver [docs/06-servidor-en-la-nube.md](docs/06-servid
 14. [HUD y teléfono](docs/14-hud-y-telefono.md)
 15. [Trabajos y casas](docs/15-trabajos.md)
 16. [Ficha del servidor en FiveM](docs/16-ficha-fivem.md)
+22. [Investigación de sistemas y plan](docs/22-investigacion-sistemas.md)
 
 ## Pruebas
 

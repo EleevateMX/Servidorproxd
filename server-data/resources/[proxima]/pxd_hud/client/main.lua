@@ -3,6 +3,7 @@
 --   qbx_core   → state bags hunger/thirst/stress/isLoggedIn, export GetPlayerData,
 --                eventos QBCore:Player:SetPlayerData y hud:client:OnMoneyChange
 --   pma-voice  → state bag proximity {index, distance, mode} y radioChannel
+--   pxd_voice  → state bag pxdVoice (misma forma; tiene prioridad sobre proximity)
 --   qbx_seatbelt → state bags seatbelt y harness
 --   qbx_cruise (qbx_smallresources) → evento seatbelt:client:ToggleCruise
 --   ox_fuel    → nivel de combustible del vehículo (GetVehicleFuelLevel)
@@ -115,7 +116,8 @@ CreateThread(function()
             sendAnchor()
 
             local cash, bank = money()
-            local proximity = state.proximity
+            -- pxd_voice publica su modo (susurro/normal/grito) con la misma forma; si no está, pma-voice.
+            local proximity = state.pxdVoice or state.proximity
             local inWater = IsEntityInWater(ped)
             local now = {
                 show = true,
