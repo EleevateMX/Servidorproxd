@@ -527,19 +527,19 @@ tasks:  #  Download Base Files
     dest: ./resources/[ox]/ox_inventory/data/items.lua
     overwrite: true
 
-  # Inventario con el estilo de Próxima (pxd_inventory): capa visual sobre la
-  # interfaz ya compilada de ox_inventory (docs/20-inventario.md).
+  # Inventario de Próxima (pxd_inventory): interfaz propia que sustituye la web compilada de
+  # ox_inventory 2.48.1 con el mismo contrato NUI; ox_inventory sigue siendo el backend
+  # (docs/36-inventario.md). Mismos archivos que plan.overlays de pxd_updater.
   - action: copy_path
-    src: ./resources/[proxima]/pxd_inventory/overlay/ox_inventory/pxd.css
-    dest: ./resources/[ox]/ox_inventory/web/build/assets/pxd.css
+    src: ./resources/[proxima]/pxd_inventory/web/assets/pxd-inventory.js
+    dest: ./resources/[ox]/ox_inventory/web/build/assets/pxd-inventory.js
   - action: copy_path
-    src: ./resources/[proxima]/pxd_inventory/overlay/ox_inventory/pxd.js
-    dest: ./resources/[ox]/ox_inventory/web/build/assets/pxd.js
-  - action: replace_string
-    mode: literal
-    file: ./resources/[ox]/ox_inventory/web/build/index.html
-    search: '</head>'
-    replace: '<link rel="stylesheet" href="./assets/pxd.css"><script src="./assets/pxd.js"></script></head>'
+    src: ./resources/[proxima]/pxd_inventory/web/assets/pxd-inventory.css
+    dest: ./resources/[ox]/ox_inventory/web/build/assets/pxd-inventory.css
+  - action: copy_path
+    src: ./resources/[proxima]/pxd_inventory/web/index.html
+    dest: ./resources/[ox]/ox_inventory/web/build/index.html
+    overwrite: true
 
   - action: download_github
     dest: ./resources/[ox]/ox_fuel

@@ -1,0 +1,26 @@
+{
+ "source": "overextended/ox_inventory v2.48.1 (client.lua y modules/**, sin web/)",
+ "extractedWith": "RegisterNUICallback('<nombre>') y SendNUIMessage({ action = '<acción>' })",
+ "messages": [
+  "closeInventory",
+  "displayMetadata",
+  "init",
+  "itemNotify",
+  "refreshSlots",
+  "setupInventory",
+  "toggleHotbar"
+ ],
+ "callbacks": [
+  "buyItem",
+  "craftItem",
+  "exit",
+  "getItemData",
+  "giveItem",
+  "removeAmmo",
+  "removeComponent",
+  "swapItems",
+  "uiLoaded",
+  "useButton",
+  "useItem"
+ ]
+}

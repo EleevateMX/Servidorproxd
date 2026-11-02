@@ -26,3 +26,6 @@ proxima-paquete-instalacion.zip
 
 # Auditoría en JSON (respaldo sin base de datos)
 server-data/resources/[[]proxima]/pxd_audit/data/*.json
+
+# Interfaz del inventario: capturas locales
+web/pxd-inventory/shots/

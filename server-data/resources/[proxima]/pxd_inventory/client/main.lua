@@ -1,8 +1,10 @@
--- pxd_inventory (cliente): datos para la capa del inventario de ox_inventory,
--- ropa que se quita y se pone, y cámara que encuadra al personaje.
--- La página de ox_inventory (overlay/ox_inventory/pxd.js) llama a estos callbacks NUI;
--- este recurso no tiene ui_page, así que no usa nui_callback_strict_mode (solo
--- devuelve datos del propio jugador y cambia la ropa de su propio personaje).
+-- pxd_inventory (cliente): adaptador entre la interfaz propia del inventario y el juego.
+-- La interfaz (web/pxd-inventory → copiada a ox_inventory/web/build por pxd_updater) habla con
+-- ox_inventory por su contrato NUI y con este recurso por https://pxd_inventory/<acción>:
+--   state          → signos vitales, dinero, nombre, PROX-ID, ropa (docs/36-inventario.md)
+--   toggleClothing → quitar/poner una prenda del propio personaje
+-- Este recurso no tiene ui_page, así que no usa nui_callback_strict_mode (solo devuelve datos
+-- del propio jugador y cambia la ropa de su propio personaje).
 
 local MALE, FEMALE = GetHashKey('mp_m_freemode_01'), GetHashKey('mp_f_freemode_01')
 local saved = {}          -- id de ranura -> lo que llevaba antes de quitárselo
@@ -70,9 +72,12 @@ local function view()
     local ped = PlayerPedId()
     resetIfModelChanged(ped)
     local sex = sexOf(ped)
+    -- hunger/thirst/stress: state bags que qbx_core 1.24.1 replica al jugador (server/player.lua)
+    -- y que también lee pxd_hud. Si faltan, se usan los metadata de GetPlayerData().
     local data = PXDInv.view(playerData(), {
         health = GetEntityHealth(ped), maxHealth = GetEntityMaxHealth(ped), armour = GetPedArmour(ped),
         state = { hunger = LocalPlayer.state.hunger, thirst = LocalPlayer.state.thirst, stress = LocalPlayer.state.stress },
+        preview = cam ~= nil,
         notices = notices, now = GetCloudTimeAsInt(),
     }, Config.clothing, wearing(ped, sex))
     data.canChange = sex ~= nil

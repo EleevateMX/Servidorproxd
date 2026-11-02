@@ -57,9 +57,19 @@ T.describe('pxd_inventory', function()
         T.eq(v.clothing[3].on, true); T.eq(v.clothing[1].on, false)
     end)
 
-    T.it('sin Qbox: valores por defecto, sin nombre', function()
+    T.it('sin Qbox: no se inventa nada (sin nombre, dinero, comida, bebida ni estrés)', function()
         local v = PXDInv.view(nil, { health = 200, maxHealth = 200, armour = 0 }, Config.clothing, {})
-        T.eq(v.name, nil); T.eq(v.cash, 0); T.eq(v.vitals.hunger, 100); T.eq(v.vitals.stress, 0)
+        T.eq(v.name, nil); T.eq(v.cash, nil); T.eq(v.bank, nil)
+        T.eq(v.vitals.hunger, nil); T.eq(v.vitals.thirst, nil); T.eq(v.vitals.stress, nil)
+        T.eq(v.vitals.health, 100, 'la salud sale del ped, siempre existe'); T.eq(v.vitals.armour, 0)
+        T.eq(v.contract, PXDInv.CONTRACT)
+    end)
+
+    T.it('estado de qbx_core: el state bag manda sobre los metadata; 0 es un valor real', function()
+        local v = PXDInv.view({ money = { cash = 0, bank = 12 }, metadata = { hunger = 80, thirst = 70, stress = 10 } },
+            { health = 150, maxHealth = 200, armour = 0, state = { hunger = 0, stress = 55.6 }, preview = true }, Config.clothing, {})
+        T.eq(v.vitals.hunger, 0); T.eq(v.vitals.thirst, 70); T.eq(v.vitals.stress, 56)
+        T.eq(v.cash, 0); T.eq(v.bank, 12); T.eq(v.preview, true)
     end)
 
     T.it('notificaciones: la más reciente primero, recortadas y con límite', function()
