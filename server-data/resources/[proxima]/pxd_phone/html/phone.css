@@ -1,0 +1,155 @@
+/* Próxima RP — capa de diseño para el teléfono npwd 3.14.3.
+   Se carga desde npwd/dist/html/index.html (parche del actualizador) como
+   https://cfx-nui-pxd_phone/html/phone.css. Solo toca clases estables de npwd
+   (.Phone, .PhoneFrame, #phone, .PhoneAppContainer) y elementos propios (.pxd-*). */
+:root {
+  --pxd-night: #05070f;
+  --pxd-night-2: #0b1022;
+  --pxd-night-3: #121a33;
+  --pxd-star: #5ce1ff;
+  --pxd-nova: #ff4fd8;
+  --pxd-gold: #ffc857;
+  --pxd-text: #eef2ff;
+  --pxd-muted: #9aa6c7;
+  --pxd-line: rgba(140, 170, 255, 0.16);
+  --pxd-glass: rgba(10, 14, 28, 0.62);
+  --pxd-font: "Segoe UI", "Inter", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --pxd-wallpaper: url("https://cfx-nui-pxd_phone/html/img/fondo.jpg");
+}
+
+/* ── Marco: cuerpo del teléfono dibujado con CSS (sustituye a los PNG de npwd) ── */
+html.pxd-phone .PhoneFrame { background-image: none !important; }
+html.pxd-phone #phone.PhoneScreen {
+  top: 92px; bottom: 92px; left: 52px; right: 52px;
+  border-radius: 46px;
+  background-color: var(--pxd-night) !important;
+  box-shadow:
+    0 0 0 9px #0a0d18,
+    0 0 0 10px rgba(140, 170, 255, 0.28),
+    0 0 0 11px #05070f,
+    0 30px 80px rgba(0, 0, 0, 0.65),
+    0 0 60px rgba(92, 225, 255, 0.10);
+  font-family: var(--pxd-font);
+}
+/* Isla superior */
+html.pxd-phone #phone.PhoneScreen::before {
+  content: ''; position: absolute; z-index: 60; top: 10px; left: 50%; transform: translateX(-50%);
+  width: 104px; height: 28px; border-radius: 16px; background: #000;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+  pointer-events: none;
+}
+/* Fondo de pantalla en el inicio */
+html.pxd-phone.pxd-home #phone.PhoneScreen { background-image: var(--pxd-wallpaper) !important; background-size: cover !important; background-position: center !important; }
+
+/* Barra de estado de npwd (primer hijo de #phone): transparente y clara */
+html.pxd-phone #phone > div:first-child {
+  background: transparent !important; color: var(--pxd-text) !important;
+  padding-top: 12px !important; min-height: 44px; position: relative; z-index: 50;
+}
+html.pxd-phone #phone > div:first-child * { color: var(--pxd-text); }
+
+/* Barra de navegación de npwd (último hijo de #phone): cristal oscuro */
+html.pxd-phone #phone > div:last-child {
+  background: rgba(5, 7, 15, 0.55) !important; backdrop-filter: blur(10px);
+  border-top: 1px solid var(--pxd-line);
+}
+html.pxd-phone.pxd-home #phone > div:last-child { background: transparent !important; border-top: 0; }
+
+/* En el inicio se esconde la cuadrícula original (sigue en el DOM para leer apps y avisos) */
+html.pxd-phone.pxd-home #notificationAppContainer .MuiGrid-container { visibility: hidden !important; }
+html.pxd-phone .notistack-SnackbarContainer { z-index: 40 !important; }
+
+/* ── Inicio propio ───────────────────────────────────────────────────────── */
+.pxd-shell {
+  position: absolute; left: 0; right: 0; z-index: 30; display: none;
+  font-family: var(--pxd-font); color: var(--pxd-text); -webkit-font-smoothing: antialiased;
+}
+html.pxd-home .pxd-shell, .pxd-shell.is-app { display: flex; flex-direction: column; }
+.pxd-home-view { flex: 1; display: flex; flex-direction: column; padding: 14px 14px 10px; min-height: 0; }
+.pxd-shell.is-app .pxd-home-view { display: none; }
+
+.pxd-clock { text-align: center; margin: 4px 0 14px; text-shadow: 0 2px 18px rgba(0, 0, 0, 0.6); }
+.pxd-clock b { display: block; font-size: 46px; font-weight: 700; letter-spacing: -0.02em; line-height: 1; }
+.pxd-clock span { display: block; margin-top: 4px; font-size: 13px; color: rgba(238, 242, 255, 0.82); }
+
+.pxd-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px 6px; align-content: start; flex: 1; overflow: hidden; }
+.pxd-app {
+  all: unset; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 6px;
+  position: relative; transition: transform .12s ease;
+}
+.pxd-app:hover { transform: translateY(-2px); }
+.pxd-app:active { transform: scale(.94); }
+.pxd-tile {
+  width: 58px; height: 58px; border-radius: 16px; display: grid; place-items: center; position: relative;
+  background: linear-gradient(145deg, var(--a, #1b2547), var(--b, #0b1022));
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.22), inset 0 -2px 6px rgba(0, 0, 0, 0.18);
+}
+.pxd-tile::after { /* brillo */
+  content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.20), rgba(255, 255, 255, 0) 46%);
+}
+.pxd-tile svg { width: 30px; height: 30px; fill: none; stroke: #fff; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 1px 1px rgba(0, 0, 0, .25)); }
+.pxd-tile .pxd-ext { width: 30px; height: 30px; color: #fff; display: grid; place-items: center; }
+.pxd-tile .pxd-ext svg { width: 30px; height: 30px; fill: currentColor; stroke: none; }
+.pxd-name {
+  max-width: 76px; font-size: 11.5px; font-weight: 600; line-height: 1.15; text-align: center;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 1px 6px rgba(0, 0, 0, 0.8);
+}
+.pxd-badge {
+  position: absolute; top: -6px; right: -6px; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 10px;
+  display: grid; place-items: center; font-size: 11px; font-weight: 800; color: #fff;
+  background: var(--pxd-nova); box-shadow: 0 0 0 2px var(--pxd-night), 0 0 10px rgba(255, 79, 216, .6);
+}
+
+.pxd-dock {
+  margin-top: 10px; padding: 10px 8px; border-radius: 26px; display: grid; grid-template-columns: repeat(4, 1fr);
+  background: rgba(16, 22, 44, 0.48); backdrop-filter: blur(14px); border: 1px solid rgba(255, 255, 255, 0.08);
+}
+.pxd-dock .pxd-name { display: none; }
+
+/* ── Vistas de las apps propias ──────────────────────────────────────────── */
+.pxd-appview { display: none; flex: 1; flex-direction: column; min-height: 0; background: linear-gradient(180deg, var(--pxd-night-2), var(--pxd-night)); }
+.pxd-shell.is-app .pxd-appview { display: flex; }
+.pxd-bar { display: flex; align-items: center; gap: 10px; padding: 10px 14px 12px; border-bottom: 1px solid var(--pxd-line); }
+.pxd-back { all: unset; cursor: pointer; width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center; background: rgba(255, 255, 255, 0.06); }
+.pxd-back svg { width: 18px; height: 18px; stroke: var(--pxd-text); fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.pxd-bar h2 { margin: 0; font-size: 17px; font-weight: 800; letter-spacing: -0.01em; }
+.pxd-bar small { display: block; font-size: 11px; font-weight: 600; color: var(--pxd-muted); letter-spacing: .04em; }
+.pxd-body { flex: 1; overflow-y: auto; padding: 12px 14px 16px; }
+.pxd-body::-webkit-scrollbar { width: 3px; }
+.pxd-body::-webkit-scrollbar-thumb { background: rgba(140, 170, 255, .35); }
+
+.pxd-tabs { display: grid; grid-auto-flow: column; gap: 6px; padding: 4px; border-radius: 12px; background: rgba(255, 255, 255, 0.05); margin-bottom: 12px; }
+.pxd-tabs button { all: unset; cursor: pointer; text-align: center; padding: 8px 6px; border-radius: 9px; font-size: 12.5px; font-weight: 700; color: var(--pxd-muted); }
+.pxd-tabs button.is-on { background: rgba(92, 225, 255, 0.14); color: var(--pxd-text); box-shadow: inset 0 0 0 1px rgba(92, 225, 255, 0.35); }
+
+.pxd-card { padding: 12px; border-radius: 14px; background: rgba(255, 255, 255, 0.045); border: 1px solid var(--pxd-line); margin-bottom: 10px; }
+.pxd-card h3 { margin: 0; font-size: 14px; font-weight: 700; }
+.pxd-card p { margin: 4px 0 0; font-size: 12px; color: var(--pxd-muted); line-height: 1.4; }
+.pxd-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 10px; }
+.pxd-price { font-size: 15px; font-weight: 800; color: var(--pxd-gold); font-variant-numeric: tabular-nums; }
+.pxd-chip { display: inline-block; margin-top: 6px; padding: 2px 8px; border-radius: 999px; font-size: 10.5px; font-weight: 700; letter-spacing: .03em; background: rgba(92, 225, 255, 0.12); color: var(--pxd-star); }
+.pxd-chip.is-rent { background: rgba(255, 200, 87, 0.14); color: var(--pxd-gold); }
+
+.pxd-btn { all: unset; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 9px 14px; border-radius: 11px; font-size: 13px; font-weight: 800; color: #031018; background: linear-gradient(135deg, var(--pxd-star), #22c8f0); box-shadow: 0 4px 14px rgba(92, 225, 255, .3); }
+.pxd-btn.is-nova { color: #fff; background: linear-gradient(135deg, var(--pxd-nova), #b24bff); box-shadow: 0 4px 14px rgba(255, 79, 216, .35); }
+.pxd-btn.is-ghost { color: var(--pxd-text); background: rgba(255, 255, 255, 0.07); box-shadow: none; }
+.pxd-btn.is-block { display: flex; width: 100%; box-sizing: border-box; padding: 12px; }
+.pxd-btn[disabled] { opacity: .5; pointer-events: none; }
+
+.pxd-choice { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+.pxd-choice button { all: unset; cursor: pointer; padding: 14px 10px; border-radius: 14px; text-align: center; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--pxd-line); font-size: 13px; font-weight: 700; }
+.pxd-choice button svg { display: block; margin: 0 auto 6px; width: 26px; height: 26px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+.pxd-choice button.is-on { border-color: rgba(255, 79, 216, .6); background: rgba(255, 79, 216, .12); box-shadow: 0 0 18px rgba(255, 79, 216, .18); }
+
+.pxd-field { width: 100%; box-sizing: border-box; min-height: 72px; resize: none; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--pxd-line); background: rgba(5, 7, 15, 0.55); color: var(--pxd-text); font: 13px/1.4 var(--pxd-font); outline: none; }
+.pxd-field:focus { border-color: rgba(92, 225, 255, .55); box-shadow: 0 0 0 3px rgba(92, 225, 255, .12); }
+.pxd-hint { margin: 6px 0 12px; font-size: 11.5px; color: var(--pxd-muted); }
+
+.pxd-msg { margin-top: 12px; padding: 10px 12px; border-radius: 12px; font-size: 12.5px; line-height: 1.4; background: rgba(92, 225, 255, .1); border: 1px solid rgba(92, 225, 255, .3); }
+.pxd-msg.is-error { background: rgba(255, 90, 90, .1); border-color: rgba(255, 90, 90, .35); }
+.pxd-empty { padding: 28px 10px; text-align: center; font-size: 13px; color: var(--pxd-muted); }
+.pxd-status { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--pxd-muted); margin-bottom: 12px; }
+.pxd-dot { width: 8px; height: 8px; border-radius: 50%; background: #4ade80; box-shadow: 0 0 8px #4ade80; }
+.pxd-dot.is-off { background: #6b7280; box-shadow: none; }
+.pxd-section { margin: 16px 0 8px; font-size: 11px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--pxd-muted); }
