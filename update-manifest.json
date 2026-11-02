@@ -161,8 +161,8 @@
   {
    "resource": "pxd_chat",
    "path": "server/main.lua",
-   "size": 5102,
-   "sha256": "eaa9c1d4ec8d1f608642e4eebac57abcfe713bc52d2756a706f6f074a34ca25a"
+   "size": 5362,
+   "sha256": "74115a4fe5351c4e5ec25e69a3e524b8ee6e038f2fde543d0dead42697a09c53"
   },
   {
    "resource": "pxd_chat",
