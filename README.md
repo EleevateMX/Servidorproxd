@@ -51,6 +51,12 @@ Antes rellena `deploy/.env` (ver [docs/06-servidor-en-la-nube.md](docs/06-servid
 16. [Ficha del servidor en FiveM](docs/16-ficha-fivem.md)
 22. [Investigación de sistemas y plan](docs/22-investigacion-sistemas.md)
 26. [Consolidación: backlog P0/P1/P2](docs/26-consolidacion.md) · [auditoría](docs/auditoria/)
+27. [Copias de seguridad y restauración](docs/27-respaldo-y-restauracion.md)
+28. [Controles](docs/28-controles.md)
+29. [Hospital](docs/29-hospital.md)
+30. [Multas y deudas](docs/30-multas.md)
+31. [Etapas A–E: economía y rol](docs/31-etapas-economia-y-rol.md)
+32. [Entrega de las fases 0 y 1](docs/32-entrega-fase-0-1.md)
 
 ## Pruebas
 

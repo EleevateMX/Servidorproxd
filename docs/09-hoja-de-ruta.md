@@ -94,3 +94,20 @@ Nuevo enfoque del propietario: **una plataforma integrada, no una colección de 
 - **Regla**: nada se despliega en Nodecraft sin la autorización del propietario. Antes de cada despliegue, copia de archivos y de MariaDB.
 
 El estado de las tablas anteriores de esta hoja («Hecho») significa «hecho en el repositorio». Lo que se ha probado de verdad dentro del juego está en la auditoría.
+
+### Estado al 2 de noviembre de 2026 (tarde)
+
+- **Fase 0 (proteger)** y **Fase 1 (errores críticos)**: implementadas y con pruebas automáticas (295 en Lua y 48 en Node). Incluyen:
+  - copias de seguridad y vuelta atrás del actualizador;
+  - versiones fijas;
+  - economía sin saldo negativo;
+  - cárcel única;
+  - radio;
+  - desgaste de vehículos;
+  - comandos y teclas sin choques.
+- **Decisiones aprobadas por el propietario, ya implementadas**:
+  - Controles: I inventario, Ctrl agacharse, E maletero e interacción, B recoger (docs/28).
+  - Hospital sin borrado general: solo se retiran armas e ilegales, con auditoría (docs/29).
+  - Multas pendientes y deudas con pago completo o parcial (docs/30).
+- **Siguiente paso**: instalar en Nodecraft con autorización (docs/32) y recorrer el checklist en el juego. Después, integrar una por una las ramas de interfaz (teléfono, tema de ox_lib/ox_target, mapa).
+- **Etapas A–E** (economía, empresas, propiedades, organizaciones, teléfono): backlog en docs/31.

@@ -58,9 +58,9 @@ Se corrigen con **parches exactos**: los mismos en `scripts/update-plan.json` �
 | P1-8 | Choque de teclas: Alt para la mirilla y para la radio | `voice.cfg` (`voice_defaultRadio "LMENU"`) | La radio se habla con **Bloq Mayús** (`setr voice_defaultRadio "CAPITAL"`) | ✔ código · ⏳ juego |
 | P1-9 | Interfaz de voz duplicada | `voice_enableUi 1` | `setr voice_enableUi 0`: el modo de voz ya lo muestra pxd_hud | ✔ código · ⏳ juego |
 | P1-10 | `ensure [assets]` apuntaba a una carpeta que no existe | `server.qbox.cfg` | Línea quitada | ✔ código |
-| P1-11 | Tecla K: maletero (ox_inventory) y agacharse (qbx_crouch, a pie, sin convar) | `ox.cfg`; `qbx_crouch/client.lua:16` | — | ⏸ decisión (sección 3) |
-| P1-12 | Al reaparecer en el hospital se pierde todo el inventario, efectivo incluido | `qbx_ambulancejob/config/server.lua:3` | — | ⏸ decisión |
-| P1-13 | Las multas se rechazan si no hay saldo (efecto de P1-1) y no queda registro | `qbx_police/server/main.lua:626` | Multas pendientes y expediente → P2 | ⏸ decisión / P2 |
+| P1-11 | Tecla K: maletero (ox_inventory) y agacharse (qbx_crouch) | `ox.cfg`; `qbx_crouch/client.lua:19` | **Decidido**: I inventario, Ctrl agacharse, E maletero, B recoger; K libre (parche mínimo de qbx_crouch). docs/28 | ✔ código · ⏳ juego |
+| P1-12 | Al reaparecer en el hospital se pierde todo el inventario, efectivo incluido | `qbx_ambulancejob/config/server.lua:3` | **Decidido**: sin borrado general; pxd_compat retira solo armas e ilegales y lo audita. docs/29 | ✔ código · ⏳ juego |
+| P1-13 | Las multas se cobraban al momento y sin registro | `qbx_police/server/main.lua:596-657` | **Decidido**: pxd_justice guarda multas pendientes y deudas, con pago completo o parcial y auditoría; parche mínimo en qbx_police. docs/30 | ✔ código · ⏳ juego |
 
 ### Recursos propios (✔ código · ⏳ juego)
 
@@ -161,3 +161,9 @@ Usa la plantilla de `docs/auditoria/2026-11-02-diagnostico-tecnico.md` (sección
 | Administración | txAdmin: baneos, avisos y servidor · qbx_adminmenu: herramientas de desarrollo · pxd_admin: soporte F9, reportes, `/duty` y registro de staff | permisos ACE `pxd.*` documentados |
 | Avisos | (P2-5) API `pxd_ui:notify` → ox_lib con el estilo común | todos los pxd_* |
 | Auditoría | (P2) registro común de acciones sensibles: dinero, staff, propiedades | un export y un archivo o BD |
+
+## 7. Entrega
+
+Paquete, cambios exactos del cfg, checklist de pruebas en el juego y vuelta atrás: **docs/32-entrega-fase-0-1.md**. Pendiente de la autorización del propietario.
+
+**Pendiente tras la entrega:** unificar las auditorías en una sola (X-1): hoy multas usa `pxd_fine_events` y el hospital `pxd_compat` `Audit`.
