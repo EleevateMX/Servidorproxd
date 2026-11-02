@@ -57,6 +57,31 @@
    "sha256": "c8038abb57f0fe6a90309cff5448da68f1f9ff5d41291503857ac2564c474a8c"
   },
   {
+   "resource": "pxd_blips",
+   "path": "client/main.lua",
+   "size": 2743,
+   "sha256": "6d916b23736e710bb54ff8131f4341d011737d97fe778c661c39f53ae4fa01d9"
+  },
+  {
+   "resource": "pxd_blips",
+   "path": "config.lua",
+   "size": 6995,
+   "sha256": "a01f467b355db65c2faf8ae11b36541e8983deccfce907b32813a820afe882d8",
+   "config": true
+  },
+  {
+   "resource": "pxd_blips",
+   "path": "fxmanifest.lua",
+   "size": 244,
+   "sha256": "11fc578a6f63ad4c2b9a73e2f7e8502c62db36091691d907c46f3ff1390dfeb3"
+  },
+  {
+   "resource": "pxd_blips",
+   "path": "shared/blips.lua",
+   "size": 2490,
+   "sha256": "e9b6fd2960ec07d84e3e07619ab790a13b625bb78e4d00d6d32fdb33c810bacb"
+  },
+  {
    "resource": "pxd_chat",
    "path": "client/main.lua",
    "size": 1170,
@@ -1217,7 +1242,8 @@
    "pxd_chat",
    "pxd_compat",
    "pxd_phone",
-   "pxd_theme"
+   "pxd_theme",
+   "pxd_blips"
   ],
   "replaces": {
    "pxd_hud": [

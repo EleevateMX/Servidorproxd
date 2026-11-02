@@ -15,7 +15,8 @@
   "pxd_chat",
   "pxd_compat",
   "pxd_phone",
-  "pxd_theme"
+  "pxd_theme",
+  "pxd_blips"
  ],
  "replaces": {
   "pxd_hud": [
