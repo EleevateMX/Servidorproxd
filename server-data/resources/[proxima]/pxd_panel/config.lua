@@ -23,9 +23,9 @@ Config.hiddenGangs = { none = true }
 
 -- Ayuda: cómo pedir soporte. Solo comandos que existen en el servidor.
 Config.support = {
-    { title = 'Soporte del staff', text = 'Abre un ticket en nuestro Discord, canal de soporte.', link = 'https://discord.gg/qUcD5gCf6v' },
-    { title = 'Reportar a un jugador', text = 'En Discord, ticket de «Reporte», con tu ID (/id) y, si puedes, un clip.' },
-    { title = 'Hablar fuera de personaje', text = 'Usa /ooc para mensajes fuera de rol. Úsalo poco y con respeto.' },
+    { title = 'Soporte del staff', text = 'Pulsa F9 en el juego para pedir ayuda al staff. También puedes abrir un ticket en Discord.', link = 'https://discord.gg/qUcD5gCf6v' },
+    { title = 'Reportar a un jugador', text = 'Pulsa F9 → «Reportar a un jugador», con su ID (/id te dice el tuyo) y lo que pasó.' },
+    { title = 'Hablar fuera de personaje', text = 'Usa /b (o /ooc) para mensajes fuera de rol a los que están cerca. Úsalo poco y con respeto.' },
     { title = 'Acciones de tu personaje', text = 'Usa /me para describir lo que hace tu personaje.' },
 }
 

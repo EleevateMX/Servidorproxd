@@ -12,6 +12,14 @@ Config.warn = { hunger = 25, thirst = 25, health = 35, critical = 10 }
 -- Estrés (mismo comportamiento que qbx_hud, para no romper qbx_vehiclekeys, qbx_medical…).
 Config.stress = {
     enabled = true,
+    -- Límites del servidor para hud:server:GainStress / RelieveStress (eventos de red
+    -- que cualquier cliente puede lanzar). Compatibles con lo que hacen qbx_medical
+    -- (alivia 100 al curarte), qbx_ambulancejob (12-24 por analgésico),
+    -- qbx_consumables (15-18) y qbx_vehiclekeys (gana 1-4).
+    limits = {
+        relieve = { maxPerCall = 100, cooldown = 2, window = 120, maxPerWindow = 100 },
+        gain    = { maxPerCall = 10,  cooldown = 0, window = 60,  maxPerWindow = 40 },
+    },
     disableForLEO = true,           -- los trabajos de tipo 'leo' no acumulan estrés
     chance = 0.1,                   -- probabilidad de ganar estrés por disparo (0-1)
     minForShaking = 50,             -- a partir de aquí, visión borrosa de vez en cuando

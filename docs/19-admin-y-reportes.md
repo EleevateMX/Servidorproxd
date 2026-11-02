@@ -31,6 +31,8 @@ Botón **De servicio / Fuera de servicio** abajo a la izquierda.
 
 ## Comandos (todos piden `pxd.admin`)
 
+Los comandos `/tp`, `/tpm`, `/dv` (qbx_core) y `/noclip` (qbx_adminmenu) ya existen en el servidor; los de pxd_admin tienen nombre propio (`/ir`, `/irmarcador`, `/borrarvehiculo`, `/volar`) para no pisarse según el orden de arranque.
+
 | Comando | Qué hace | Servicio |
 |---|---|---|
 | `/duty` | Entrar o salir de servicio | No |
@@ -38,17 +40,17 @@ Botón **De servicio / Fuera de servicio** abajo a la izquierda.
 | `/vida [id]` | Salud y armadura al máximo y quita heridas (qbx_medical `Heal`) | Sí |
 | `/llenarnecesidades [id]` | Hambre y sed 100, estrés 0 (metadata de Qbox + avisos al HUD) | Sí |
 | `/wounds [id]` | Heridas por zona, sangrado y estado (state bags de qbx_medical) | Sí |
-| `/tp <id>` | Ir con un jugador | Sí |
-| `/tpm` | Ir al marcador del mapa | Sí |
+| `/ir <id>` | Ir con un jugador | Sí |
+| `/irmarcador` | Ir al marcador del mapa | Sí |
 | `/traer <id>` | Traer a un jugador | Sí |
 | `/volver [id]` | Volver (o devolver) a la posición anterior | Sí |
-| `/noclip` | Volar: W/A/S/D, Espacio sube, Ctrl baja, Shift rápido | Sí |
+| `/volar` | Volar: W/A/S/D, Espacio sube, Ctrl baja, Shift rápido | Sí |
 | `/invisible` | Invisible / visible | Sí |
 | `/congelar <id>` | Congelar / descongelar | Sí |
 | `/coche <modelo>` | Saca un vehículo (el cliente comprueba que el modelo existe) y da las llaves con qbx_vehiclekeys | Sí |
-| `/dv` | Borra el vehículo en el que estás o el más cercano (máx. 10 m, lo comprueba el servidor) | Sí |
+| `/borrarvehiculo` | Borra el vehículo en el que estás o el más cercano (máx. 10 m, lo comprueba el servidor) | Sí |
 | `/reparar` | Repara y limpia el vehículo | Sí |
-| `/anuncio <texto>` | Aviso a toda la ciudad | Sí |
+| `/anuncio <texto>` | Aviso a toda la ciudad (banner + línea en el chat de pxd_chat). Único dueño del comando: pxd_admin. También desde la consola y, sin servicio, con el ACE de compatibilidad `pxd.chat.announce` | Sí (salvo consola / `pxd.chat.announce`) |
 | `/spectate <id>` | Espectar (la tecla del panel, F10, sale) | Sí |
 
 No se duplican: los baneos (los gestiona **txAdmin** → Players → jugador → Ban), el menú de txAdmin ni qbx_adminmenu. Todo se valida en el servidor (ACE, servicio, jugador conectado, distancias) y queda en el registro.

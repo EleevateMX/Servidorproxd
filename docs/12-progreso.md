@@ -54,6 +54,9 @@ Comando **solo de consola**: `pxd_plus <id-jugador|licencia> <días>`. En Tebex,
 
 `Config.achievements`: categorías con logros (`key`, `goal`, `rewardXp` y opcional `rewardMoney`). Además de las claves de `Track`, hay derivadas: `level`, `playtime_h`, `days_claimed`.
 
+- `goal = 'season'`: la meta es el número de días de la pista (`#Config.daily.days`). Lo usa «Temporada completa», que antes pedía 28 días con una pista de 14.
+- `disabled = true`: el logro no se muestra ni se puede reclamar. «Estuve ahí» (`event_join`) está desactivado porque todavía no hay sistema de eventos que llame a `Track(src, 'event_join', 1)`; quita `disabled` cuando exista.
+
 Categorías **limitadas** (`limited = true`, `startsAt`, `endsAt`): solo se ven y cuentan en esas fechas (lo de antes no cuenta). Si participaste, siguen visibles después, pero ya no se pueden reclamar.
 
 ## Instalación

@@ -10,7 +10,7 @@ PXDRules = {
             points = {
                 'Mantén el rol en todo momento mientras estés en la ciudad.',
                 'Usa /me para describir acciones que el juego no muestra («/me revisa el maletero»).',
-                'Usa /ooc solo para lo imprescindible (dudas técnicas, avisos) y con respeto.',
+                'Usa /b (o /ooc) solo para lo imprescindible (dudas técnicas, avisos) y con respeto.',
                 'Si algo falla, termina la escena con naturalidad y resuélvelo después por soporte.',
             },
         },
@@ -81,7 +81,7 @@ PXDRules = {
             body = 'Salir del servidor para evitar una detención, una muerte o cualquier consecuencia está prohibido.',
             points = {
                 'Si se te cae el juego, vuelve en cuanto puedas e informa a las personas de la escena.',
-                'Si tienes que irte de verdad, avísalo por /ooc y deja la escena resuelta.',
+                'Si tienes que irte de verdad, avísalo por /b y deja la escena resuelta.',
             },
         },
         {
@@ -107,7 +107,7 @@ PXDRules = {
             id = 'bugs', title = 'Errores del juego, trampas y corrupción',
             body = 'Aprovechar fallos del juego, del servidor o de los scripts es una falta grave.',
             points = {
-                'Si encuentras un fallo, repórtalo en Discord y no lo uses.',
+                'Si encuentras un fallo, repórtalo (F9 o Discord) y no lo uses.',
                 'Prohibido usar menús, programas externos o cualquier trampa.',
                 'La corrupción dentro de los cuerpos oficiales necesita rol coherente y aprobación del staff.',
             },

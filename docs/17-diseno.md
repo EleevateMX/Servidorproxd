@@ -51,7 +51,7 @@ A prueba de fallos (probado en `tests/lua/test_multichar_client.lua`, que ejecut
 
 - Escribir sin comando = tu personaje habla: solo lo leen quienes estén a 12 m (lo comprueba el servidor, y nadie oye a través de mundos distintos, p. ej. una partida).
 - Si no te conocen, ven «Desconocido · PROX-XXXX» (`pxd_interact`).
-- `/me` (de qbx_core, con texto 3D) también sale en el chat cercano; `/do`, `/susurrar` (3 m), `/gritar` (30 m), `/b` (fuera de personaje, local), `/anuncio` (staff, ACE `pxd.chat.announce`).
+- `/me` (de qbx_core, con texto 3D) también sale en el chat cercano; `/do`, `/susurrar` (3 m), `/gritar` (30 m), `/b` (fuera de personaje, local), `/anuncio` (de pxd_admin; pxd_chat solo lo pinta en el chat).
 - Sin avisos de entrada y salida (`set chat_showJoins 0`, `set chat_showQuits 0`). Anti-spam en el servidor. Bienvenida una sola vez por sesión (sustituye al motd de qbx_core, que salía repetido).
 - El aspecto es un tema del chat del sistema (`chat_theme` en el fxmanifest, el mismo mecanismo que `chat-theme-example` de cfx-server-data).
 

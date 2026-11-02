@@ -10,6 +10,7 @@ Voz por proximidad de Próxima RP, encima de **pma-voice** (no lo modifica).
 
 - J se eligió porque no la usa nada de la receta (F1 barra rápida, F2/I inventario, K maletero, M/↑ teléfono, TAB panel, F5 emotes, F6 props, F7 modos, E interacción, B señalar/cinturón, X, G, H, U, Y control de crucero, Z menú radial, R recargar, LCONTROL…). Cada jugador puede cambiarla en *Ajustes → Asignación de teclas → FiveM → «Susurrar»*.
 - El susurro es por pulsación (alternar) porque mantener J y N a la vez es incómodo.
+- El comando interno de la tecla se llama `pxd_voice_whisper` (no se escribe). `/susurrar <texto>` es del chat de texto (pxd_chat): antes ambos se llamaban igual y el de la voz tapaba al del chat. Quien ya hubiera cambiado la tecla vuelve a tener J por defecto (el nombre de la asignación cambió).
 - La doble N sigue la tecla de hablar que tenga cada jugador: se lee el control 249 (pulsar para hablar), el mismo que pma-voice simula en la radio.
 - Radio y llamadas siguen igual: mientras hablas por radio (`radioActive` de pma-voice) la doble pulsación no cuenta.
 

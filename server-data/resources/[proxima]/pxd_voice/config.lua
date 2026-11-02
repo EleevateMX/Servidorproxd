@@ -12,7 +12,9 @@ Config.pushToTalkControl = 249
 -- Susurrar: pulsar para activar/desactivar (el jugador puede cambiar la tecla en
 -- Ajustes → Asignación de teclas → FiveM). J no la usa nada de la receta.
 Config.whisperKey = 'J'
-Config.whisperCommand = 'susurrar'
+-- Nombre técnico del comando de la tecla (no es para escribirlo). `/susurrar <texto>`
+-- es del chat de texto (pxd_chat): por eso este no puede llamarse igual.
+Config.whisperCommand = 'pxd_voice_whisper'
 
 -- Rangos en unidades de pma-voice. Con voice_useNativeAudio (lo que usa Qbox) el audio
 -- nativo suena más lejos que la distancia nominal, así que sus valores son menores

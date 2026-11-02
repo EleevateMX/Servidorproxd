@@ -751,7 +751,7 @@
       static: {
         serverName: 'PRÓXIMA RP', storeUrl: 'https://example.tebex.io', discord: 'https://discord.gg/qUcD5gCf6v',
         support: [{ title: 'Soporte del staff', text: 'Abre un ticket en nuestro Discord, canal de soporte.', link: 'https://discord.gg/qUcD5gCf6v' },
-          { title: 'Reportar a un jugador', text: 'En Discord, ticket de «Reporte», con tu ID (/id).' }, { title: 'Hablar fuera de personaje', text: 'Usa /ooc con respeto.' }, { title: 'Acciones', text: 'Usa /me.' }],
+          { title: 'Reportar a un jugador', text: 'Pulsa F9 → «Reportar a un jugador».' }, { title: 'Hablar fuera de personaje', text: 'Usa /b (o /ooc) con respeto.' }, { title: 'Acciones', text: 'Usa /me.' }],
         news: [{ date: '2026-11-02', title: 'Panel de la ciudad', items: ['Nuevo panel con perfil, recompensas, logros, eventos y reglamento.'] }],
         rulesIntro: 'Próxima RP es una ciudad de rol.',
         rules: [{ id: 'pg', title: 'PowerGaming (PG)', body: 'Hacer algo que tu personaje no podría hacer en la realidad.', points: ['No fuerces resultados.', 'Respeta tus heridas.'] },

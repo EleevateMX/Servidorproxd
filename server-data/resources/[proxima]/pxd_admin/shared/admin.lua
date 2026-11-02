@@ -194,6 +194,13 @@ function PXDAdmin.can(action, hasAce)
     return hasAce(a.ace) or hasAce('pxd.admin.all')
 end
 
+--- /anuncio sin modo servicio: desde la consola (src 0) o con el ACE de compatibilidad
+--- `pxd.chat.announce` (antes lo daba pxd_chat). El resto del staff usa /duty.
+function PXDAdmin.announceBypass(src, hasAce)
+    if src == 0 then return true end
+    return hasAce('pxd.chat.announce') == true
+end
+
 --- ¿Hace falta estar de servicio (/duty) para esta acción?
 function PXDAdmin.needsDuty(action)
     local a = PXDAdmin.ACTIONS[action]
@@ -201,21 +208,23 @@ function PXDAdmin.needsDuty(action)
 end
 
 -- Comandos de chat (todos piden ACE; los marcados con la acción piden servicio).
+-- Nombres propios: /tp, /tpm, /dv (qbx_core) y /noclip (qbx_adminmenu) ya existen y
+-- registrar los mismos haría que ganara uno u otro según el orden de arranque.
 PXDAdmin.COMMANDS = {
     { name = 'duty', action = 'duty', args = '', desc = 'Entrar o salir de servicio: atuendo STAFF, etiqueta e invencible.' },
     { name = 'revivir', action = 'revive', args = '[id]', desc = 'Reanima a un jugador (o a ti).' },
     { name = 'vida', action = 'heal', args = '[id]', desc = 'Salud y armadura al máximo y quita heridas.' },
     { name = 'llenarnecesidades', action = 'needs', args = '[id]', desc = 'Hambre y sed al 100 y estrés a 0.' },
     { name = 'wounds', action = 'wounds', args = '[id]', desc = 'Muestra heridas por zona, sangrado y estado.' },
-    { name = 'tp', action = 'goto', args = '<id>', desc = 'Ir con un jugador.' },
-    { name = 'tpm', action = 'tpm', args = '', desc = 'Ir al marcador del mapa.' },
+    { name = 'ir', action = 'goto', args = '<id>', desc = 'Ir con un jugador.' },
+    { name = 'irmarcador', action = 'tpm', args = '', desc = 'Ir al marcador del mapa.' },
     { name = 'traer', action = 'bring', args = '<id>', desc = 'Traer a un jugador contigo.' },
     { name = 'volver', action = 'back', args = '[id]', desc = 'Volver (o devolver a alguien) a la posición anterior.' },
-    { name = 'noclip', action = 'noclip', args = '', desc = 'Volar atravesando paredes (W/A/S/D, Espacio sube, Ctrl baja, Shift rápido).' },
+    { name = 'volar', action = 'noclip', args = '', desc = 'Volar atravesando paredes (W/A/S/D, Espacio sube, Ctrl baja, Shift rápido).' },
     { name = 'invisible', action = 'invisible', args = '', desc = 'Hacerte invisible o visible.' },
     { name = 'congelar', action = 'freeze', args = '<id>', desc = 'Congelar o descongelar a un jugador.' },
     { name = 'coche', action = 'car', args = '<modelo>', desc = 'Sacar un vehículo (p. ej. /coche sultan).' },
-    { name = 'dv', action = 'dv', args = '', desc = 'Borrar el vehículo en el que estás o el más cercano.' },
+    { name = 'borrarvehiculo', action = 'dv', args = '', desc = 'Borrar el vehículo en el que estás o el más cercano.' },
     { name = 'reparar', action = 'repair', args = '', desc = 'Reparar y limpiar tu vehículo.' },
     { name = 'anuncio', action = 'announce', args = '<texto>', desc = 'Aviso a toda la ciudad.' },
     { name = 'spectate', action = 'spectate', args = '<id>', desc = 'Espectar a un jugador (misma orden o la tecla del panel para salir).' },

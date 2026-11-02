@@ -125,6 +125,32 @@ T.describe('pxd_hud · servidor (estrés)', function()
         T.eq(set[1][3], 25, 'aliviar sí funciona para todos')
     end)
 
+    T.it('límites anti-abuso: enfriamiento y tope por ventana', function()
+        local set = boot('unemployed', 100)
+        Fx.emit('hud:server:RelieveStress', 1, 60)
+        Fx.emit('hud:server:RelieveStress', 1, 60)   -- dentro del enfriamiento: ignorado
+        T.eq(#set, 1); T.eq(set[1][3], 40)
+        Fx.advance(3)
+        Fx.emit('hud:server:RelieveStress', 1, 60)   -- solo quedan 40 en la ventana
+        T.eq(set[2][3], 0)
+        Fx.advance(3)
+        Fx.emit('hud:server:RelieveStress', 1, 10)   -- tope agotado
+        T.eq(#set, 2)
+        Fx.advance(121)
+        Fx.emit('hud:server:GainStress', 1, 50)      -- ganar: máximo 10 por llamada
+        T.eq(set[3][3], 10)
+    end)
+
+    T.it('limitStress es pura y respeta cada regla', function()
+        local lim = { maxPerCall = 10, cooldown = 1, window = 60, maxPerWindow = 25 }
+        local rec = {}
+        T.eq(PXDHud.limitStress(rec, 50, 0, lim), 10)
+        T.eq(PXDHud.limitStress(rec, 5, 0.5, lim), 0, 'enfriamiento')
+        T.eq(PXDHud.limitStress(rec, 10, 2, lim), 10)
+        T.eq(PXDHud.limitStress(rec, 10, 4, lim), 5, 'tope de la ventana')
+        T.eq(PXDHud.limitStress(rec, 10, 70, lim), 10, 'la ventana se renueva')
+    end)
+
     T.it('oculta el HUD mientras el inventario está abierto', function()
         boot('unemployed', 0)
         Fx.emit('ox_inventory:openedInventory', 0, 5, 'trunk')

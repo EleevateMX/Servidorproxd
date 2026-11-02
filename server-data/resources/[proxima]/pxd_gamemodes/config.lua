@@ -14,7 +14,18 @@ Config.maxMatches = 8
 Config.bucketLockdown = 'relaxed'
 
 -- Permisos ACE (ver server-data/permissions.cfg). nil = cualquiera puede.
+-- Para que solo el staff o un rol concreto cree partidas: Config.createAce = 'pxd.gamemodes.create'
+-- y en el cfg `add_ace group.admin pxd.gamemodes.create allow`.
 Config.createAce = nil                   -- crear partidas
+-- Límites al crear (aunque createAce sea nil): partidas abiertas a la vez por anfitrión
+-- (el total lo limita maxMatches) y espera entre creaciones del mismo jugador (s).
+Config.maxHostedPerPlayer = 1
+Config.createCooldownSec = 30
+
+-- Validación de bajas (las muertes las informa el cliente de la víctima):
+-- distancia máxima asesino-víctima (m) y bajas máximas por asesino en una ventana (s).
+Config.maxKillDistance = 300.0
+Config.killRate = { max = 3, window = 2 }
 Config.adminAce = 'pxd.gamemodes.admin'  -- forzar inicio/fin y borrar partidas de otros
 
 -- Partidas en lobby sin jugadores se borran tras este tiempo (s).

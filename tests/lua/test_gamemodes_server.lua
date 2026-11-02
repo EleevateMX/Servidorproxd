@@ -203,6 +203,91 @@ T.describe('pxd_gamemodes servidor', function()
     end)
 end)
 
+T.describe('pxd_gamemodes · seguridad (P1)', function()
+    local given
+    local function bootArmed()
+        boot()
+        given = {}
+        _G.RemoveAllPedWeapons = function(ped) given[#given + 1] = 'clear:' .. ped end
+        _G.GiveWeaponToPed = function(ped, hash, ammo) given[#given + 1] = 'give:' .. ped .. ':' .. ammo end
+        _G.SetPedArmour = function(ped, n) given[#given + 1] = 'armour:' .. ped .. ':' .. n end
+    end
+
+    T.it('límites al crear: una partida por anfitrión y espera entre creaciones', function()
+        bootArmed()
+        Fx.emit('pxd_gm:server:create', 1, 'ffa', 'prueba')
+        Fx.emit('pxd_gm:server:leave', 1)
+        Fx.emit('pxd_gm:server:create', 1, 'ffa', 'prueba')
+        T.truthy(Fx.lastTo(1, 'pxd_gm:client:notify').args[1]:find('Espera'), 'enfriamiento')
+        Fx.advance(Config.createCooldownSec + 1)
+        Fx.emit('pxd_gm:server:create', 2, 'ffa', 'prueba')
+        Fx.emit('pxd_gm:server:create', 1, 'ffa', 'prueba')
+        Fx.clearSent()
+        Fx.emit('pxd_gm:server:leave', 1)
+        Fx.advance(Config.createCooldownSec + 1)
+        Fx.emit('pxd_gm:server:create', 1, 'tdm', 'prueba')
+        T.truthy(Fx.lastTo(1, 'pxd_gm:client:joined'), 'tras salir puede volver a crear')
+    end)
+
+    T.it('armas: las da el servidor, una vez por cada spawn', function()
+        bootArmed()
+        Fx.emit('pxd_gm:server:create', 1, 'ffa', 'prueba')
+        Fx.emit('pxd_gm:server:loadout', 1)
+        T.eq(#given, 0, 'sin spawn no hay armas')
+        Fx.emit('pxd_gm:server:join', 2, 1)
+        Fx.emit('pxd_gm:server:start', 1)
+        Fx.advance(11)
+        T.truthy(Fx.lastTo(1, 'pxd_gm:client:spawn'))
+        Fx.emit('pxd_gm:server:loadout', 1)
+        local n = #given
+        T.truthy(n >= 2, 'quita y da armas')
+        T.truthy(given[1]:find('^clear:'))
+        Fx.emit('pxd_gm:server:loadout', 1)
+        T.eq(#given, n, 'repetir la petición no da más munición')
+    end)
+
+    T.it('export LeavePlayer: saca al jugador y lo devuelve al mundo', function()
+        bootArmed()
+        Fx.emit('pxd_gm:server:create', 1, 'ffa', 'prueba')
+        T.eq(Fx.players[1].bucket, 60000)
+        local leave = Fx.exports[Fx.resourceName].LeavePlayer
+        T.eq(leave(1, 'Te ha sacado el staff.'), true)
+        T.eq(Fx.players[1].bucket, 0)
+        T.eq(leave(1), false, 'si no está en partida no hace nada')
+    end)
+
+    T.it('bajas: rechaza asesinos fuera del bucket, lejos o a ritmo imposible', function()
+        bootArmed()
+        Fx.addPlayer(3, 'Sol', { x = 12, y = 22, z = 30 })
+        Fx.emit('pxd_gm:server:create', 1, 'ffa', 'prueba')
+        Fx.emit('pxd_gm:server:join', 2, 1)
+        Fx.emit('pxd_gm:server:join', 3, 1)
+        Fx.emit('pxd_gm:server:start', 1)
+        Fx.advance(11)
+        local function kills(id)
+            local snap = Fx.lastTo(1, 'pxd_gm:client:match').args[1]
+            for _, p in ipairs(snap.playersList) do if p.id == id then return p.kills end end
+        end
+        Fx.players[1].bucket = 0                                   -- fuera del bucket
+        Fx.emit('baseevents:onPlayerKilled', 2, 1, {})
+        T.eq(kills(1), 0, 'fuera del bucket no cuenta')
+        Fx.players[1].bucket = 60000
+        Fx.advance(4)
+        Fx.movePlayer(1, { x = 5000, y = 5000, z = 30 })           -- demasiado lejos
+        Fx.emit('baseevents:onPlayerKilled', 3, 1, {})
+        T.eq(kills(1), 0, 'lejos no cuenta')
+        Fx.movePlayer(1, { x = 10, y = 20, z = 30 })
+        Fx.advance(4)
+        for _ = 1, 3 do
+            Fx.emit('baseevents:onPlayerKilled', 2, 1, {}); Fx.advance(0.1)
+            Fx.emit('baseevents:onPlayerKilled', 3, 1, {}); Fx.advance(0.1)
+        end
+        T.truthy(kills(1) <= Config.killRate.max, 'no más bajas que el ritmo permitido')
+        Fx.emit('baseevents:onPlayerKilled', 2, 2, {})
+        T.truthy(kills(2) == 0, 'matarse a uno mismo no da baja')
+    end)
+end)
+
 -- ── Modo Qbox (qbx_core + qbx_medical simulados) ───────────────────────────
 local function bootQbox()
     local calls = { buckets = {}, revived = {} }

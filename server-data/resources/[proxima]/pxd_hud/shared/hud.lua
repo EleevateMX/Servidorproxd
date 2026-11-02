@@ -100,4 +100,23 @@ function H.diff(prev, next)
     return changed and out or nil
 end
 
+--- Límite anti-abuso de los eventos de estrés (son eventos de red: cualquier cliente
+--- puede lanzarlos). `rec` guarda el historial del jugador; `lim` = {maxPerCall,
+--- cooldown, window, maxPerWindow} en segundos. Devuelve cuánto se permite (0 = nada).
+function H.limitStress(rec, amount, now, lim)
+    if not lim then return amount end
+    rec.list = rec.list or {}
+    if lim.cooldown and rec.last and now - rec.last < lim.cooldown then return 0 end
+    local kept, used = {}, 0
+    for _, e in ipairs(rec.list) do
+        if now - e.t < (lim.window or 60) then kept[#kept + 1] = e; used = used + e.n end
+    end
+    rec.list = kept
+    local allowed = math.min(amount, lim.maxPerCall or amount, math.max(0, (lim.maxPerWindow or math.huge) - used))
+    if allowed <= 0 then return 0 end
+    rec.list[#rec.list + 1] = { t = now, n = allowed }
+    rec.last = now
+    return allowed
+end
+
 return H

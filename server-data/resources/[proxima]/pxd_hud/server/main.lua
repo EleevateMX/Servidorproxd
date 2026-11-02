@@ -24,15 +24,30 @@ local function changeStress(src, delta)
     return value
 end
 
+-- Historial por jugador para los límites (se olvida al desconectar).
+local limits = {}
+local function limited(src, kind, amount)
+    limits[src] = limits[src] or { gain = {}, relieve = {} }
+    local lim = Config.stress.limits and Config.stress.limits[kind]
+    return H.limitStress(limits[src][kind], amount, GetGameTimer() / 1000, lim)
+end
+AddEventHandler('playerDropped', function() limits[source] = nil end)
+
 -- Nombres de evento de qbx_hud: los usan qbx_vehiclekeys (GainStress) y qbx_medical (RelieveStress).
 RegisterNetEvent('hud:server:GainStress', function(amount)
     if not Config.stress.enabled or not H.validStressAmount(amount) then return end
-    if changeStress(source, amount) then notify(source, 'Te sientes más estresado') end
+    local src = source
+    amount = limited(src, 'gain', amount)
+    if amount <= 0 then return end
+    if changeStress(src, amount) then notify(src, 'Te sientes más estresado') end
 end)
 
 RegisterNetEvent('hud:server:RelieveStress', function(amount)
     if not Config.stress.enabled or not H.validStressAmount(amount) then return end
-    if changeStress(source, -amount) then notify(source, 'Te sientes más tranquilo') end
+    local src = source
+    amount = limited(src, 'relieve', amount)
+    if amount <= 0 then return end
+    if changeStress(src, -amount) then notify(src, 'Te sientes más tranquilo') end
 end)
 
 -- ox_inventory lanza estos eventos de servidor al abrir/cerrar (modules/inventory/server.lua).
