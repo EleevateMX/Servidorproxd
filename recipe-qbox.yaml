@@ -624,6 +624,12 @@ tasks:  #  Download Base Files
     replace: "        allowArmed = true,\n"
 
 
+  - action: replace_string # no borrar el inventario al reaparecer (pxd_compat retira solo lo confiscable)
+    file: ./resources/[qbx]/qbx_ambulancejob/config/server.lua
+    mode: literal
+    search: "    wipeInvOnRespawn = true, -- Enable to disable removing all items from player on respawn"
+    replace: "    wipeInvOnRespawn = false, -- Enable to disable removing all items from player on respawn"
+
   # Clean up
   - action: remove_path
     path: ./tmp

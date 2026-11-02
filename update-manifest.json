@@ -111,21 +111,42 @@
   {
    "resource": "pxd_compat",
    "path": "config.lua",
-   "size": 419,
-   "sha256": "1b7301b7505f076dc66123d8889721eae7bb9a2c512988d9be1b2a41123f30c5",
-   "config": true
+   "size": 2367,
+   "sha256": "2f29d0aea095d81f5baec40eb314a95cd2c75d3d19fb415ce0cfef2bc5188d0f",
+   "config": true,
+   "known": [
+    "1b7301b7505f076dc66123d8889721eae7bb9a2c512988d9be1b2a41123f30c5"
+   ]
   },
   {
    "resource": "pxd_compat",
    "path": "fxmanifest.lua",
-   "size": 266,
-   "sha256": "e16b812c6e0f7b04d1eb563e587075b35947e337d2d3d894b8478b8918dd03ec"
+   "size": 348,
+   "sha256": "4307b06d34bcef1a5634c4382632d8709be41b42d4dda35fe04185a39fbcb229"
+  },
+  {
+   "resource": "pxd_compat",
+   "path": "server/audit.lua",
+   "size": 2438,
+   "sha256": "c68fab91987f8c4ebdf8459cbbd83d2fa22271e1591c51199e1ec3d7bbb377c1"
+  },
+  {
+   "resource": "pxd_compat",
+   "path": "server/medical.lua",
+   "size": 2646,
+   "sha256": "0eed0ca826588f110b1138e087eaf683c81d85c5e1e10282679b14cd612716a8"
   },
   {
    "resource": "pxd_compat",
    "path": "server/wear.lua",
    "size": 1320,
    "sha256": "a214090a24e3619a662956a74a1e484048456709107cb49af87e72ba939dc1f9"
+  },
+  {
+   "resource": "pxd_compat",
+   "path": "shared/medical.lua",
+   "size": 2150,
+   "sha256": "3e00f80363934a9cf29720a6d180e4697e5dd8e30ab16fb9ac336af46d2aa62b"
   },
   {
    "resource": "pxd_compat",
@@ -1209,6 +1230,14 @@
     "replace": "        allowArmed = true,\n",
     "requires": "pxd_compat",
     "why": "quitar el uso de un recurso inexistente (mm_radio)"
+   },
+   {
+    "resource": "qbx_ambulancejob",
+    "path": "config/server.lua",
+    "find": "    wipeInvOnRespawn = true, -- Enable to disable removing all items from player on respawn",
+    "replace": "    wipeInvOnRespawn = false, -- Enable to disable removing all items from player on respawn",
+    "requires": "pxd_compat",
+    "why": "no borrar el inventario al reaparecer (pxd_compat retira solo lo confiscable)"
    }
   ],
   "external": []
