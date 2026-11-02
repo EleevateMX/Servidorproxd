@@ -86,19 +86,9 @@ local function run(src, mode)
             return log(src, ('%d archivo(s) de arte por descargar. Ejecuta «pxd_update» para aplicarlos.'):format(#newAssets))
         end
         if #changes == 0 then
-            local got = 0
-            for _, a in ipairs(newAssets) do
-                local p = promise.new()
-                PerformHttpRequest(a.url, function(code, body) p:resolve({ code = code, body = body }) end, 'GET', '', {}, { followLocation = true })
-                local d = Citizen.Await(p)
-                if d.code == 200 and type(d.body) == 'string' and #d.body > 1024 and SaveResourceFile(a.resource, a.path, d.body, #d.body) then
-                    got = got + 1
-                else
-                    log(src, ('No se pudo descargar %s (HTTP %s).'):format(a.path, tostring(d.code)))
-                end
-            end
-            log(src, ('Arte descargado: %d de %d. Se verá al reconectar.'):format(got, #newAssets))
-            return
+            -- La descarga binaria la hace server/assets.js (Node.js).
+            TriggerEvent('pxd_updater:downloadAssets', newAssets, src)
+            return log(src, 'Descargando arte… (los resultados aparecerán aquí)')
         end
         for _, f in ipairs(changes) do log(src, ' · ' .. f.resource .. '/' .. f.path) end
         if mode == 'check' then return log(src, ('%d archivo(s) por actualizar. Ejecuta «pxd_update» para aplicarlos.'):format(#changes)) end
@@ -139,6 +129,10 @@ local function run(src, mode)
     running = false
     if not ok then log(src, 'Error: ' .. tostring(err)) end
 end
+
+AddEventHandler('pxd_updater:assetLog', function(src, msg)
+    log(tonumber(src) or 0, tostring(msg))
+end)
 
 RegisterCommand('pxd_update', function(src, args)
     if src ~= 0 and not IsPlayerAceAllowed(src, Config.ace) then return end

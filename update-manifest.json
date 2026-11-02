@@ -273,14 +273,20 @@
   {
    "resource": "pxd_updater",
    "path": "fxmanifest.lua",
-   "size": 268,
-   "sha256": "aaa8beb59f9d5ded51f71c21832b3e176b3a00d1d7d69afbd548de2e0d701348"
+   "size": 292,
+   "sha256": "38850418db7fa78520817f1f623106a7a3c6ec74ed7b3dc5357387daf32b4a0e"
+  },
+  {
+   "resource": "pxd_updater",
+   "path": "server/assets.js",
+   "size": 3312,
+   "sha256": "9cbd198424b1f5930207c994bdbf0986b0b92e1d9885acb574a5ce70a5d31c6d"
   },
   {
    "resource": "pxd_updater",
    "path": "server/main.lua",
-   "size": 7083,
-   "sha256": "c78550c27e250211e422a44cb2dd3428f05b432f88818dc8ff197cca8073b35b"
+   "size": 6658,
+   "sha256": "f8748a18c577a5d4e642395aa6501c8b886b0da683a9d1a21eb84a7296b4b245"
   },
   {
    "resource": "pxd_updater",

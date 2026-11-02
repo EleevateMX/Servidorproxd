@@ -10,4 +10,5 @@ server_scripts {
     'config.lua',
     'shared/sha256.lua',
     'server/main.lua',
+    'server/assets.js',
 }
