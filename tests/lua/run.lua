@@ -14,6 +14,7 @@ local suites = {
     'test_progress', 'test_progress_server',
     'test_multichar',
     'test_jobs',
+    'test_panel',
 }
 for _, s in ipairs(suites) do
     io.write('\n# ', s, '\n')
