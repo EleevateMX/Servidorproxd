@@ -51,14 +51,14 @@
   {
    "resource": "pxd_admin",
    "path": "server/main.lua",
-   "size": 47769,
-   "sha256": "449c4d3ca395511679fc3e99a804d017acb6e439944cc49447ea4374ca87515c"
+   "size": 48499,
+   "sha256": "5c55430c8d1ef25af914cf0132e1309e7de51236cd902c127a02a7a7c03b260a"
   },
   {
    "resource": "pxd_admin",
    "path": "shared/admin.lua",
-   "size": 24349,
-   "sha256": "b5c65c378896905955746157247a8e7fd715c60fb7a66aac71d66f2706d73f70"
+   "size": 25916,
+   "sha256": "215a0caf6e71fb44a6307a6db893db8c4b32e82a5037ff8939ecf9996b11c272"
   },
   {
    "resource": "pxd_audit",

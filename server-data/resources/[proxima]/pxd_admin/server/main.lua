@@ -983,8 +983,18 @@ RegisterCommand('darrango', function(src, args)
     grants[lic] = { role = role.id, name = GetPlayerName(id), by = staffName(src), reason = reason ~= '' and reason or nil, at = now() }
     saveGrants()
     audit(src, 'rango_dar', id, { reason = reason ~= '' and reason or nil, detail = role.label })
-    notify(id, 'Rangos', ('Ahora eres %s. Abre el panel con F10 o /admin y revisa tus permisos con /checkas.'):format(role.label), 'success')
-    reply(src, true, ('%s ahora es %s.'):format(GetPlayerName(id) or lic, role.label))
+    -- Se comprueba que el rango llegó de verdad (add_principal puede estar denegado o faltar la matriz).
+    CreateThread(function()
+        Wait(200)
+        local applied, why = PXDAdmin.checkApplied(role, function(ace) return IsPlayerAceAllowed(id, ace) end,
+            function(p, ace) return IsPrincipalAceAllowed(p, ace) end)
+        if applied then
+            notify(id, 'Rangos', ('Ahora eres %s. Abre el panel con F10 o /admin y revisa tus permisos con /checkas.'):format(role.label), 'success')
+            return reply(src, true, ('%s ahora es %s.'):format(GetPlayerName(id) or lic, role.label))
+        end
+        reply(src, false, ('Rango guardado, pero NO se aplicó: %s'):format(why))
+        if src ~= 0 then print('[pxd_admin] ^3/darrango: ' .. why .. '^7') end
+    end)
 end, false)
 
 RegisterCommand('quitarrango', function(src, args)
@@ -1053,6 +1063,9 @@ end, false)
 loadGrants()
 CreateThread(function()
     Wait(1000)   -- tras leer el server.cfg
+    for _, msg in ipairs(PXDAdmin.setupProblems(function(p, ace) return IsPrincipalAceAllowed(p, ace) end)) do
+        print('[pxd_admin] ^3' .. msg .. '^7')
+    end
     applyGrants()
 end)
 PXDAdmin.server.grants = function() return grants end

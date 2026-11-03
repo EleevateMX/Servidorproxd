@@ -99,6 +99,7 @@ function Fx.reset(opts)
         return out
     end
     G.IsPlayerAceAllowed = function(src, ace) local p = Fx.players[tonumber(src)] return p and p.aces[ace] == true or false end
+    G.IsPrincipalAceAllowed = function() return true end
     G.GetPlayerRoutingBucket = function(src) return Fx.players[tonumber(src)].bucket end
     G.SetPlayerRoutingBucket = function(src, b) Fx.players[tonumber(src)].bucket = b end
     G.SetRoutingBucketPopulationEnabled = function(b, on) Fx.buckets[b] = Fx.buckets[b] or {}; Fx.buckets[b].population = on end

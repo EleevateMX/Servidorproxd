@@ -486,4 +486,32 @@ function PXDAdmin.canRevoke(isConsole, canManage, currentRoleId, isSelf)
     return true
 end
 
+-- Comandos que la consola debe permitir a pxd_admin para aplicar rangos.
+PXDAdmin.SETUP_ACES = {
+    'add_ace resource.pxd_admin command.add_principal allow',
+    'add_ace resource.pxd_admin command.remove_principal allow',
+}
+
+--- ¿Llegó el rango? hasAce(ace) del jugador y principalAce(principal, ace). Devuelve true o false, causa.
+function PXDAdmin.checkApplied(role, hasAce, principalAce)
+    local need = next(PXDAdmin.rolePerms(role.id)) and 'pxd.admin.panel' or nil
+    if not need or hasAce(need) then return true end
+    if not principalAce(role.group, need) then
+        return false, ('el grupo %s no tiene permisos: falta la matriz de roles de permissions.pxd.cfg (o ese archivo no se cargó con exec). Súbelo y reinicia.'):format(role.group)
+    end
+    return false, 'el servidor no deja a pxd_admin ejecutar add_principal. Pega en la consola: ' .. table.concat(PXDAdmin.SETUP_ACES, '  y  ') .. ' y repite el comando.'
+end
+
+--- Problemas de configuración que impiden dar rangos (se avisan en la consola al arrancar).
+function PXDAdmin.setupProblems(principalAce)
+    local out = {}
+    if not principalAce('resource.pxd_admin', 'command.add_principal') then
+        out[#out + 1] = '/darrango no podrá aplicar rangos: falta en permissions.pxd.cfg «' .. PXDAdmin.SETUP_ACES[1] .. '» y «' .. PXDAdmin.SETUP_ACES[2] .. '».'
+    end
+    if not principalAce('group.support', 'pxd.admin.panel') then
+        out[#out + 1] = 'Falta la matriz de roles (group.support no tiene pxd.admin.panel): revisa permissions.pxd.cfg.'
+    end
+    return out
+end
+
 return PXDAdmin

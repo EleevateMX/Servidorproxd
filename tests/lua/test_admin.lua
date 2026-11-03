@@ -584,19 +584,46 @@ end)
 
 T.describe('pxd_admin (rangos desde el juego: /darrango, /quitarrango, /checkas)', function()
     local function cmd(name, src, args) Fx.commands[name](src, args or {}) end
+    -- Simula FXServer: add_principal da al jugador los permisos del grupo; IsPrincipalAceAllowed lee la matriz.
+    local function bootP(extra, opts)
+        boot(extra); opts = opts or {}
+        local groupRole = {}
+        for _, r in ipairs(PXDAdmin.ROLES) do groupRole[r.group] = r.id end
+        _G.IsPrincipalAceAllowed = function(p, ace)
+            if p == 'resource.pxd_admin' then return not opts.noCommandAce end
+            local rid = groupRole[p]
+            if not rid or opts.noMatrix then return false end
+            return PXDAdmin.rolePerms(rid)[(ace:gsub('^pxd%.admin%.', ''))] == true
+        end
+        local base = _G.ExecuteCommand
+        _G.ExecuteCommand = function(c)
+            base(c)
+            if opts.noCommandAce or opts.noMatrix then return end
+            local op, lic, group = c:match('^(%S+) identifier%.(%S+) (%S+)$')
+            local rid = group and groupRole[group]
+            if not rid then return end
+            for _, p in pairs(Fx.players) do
+                if p.ids and p.ids.license == lic then
+                    for perm in pairs(PXDAdmin.rolePerms(rid)) do p.aces['pxd.admin.' .. perm] = (op == 'add_principal') or nil end
+                end
+            end
+        end
+    end
     local function executed(pattern)
         for _, c in ipairs(Fx.executed) do if c:find(pattern, 1, true) then return true end end
         return false
     end
 
     T.it('el superadministrador da y quita rangos; se aplica con add_principal, se guarda y se audita', function()
-        boot()
+        bootP()
         cmd('darrango', 1, { '2', 'mod', 'ayuda en reportes' })
         T.truthy(executed('add_principal identifier.license:edy group.mod'))
         T.eq(PXDAdmin.server.grants()['license:edy'].role, 'moderador')
         T.truthy(Fx.files['data/staff-roles.json']:find('moderador', 1, true), 'guardado en data/staff-roles.json')
         T.eq(audited[#audited].action, 'rango_dar'); T.eq(audited[#audited].data.reason, 'ayuda en reportes')
-        T.truthy(lastToast(2):find('Moderador', 1, true), 'el jugador recibe aviso')
+        Fx.advance(1)
+        T.truthy(lastToast(2):find('Moderador', 1, true), 'el jugador recibe aviso cuando el rango ya funciona')
+        T.truthy(lastToast(1):find('ahora es Moderador', 1, true))
         cmd('darrango', 1, { '2', 'admin' })
         T.truthy(executed('remove_principal identifier.license:edy group.mod'), 'al cambiar de rango se quita el anterior')
         T.truthy(executed('add_principal identifier.license:edy group.admin'))
@@ -607,10 +634,10 @@ T.describe('pxd_admin (rangos desde el juego: /darrango, /quitarrango, /checkas)
     end)
 
     T.it('sin staff.manage no se dan rangos; superadministrador solo desde la consola', function()
-        boot({ staffAces = roleAces('administrador') })
+        bootP({ staffAces = roleAces('administrador') })
         cmd('darrango', 1, { '2', 'soporte' })
         T.falsy(PXDAdmin.server.grants()['license:edy']); T.falsy(executed('add_principal'))
-        boot()
+        bootP()
         cmd('darrango', 1, { '2', 'superadmin' })
         T.falsy(PXDAdmin.server.grants()['license:edy'], 'un superadmin no crea otros superadmins desde el juego')
         cmd('darrango', 0, { '2', 'superadmin' })
@@ -620,24 +647,24 @@ T.describe('pxd_admin (rangos desde el juego: /darrango, /quitarrango, /checkas)
     end)
 
     T.it('rol inválido o jugador desconectado: no hace nada', function()
-        boot()
+        bootP()
         cmd('darrango', 1, { '2', 'jefazo' })
         cmd('darrango', 1, { '99', 'mod' })
         T.falsy(next(PXDAdmin.server.grants())); T.falsy(executed('add_principal'))
     end)
 
     T.it('los rangos guardados se vuelven a aplicar al arrancar', function()
-        boot()
+        bootP()
         Fx.files['data/staff-roles.json'] = '{"license:zeta":{"role":"soporte","name":"Zeta"}}'
-        PXDAdmin, Config = nil, nil
         Fx.executed = {}
+        PXDAdmin, Config = nil, nil
         Fx.load(DIR, { 'config.lua', 'shared/admin.lua', 'server/main.lua' })
         Fx.advance(2)
         T.truthy(executed('add_principal identifier.license:zeta group.support'))
     end)
 
     T.it('/checkas: cada uno ve sus permisos; ver los de otro exige ser staff', function()
-        boot()
+        bootP()
         Fx.clearSent()
         cmd('checkas', 2, {})
         local d = Fx.lastTo(2, 'pxd_admin:client:checkas').args[1]
@@ -649,4 +676,25 @@ T.describe('pxd_admin (rangos desde el juego: /darrango, /quitarrango, /checkas)
         local s = Fx.lastTo(1, 'pxd_admin:client:checkas').args[1]
         T.eq(s.id, 2); T.truthy(s.staff); T.eq(#s.perms, 0 + (function() local n = 0 for _ in pairs(PXDAdmin.PERMS) do n = n + 1 end return n end)())
     end)
+
+    T.it('si el rango no llega, /darrango lo dice con la causa y el arreglo (no anuncia éxito)', function()
+        bootP(nil, { noCommandAce = true })
+        cmd('darrango', 1, { '2', 'admin' })
+        Fx.advance(1)
+        T.truthy(lastToast(1):find('NO se aplicó', 1, true))
+        T.truthy(lastToast(1):find('command.add_principal', 1, true), 'da el comando que falta')
+        T.falsy(lastToast(2):find('Ahora eres', 1, true), 'al jugador no se le dice que ya es staff')
+        bootP(nil, { noMatrix = true })
+        cmd('darrango', 1, { '2', 'admin' })
+        Fx.advance(1)
+        T.truthy(lastToast(1):find('matriz de roles', 1, true))
+    end)
+
+    T.it('al arrancar avisa en consola si falta la configuración', function()
+        local P = dofile(RES .. 'pxd_admin/shared/admin.lua') or PXDAdmin
+        local probs = PXDAdmin.setupProblems(function() return false end)
+        T.eq(#probs, 2)
+        T.eq(#PXDAdmin.setupProblems(function() return true end), 0)
+    end)
 end)
+
