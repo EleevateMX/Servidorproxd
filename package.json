@@ -14,7 +14,9 @@
     "build:multichar": "npm --prefix web/multichar run build",
     "test:multichar": "npm --prefix web/multichar test",
     "build:garage": "npm --prefix web/garage run build",
-    "test:garage": "npm --prefix web/garage test"
+    "test:garage": "npm --prefix web/garage test",
+    "build:ui": "npm --prefix web/pxd-ui run build",
+    "test:ui": "npm --prefix web/pxd-ui test"
   },
   "engines": {
     "node": ">=20"

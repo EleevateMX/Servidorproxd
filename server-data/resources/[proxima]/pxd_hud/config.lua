@@ -4,6 +4,9 @@ Config = {}
 Config.speedUnit = 'kmh'          -- 'kmh' o 'mph'
 Config.minimapOnFoot = true       -- minimapa también a pie (false: solo en vehículo)
 Config.tickMs = 250               -- cada cuánto se leen los datos del jugador
+Config.fastMsFoot = 150           -- brújula a pie
+Config.fastMsVehicle = 80         -- velocidad, RPM, marcha y brújula en vehículo
+Config.settingsKey = 'pxd_hud:settings'   -- KVP con los ajustes del jugador
 Config.lowFuel = 20               -- aviso de combustible bajo (%)
 
 -- Avisos de las barras (en %): a partir de aquí la barra cambia de color.

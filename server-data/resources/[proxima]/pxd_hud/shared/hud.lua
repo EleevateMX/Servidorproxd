@@ -119,4 +119,100 @@ function H.limitStress(rec, amount, now, lim)
     return allowed
 end
 
+-- ── HUD 2.0 ───────────────────────────────────────────────────────────────
+--- Rumbo de brújula (0 = norte, 90 = este) a partir del heading de GTA (0 = norte, 90 = oeste).
+function H.compass(gtaHeading)
+    local h = tonumber(gtaHeading) or 0
+    if h ~= h then h = 0 end
+    return floor((360 - (h % 360)) % 360 + 0.5) % 360
+end
+
+local CARDINALS = { 'N', 'NE', 'E', 'SE', 'S', 'SO', 'O', 'NO' }
+--- Punto cardinal en español (O = oeste) de un rumbo de brújula.
+function H.cardinal(deg)
+    deg = (tonumber(deg) or 0) % 360
+    return CARDINALS[floor((deg + 22.5) / 45) % 8 + 1]
+end
+
+--- Redondea a pasos (para no mandar a la NUI cada pequeño cambio).
+function H.step(value, size)
+    value, size = tonumber(value) or 0, size or 1
+    return floor(value / size + 0.5) * size
+end
+
+--- Cuenta atrás de la paga (state bag pxdPayday, en segundos). nil si no hay dato válido.
+--- Por encima del minuto se manda en minutos enteros; por debajo, de 5 en 5 s.
+function H.payday(seconds)
+    seconds = tonumber(seconds)
+    if not seconds or seconds ~= seconds or seconds < 0 or seconds > 86400 then return nil end
+    if seconds >= 60 then return math.ceil(seconds / 60) * 60 end
+    return math.ceil(seconds / 5) * 5
+end
+
+--- Marcha que se muestra: P (motor parado), R (marcha atrás) o el número.
+function H.gear(gear, engineOn)
+    if not engineOn then return 'P' end
+    gear = floor(tonumber(gear) or 0)
+    if gear <= 0 then return 'R' end
+    return tostring(min(gear, 9))
+end
+
+--- Salud de motor o carrocería (0..1000 en GTA; puede ser negativa) → 0..100.
+function H.partPercent(value)
+    return floor(H.clamp((tonumber(value) or 0) / 10, 0, 100) + 0.5)
+end
+
+--- Luces: 0 apagadas, 1 cortas, 2 largas (GET_VEHICLE_LIGHTS_STATE).
+function H.lights(lightsOn, highbeamsOn)
+    if highbeamsOn == true or highbeamsOn == 1 then return 2 end
+    if lightsOn == true or lightsOn == 1 then return 1 end
+    return 0
+end
+
+--- Combustible: el state bag `fuel` de ox_fuel si existe; si no, el nivel del vehículo.
+function H.fuel(stateFuel, nativeFuel)
+    local v = tonumber(stateFuel)
+    if not v or v ~= v then v = tonumber(nativeFuel) or 0 end
+    return floor(H.clamp(v, 0, 100) + 0.5)
+end
+
+--- Calle y zona en una sola estructura (cadenas ya traducidas por el juego).
+function H.location(street, cross, zone)
+    local function clean(v) v = type(v) == 'string' and v or '' if v == 'NULL' then v = '' end return v end
+    street, cross, zone = clean(street), clean(cross), clean(zone)
+    local line = street
+    if cross ~= '' and cross ~= street then line = (street ~= '' and (street .. ' · ') or '') .. cross end
+    return line, zone
+end
+
+-- Ajustes del jugador (se guardan con KVP en su equipo).
+H.ELEMENTS = { 'vitals', 'money', 'alerts', 'clock', 'compass', 'location', 'voice', 'vehicle', 'minimap' }
+H.SCALE_MIN, H.SCALE_MAX = 0.8, 1.3
+
+function H.defaultSettings()
+    local show = {}
+    for _, k in ipairs(H.ELEMENTS) do show[k] = true end
+    return { scale = 1.0, cinema = false, show = show }
+end
+
+--- Devuelve ajustes válidos a partir de cualquier cosa (JSON guardado, datos de la NUI…).
+function H.sanitizeSettings(raw)
+    local out = H.defaultSettings()
+    if type(raw) ~= 'table' then return out end
+    local scale = tonumber(raw.scale)
+    if scale and scale == scale then out.scale = floor(H.clamp(scale, H.SCALE_MIN, H.SCALE_MAX) * 20 + 0.5) / 20 end
+    out.cinema = raw.cinema == true
+    if type(raw.show) == 'table' then
+        for _, k in ipairs(H.ELEMENTS) do
+            if raw.show[k] ~= nil then out.show[k] = raw.show[k] == true end
+        end
+    end
+    return out
+end
+
+--- ¿Se dibuja el HUD? Lo apagan otros recursos (SetVisible), el modo cine, la pausa o no haber entrado.
+function H.shouldShow(o)
+    return o.visible == true and o.cinema ~= true and o.loggedIn == true and o.paused ~= true and o.hudHidden ~= true
+end
+
 return H

@@ -2,6 +2,8 @@
 
 ## HUD (`pxd_hud`)
 
+> **HUD 2.0 (0.2.0):** brújula, calle y zona, cuenta atrás de la paga, panel del vehículo y ajustes del jugador (`/hud`, `/hudcine`). Ver `docs/43-interfaz-y-hud.md`. Lo de abajo describe la base que se conserva.
+
 Interfaz en pantalla de Próxima RP. **Sustituye a `qbx_hud`** (no deben estar los dos encendidos).
 
 | Zona | Qué muestra |

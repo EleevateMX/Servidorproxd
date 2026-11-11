@@ -1,0 +1,55 @@
+  # Interfaz común de Próxima (pxd_ui): ox_lib delega avisos, indicaciones, progreso y diálogos (docs/43).
+  # Generado desde web/pxd-ui/adapter/ox_lib-3.42.0.json: mismos textos que scripts/update-plan.json.
+  - action: replace_string # avisos de ox_lib y qbx_core con la interfaz de Próxima (pxd_ui)
+    file: ./resources/[ox]/ox_lib/resource/interface/client/notify.lua
+    mode: literal
+    search: "    SendNUIMessage\\(\\{\\n        action = 'notify',\\n        data = payload\\n    \\}\\)"
+    replace: "    local okPxd, donePxd = false, false -- Próxima: la interfaz es la de pxd_ui (docs/43)\n    if GetResourceState('pxd_ui') == 'started' then okPxd, donePxd = pcall(function() return exports.pxd_ui:OxNotify(payload) end) end\n    if not (okPxd and donePxd) then\n        SendNUIMessage({\n            action = 'notify',\n            data = payload\n        })\n    end"
+
+  - action: replace_string # indicaciones de tecla (Text UI) con la interfaz de Próxima
+    file: ./resources/[ox]/ox_lib/resource/interface/client/textui.lua
+    mode: literal
+    search: "    SendNUIMessage\\(\\{\\n        action = 'textUi',\\n        data = options\\n    \\}\\)"
+    replace: "    local okPxd, donePxd = false, false -- Próxima: la interfaz es la de pxd_ui (docs/43)\n    if GetResourceState('pxd_ui') == 'started' then okPxd, donePxd = pcall(function() return exports.pxd_ui:OxTextUI(options) end) end\n    if not (okPxd and donePxd) then\n        SendNUIMessage({\n            action = 'textUi',\n            data = options\n        })\n    end"
+
+  - action: replace_string # ocultar la indicación de tecla también en pxd_ui
+    file: ./resources/[ox]/ox_lib/resource/interface/client/textui.lua
+    mode: literal
+    search: "    SendNUIMessage\\(\\{\\n        action = 'textUiHide'\\n    \\}\\)"
+    replace: "    if GetResourceState('pxd_ui') == 'started' then pcall(function() exports.pxd_ui:OxTextUIHide() end) end -- Próxima (docs/43)\n    SendNUIMessage({\n        action = 'textUiHide'\n    })"
+
+  - action: replace_string # barra y círculo de progreso con la interfaz de Próxima
+    file: ./resources/[ox]/ox_lib/resource/interface/client/progress.lua
+    mode: literal
+    search: "    SendNUIMessage\\(nuiMessage\\)\\n"
+    replace: "    local okPxd, donePxd = false, false -- Próxima: la interfaz es la de pxd_ui (docs/43)\n    if GetResourceState('pxd_ui') == 'started' then okPxd, donePxd = pcall(function() return exports.pxd_ui:OxProgress(nuiMessage) end) end\n    if not (okPxd and donePxd) then SendNUIMessage(nuiMessage) end\n"
+
+  - action: replace_string # cancelar el progreso también en pxd_ui
+    file: ./resources/[ox]/ox_lib/resource/interface/client/progress.lua
+    mode: literal
+    search: "        SendNUIMessage\\(\\{ action = 'progressCancel' \\}\\)\\n"
+    replace: "        if GetResourceState('pxd_ui') == 'started' then pcall(function() exports.pxd_ui:OxProgressCancel() end) end -- Próxima (docs/43)\n        SendNUIMessage({ action = 'progressCancel' })\n"
+
+  - action: replace_string # fin del progreso avisado por pxd_ui
+    file: ./resources/[ox]/ox_lib/resource/interface/client/progress.lua
+    mode: literal
+    search: "RegisterNUICallback\\('progressComplete', function\\(data, cb\\)\\n    cb\\(1\\)\\n    progress = nil\\nend\\)\\n"
+    replace: "RegisterNUICallback('progressComplete', function(data, cb)\n    cb(1)\n    progress = nil\nend)\n\n-- Próxima (docs/43): con pxd_ui la duración la cuenta su cliente y avisa por este evento local.\nAddEventHandler('pxd_ui:oxProgressComplete', function()\n    if progress then progress = nil end\nend)\n"
+
+  - action: replace_string # diálogos de confirmación con la interfaz de Próxima
+    file: ./resources/[ox]/ox_lib/resource/interface/client/alert.lua
+    mode: literal
+    search: "    lib\\.setNuiFocus\\(false\\)\\n    SendNUIMessage\\(\\{\\n        action = 'sendAlert',\\n        data = data\\n    \\}\\)"
+    replace: "    local okPxd, donePxd = false, false -- Próxima: la interfaz es la de pxd_ui (docs/43)\n    if GetResourceState('pxd_ui') == 'started' then okPxd, donePxd = pcall(function() return exports.pxd_ui:OxAlert(data) end) end\n    if not (okPxd and donePxd) then\n        lib.setNuiFocus(false)\n        SendNUIMessage({\n            action = 'sendAlert',\n            data = data\n        })\n    end"
+
+  - action: replace_string # cerrar el diálogo también en pxd_ui
+    file: ./resources/[ox]/ox_lib/resource/interface/client/alert.lua
+    mode: literal
+    search: "    lib\\.resetNuiFocus\\(\\)\\n    SendNUIMessage\\(\\{\\n        action = 'closeAlertDialog'\\n    \\}\\)"
+    replace: "    if GetResourceState('pxd_ui') == 'started' then pcall(function() exports.pxd_ui:OxAlertClose() end) end -- Próxima (docs/43)\n    lib.resetNuiFocus()\n    SendNUIMessage({\n        action = 'closeAlertDialog'\n    })"
+
+  - action: replace_string # resultado del diálogo mostrado por pxd_ui
+    file: ./resources/[ox]/ox_lib/resource/interface/client/alert.lua
+    mode: literal
+    search: "RegisterNetEvent\\('ox_lib:alertDialog', lib\\.alertDialog\\)"
+    replace: "-- Próxima (docs/43): resultado ('confirm' | 'cancel') del diálogo mostrado por pxd_ui.\nAddEventHandler('pxd_ui:oxAlertResult', function(result)\n    local p = alert\n    if not p then return end\n    alert = nil\n    p:resolve(result == 'confirm' and 'confirm' or 'cancel')\nend)\n\nRegisterNetEvent('ox_lib:alertDialog', lib.alertDialog)"

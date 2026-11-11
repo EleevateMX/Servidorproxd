@@ -11,6 +11,7 @@
   "pxd_garage",
   "pxd_panel",
   "pxd_multichar",
+  "pxd_ui",
   "pxd_hud",
   "pxd_voice",
   "pxd_admin",
@@ -298,6 +299,87 @@
    "find": "RegisterNetEvent('qb-vehicletuning:server:SaveVehicleProps', function(vehicleProps)\n    if not isVehicleOwned(vehicleProps.plate) then return end",
    "replace": "RegisterNetEvent('qb-vehicletuning:server:SaveVehicleProps', function(vehicleProps)\n    if GetResourceState('pxd_garage') == 'started' then return end -- Próxima: evita guardar mods sin validar ni cobrar\n    if not isVehicleOwned(vehicleProps.plate) then return end",
    "why": "ese evento aceptaba mods de cualquier cliente para cualquier matrícula (su propio cliente ya no lo usa)"
+  },
+  {
+   "resource": "ox_lib",
+   "path": "resource/interface/client/notify.lua",
+   "find": "    SendNUIMessage({\n        action = 'notify',\n        data = payload\n    })",
+   "replace": "    local okPxd, donePxd = false, false -- Próxima: la interfaz es la de pxd_ui (docs/43)\n    if GetResourceState('pxd_ui') == 'started' then okPxd, donePxd = pcall(function() return exports.pxd_ui:OxNotify(payload) end) end\n    if not (okPxd and donePxd) then\n        SendNUIMessage({\n            action = 'notify',\n            data = payload\n        })\n    end",
+   "requires": "pxd_ui",
+   "requiresVersion": "3.42.0",
+   "why": "avisos de ox_lib y qbx_core con la interfaz de Próxima (pxd_ui)"
+  },
+  {
+   "resource": "ox_lib",
+   "path": "resource/interface/client/textui.lua",
+   "find": "    SendNUIMessage({\n        action = 'textUi',\n        data = options\n    })",
+   "replace": "    local okPxd, donePxd = false, false -- Próxima: la interfaz es la de pxd_ui (docs/43)\n    if GetResourceState('pxd_ui') == 'started' then okPxd, donePxd = pcall(function() return exports.pxd_ui:OxTextUI(options) end) end\n    if not (okPxd and donePxd) then\n        SendNUIMessage({\n            action = 'textUi',\n            data = options\n        })\n    end",
+   "requires": "pxd_ui",
+   "requiresVersion": "3.42.0",
+   "why": "indicaciones de tecla (Text UI) con la interfaz de Próxima"
+  },
+  {
+   "resource": "ox_lib",
+   "path": "resource/interface/client/textui.lua",
+   "find": "    SendNUIMessage({\n        action = 'textUiHide'\n    })",
+   "replace": "    if GetResourceState('pxd_ui') == 'started' then pcall(function() exports.pxd_ui:OxTextUIHide() end) end -- Próxima (docs/43)\n    SendNUIMessage({\n        action = 'textUiHide'\n    })",
+   "requires": "pxd_ui",
+   "requiresVersion": "3.42.0",
+   "why": "ocultar la indicación de tecla también en pxd_ui"
+  },
+  {
+   "resource": "ox_lib",
+   "path": "resource/interface/client/progress.lua",
+   "find": "    SendNUIMessage(nuiMessage)\n",
+   "replace": "    local okPxd, donePxd = false, false -- Próxima: la interfaz es la de pxd_ui (docs/43)\n    if GetResourceState('pxd_ui') == 'started' then okPxd, donePxd = pcall(function() return exports.pxd_ui:OxProgress(nuiMessage) end) end\n    if not (okPxd and donePxd) then SendNUIMessage(nuiMessage) end\n",
+   "requires": "pxd_ui",
+   "requiresVersion": "3.42.0",
+   "why": "barra y círculo de progreso con la interfaz de Próxima"
+  },
+  {
+   "resource": "ox_lib",
+   "path": "resource/interface/client/progress.lua",
+   "find": "        SendNUIMessage({ action = 'progressCancel' })\n",
+   "replace": "        if GetResourceState('pxd_ui') == 'started' then pcall(function() exports.pxd_ui:OxProgressCancel() end) end -- Próxima (docs/43)\n        SendNUIMessage({ action = 'progressCancel' })\n",
+   "requires": "pxd_ui",
+   "requiresVersion": "3.42.0",
+   "why": "cancelar el progreso también en pxd_ui"
+  },
+  {
+   "resource": "ox_lib",
+   "path": "resource/interface/client/progress.lua",
+   "find": "RegisterNUICallback('progressComplete', function(data, cb)\n    cb(1)\n    progress = nil\nend)\n",
+   "replace": "RegisterNUICallback('progressComplete', function(data, cb)\n    cb(1)\n    progress = nil\nend)\n\n-- Próxima (docs/43): con pxd_ui la duración la cuenta su cliente y avisa por este evento local.\nAddEventHandler('pxd_ui:oxProgressComplete', function()\n    if progress then progress = nil end\nend)\n",
+   "requires": "pxd_ui",
+   "requiresVersion": "3.42.0",
+   "why": "fin del progreso avisado por pxd_ui"
+  },
+  {
+   "resource": "ox_lib",
+   "path": "resource/interface/client/alert.lua",
+   "find": "    lib.setNuiFocus(false)\n    SendNUIMessage({\n        action = 'sendAlert',\n        data = data\n    })",
+   "replace": "    local okPxd, donePxd = false, false -- Próxima: la interfaz es la de pxd_ui (docs/43)\n    if GetResourceState('pxd_ui') == 'started' then okPxd, donePxd = pcall(function() return exports.pxd_ui:OxAlert(data) end) end\n    if not (okPxd and donePxd) then\n        lib.setNuiFocus(false)\n        SendNUIMessage({\n            action = 'sendAlert',\n            data = data\n        })\n    end",
+   "requires": "pxd_ui",
+   "requiresVersion": "3.42.0",
+   "why": "diálogos de confirmación con la interfaz de Próxima"
+  },
+  {
+   "resource": "ox_lib",
+   "path": "resource/interface/client/alert.lua",
+   "find": "    lib.resetNuiFocus()\n    SendNUIMessage({\n        action = 'closeAlertDialog'\n    })",
+   "replace": "    if GetResourceState('pxd_ui') == 'started' then pcall(function() exports.pxd_ui:OxAlertClose() end) end -- Próxima (docs/43)\n    lib.resetNuiFocus()\n    SendNUIMessage({\n        action = 'closeAlertDialog'\n    })",
+   "requires": "pxd_ui",
+   "requiresVersion": "3.42.0",
+   "why": "cerrar el diálogo también en pxd_ui"
+  },
+  {
+   "resource": "ox_lib",
+   "path": "resource/interface/client/alert.lua",
+   "find": "RegisterNetEvent('ox_lib:alertDialog', lib.alertDialog)",
+   "replace": "-- Próxima (docs/43): resultado ('confirm' | 'cancel') del diálogo mostrado por pxd_ui.\nAddEventHandler('pxd_ui:oxAlertResult', function(result)\n    local p = alert\n    if not p then return end\n    alert = nil\n    p:resolve(result == 'confirm' and 'confirm' or 'cancel')\nend)\n\nRegisterNetEvent('ox_lib:alertDialog', lib.alertDialog)",
+   "requires": "pxd_ui",
+   "requiresVersion": "3.42.0",
+   "why": "resultado del diálogo mostrado por pxd_ui"
   }
  ],
  "_comment_overlays": "Archivos de pxd_* que se copian a recursos de terceros (solo con la versión indicada). Requieren add_filesystem_permission pxd_updater write <recurso> y reiniciar el servidor.",

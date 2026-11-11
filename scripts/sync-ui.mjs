@@ -12,7 +12,7 @@ const root = fileURLToPath(new URL('..', import.meta.url));
 const src = join(root, 'design/ui');
 const res = join(root, 'server-data/resources/[proxima]');
 
-export const TARGETS = ['pxd_panel', 'pxd_hud', 'pxd_multichar', 'pxd_restart', 'pxd_loadscreen', 'pxd_login', 'pxd_gamemodes', 'pxd_chat', 'pxd_garage'];
+export const TARGETS = ['pxd_panel', 'pxd_hud', 'pxd_ui', 'pxd_multichar', 'pxd_restart', 'pxd_loadscreen', 'pxd_login', 'pxd_gamemodes', 'pxd_chat', 'pxd_garage'];
 
 const FONTS = [
   { family: 'Inter', file: 'inter-latin-var.woff2', weight: '100 900' },
