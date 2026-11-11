@@ -787,6 +787,12 @@ tasks:  #  Download Base Files
     search: "RegisterNetEvent\\('qb-vehicletuning:server:SaveVehicleProps', function\\(vehicleProps\\)\\n    if not isVehicleOwned\\(vehicleProps\\.plate\\) then return end"
     replace: "RegisterNetEvent('qb-vehicletuning:server:SaveVehicleProps', function(vehicleProps)\n    if GetResourceState('pxd_garage') == 'started' then return end -- Próxima: evita guardar mods sin validar ni cobrar\n    if not isVehicleOwned(vehicleProps.plate) then return end"
 
+  - action: replace_string # el banco admite organizaciones creadas en marcha (pxd_orgs)
+    file: ./resources/[standalone]/Renewed-Banking/server/framework.lua
+    mode: literal
+    search: "        return Gangs\\[gang\\]\\.grades\\[grade\\] and Gangs\\[gang\\]\\.grades\\[grade\\]\\.bankAuth or Gangs\\[gang\\]\\.grades\\[gradeNum\\] and Gangs\\[gang\\]\\.grades\\[gradeNum\\]\\.bankAuth"
+    replace: "        return Player.PlayerData.gang.bankAuth == true -- Próxima: vale también para las bandas creadas en marcha (pxd_orgs)"
+
   # Clean up
   - action: remove_path
     path: ./tmp

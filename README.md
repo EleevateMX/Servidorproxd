@@ -69,6 +69,7 @@ Antes rellena `deploy/.env` (ver [docs/06-servidor-en-la-nube.md](docs/06-servid
 39. [Entrega: inventario, administración y personajes](docs/39-entrega-inventario-admin-personajes.md)
 40. [Hoja de ruta por oleadas](docs/40-hoja-de-ruta-oleadas.md)
 41. [Economía viva: paga, mercado e impuestos](docs/41-economia-viva.md)
+42. [Organizaciones y bandas (pxd_orgs)](docs/42-organizaciones.md)
 43. [Interfaz común (pxd_ui) y HUD 2.0](docs/43-interfaz-y-hud.md)
 44. [Vehículos: taller, tuning y mecánicos](docs/44-vehiculos.md)
 

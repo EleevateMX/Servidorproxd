@@ -957,6 +957,61 @@
    "sha256": "a2263b5f17737b423acaf40ab90690e18afc4bc5ef2f8f585caaa0bee93936ae"
   },
   {
+   "resource": "pxd_orgs",
+   "path": "client/main.lua",
+   "size": 2894,
+   "sha256": "f82a035ee87ed86b31bfb5f36dbba9a6e2150239634a0fee8171b9be6b86f03b"
+  },
+  {
+   "resource": "pxd_orgs",
+   "path": "config.lua",
+   "size": 6472,
+   "sha256": "7c2f096a7941725ed8ed9ba397dcf5974fae8e592b418b4379e8f1f035e9c283",
+   "config": true
+  },
+  {
+   "resource": "pxd_orgs",
+   "path": "fxmanifest.lua",
+   "size": 882,
+   "sha256": "99e8cc9195e0308abc513f0bf0f5b944557b64b121cbe2e4a47abbb2064f2808"
+  },
+  {
+   "resource": "pxd_orgs",
+   "path": "html/index.html",
+   "size": 368,
+   "sha256": "7eade6bc2b9a89ba6a3c022d8ee1a295df721a97cc178840980b6055c4435da8"
+  },
+  {
+   "resource": "pxd_orgs",
+   "path": "html/ui/orgs-fonts.css",
+   "size": 182037,
+   "sha256": "ca381c4a9ba018b289c2a8b8318554542daa6796fbd6930cbece394546259a65"
+  },
+  {
+   "resource": "pxd_orgs",
+   "path": "html/ui/proxima-fonts.css",
+   "size": 125038,
+   "sha256": "14caa1b8012bd67f6695272004c3d4761de7dfb1411c69a5b7ab97d31617461a"
+  },
+  {
+   "resource": "pxd_orgs",
+   "path": "server/main.lua",
+   "size": 56933,
+   "sha256": "b4114f0e062e3f4ba73512c609b04d06d7d840546553a606731bcf877aad7947"
+  },
+  {
+   "resource": "pxd_orgs",
+   "path": "server/store.lua",
+   "size": 5963,
+   "sha256": "c6a00b37092b692f390ce0cb5f7b2d91c54cd0942d22356bdc3b4b679ba40775"
+  },
+  {
+   "resource": "pxd_orgs",
+   "path": "shared/orgs.lua",
+   "size": 13588,
+   "sha256": "122b2149da8b09f26cbdd1ec05367aa92ad29cab05b86ce5afbb7a5bd72ed04f"
+  },
+  {
    "resource": "pxd_panel",
    "path": "client/main.lua",
    "size": 3357,
@@ -1463,6 +1518,7 @@
    "pxd_audit",
    "pxd_justice",
    "pxd_economy",
+   "pxd_orgs",
    "pxd_garage",
    "pxd_panel",
    "pxd_multichar",
@@ -1835,6 +1891,15 @@
     "requires": "pxd_ui",
     "requiresVersion": "3.42.0",
     "why": "resultado del diálogo mostrado por pxd_ui"
+   },
+   {
+    "resource": "Renewed-Banking",
+    "path": "server/framework.lua",
+    "find": "        return Gangs[gang].grades[grade] and Gangs[gang].grades[grade].bankAuth or Gangs[gang].grades[gradeNum] and Gangs[gang].grades[gradeNum].bankAuth",
+    "replace": "        return Player.PlayerData.gang.bankAuth == true -- Próxima: vale también para las bandas creadas en marcha (pxd_orgs)",
+    "requires": "pxd_orgs",
+    "requiresVersion": "2.1.4",
+    "why": "el banco no falla con organizaciones creadas en marcha (pxd_orgs)"
    }
   ],
   "external": []

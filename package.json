@@ -16,7 +16,9 @@
     "build:garage": "npm --prefix web/garage run build",
     "test:garage": "npm --prefix web/garage test",
     "build:ui": "npm --prefix web/pxd-ui run build",
-    "test:ui": "npm --prefix web/pxd-ui test"
+    "test:ui": "npm --prefix web/pxd-ui test",
+    "build:orgs": "npm --prefix web/orgs run build",
+    "test:orgs": "npm --prefix web/orgs test"
   },
   "engines": {
     "node": ">=20"
