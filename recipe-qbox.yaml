@@ -713,6 +713,24 @@ tasks:  #  Download Base Files
     search: "    sendPaycheck = function \\(player, payment\\)\\n        player\\.Functions\\.AddMoney\\('bank', payment\\)"
     replace: "    sendPaycheck = function (player, payment)\n        if GlobalState.pxdPayroll then return end -- Próxima: la nómina la paga pxd_economy cada 30 min\n        player.Functions.AddMoney('bank', payment)"
 
+  - action: replace_string # un solo taller: las zonas y el menú de qbx_customs no se crean si está pxd_garage
+    file: ./resources/[qbx]/qbx_customs/client/zones.lua
+    mode: literal
+    search: "CreateThread\\(function\\(\\)\\n    for _, v in ipairs\\(sharedConfig\\.zones\\) do"
+    replace: "CreateThread(function()\n    if GetResourceState('pxd_garage') ~= 'missing' then return end -- Próxima: el taller es pxd_garage (docs/44)\n    for _, v in ipairs(sharedConfig.zones) do"
+
+  - action: replace_string # nadie guarda mods sin pasar por el cobro de pxd_garage
+    file: ./resources/[qbx]/qbx_customs/server/main.lua
+    mode: literal
+    search: "RegisterNetEvent\\('qbx_customs:server:saveVehicleProps', function\\(\\)\\n    local src = source --\\[\\[@as number\\]\\]"
+    replace: "RegisterNetEvent('qbx_customs:server:saveVehicleProps', function()\n    if GetResourceState('pxd_garage') == 'started' then return end -- Próxima: solo guarda pxd_garage, tras validar y cobrar\n    local src = source --[[@as number]]"
+
+  - action: replace_string # ese evento aceptaba mods de cualquier cliente para cualquier matrícula (su propio cliente 
+    file: ./resources/[qbx]/qbx_mechanicjob/server/main.lua
+    mode: literal
+    search: "RegisterNetEvent\\('qb-vehicletuning:server:SaveVehicleProps', function\\(vehicleProps\\)\\n    if not isVehicleOwned\\(vehicleProps\\.plate\\) then return end"
+    replace: "RegisterNetEvent('qb-vehicletuning:server:SaveVehicleProps', function(vehicleProps)\n    if GetResourceState('pxd_garage') == 'started' then return end -- Próxima: evita guardar mods sin validar ni cobrar\n    if not isVehicleOwned(vehicleProps.plate) then return end"
+
   # Clean up
   - action: remove_path
     path: ./tmp

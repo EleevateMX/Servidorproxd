@@ -8,6 +8,7 @@
   "pxd_audit",
   "pxd_justice",
   "pxd_economy",
+  "pxd_garage",
   "pxd_panel",
   "pxd_multichar",
   "pxd_hud",
@@ -271,6 +272,32 @@
    "requires": "pxd_economy",
    "requiresVersion": "1.24.1",
    "why": "la nómina la paga pxd_economy cada 30 minutos (qbx_core deja de pagar cada 10)"
+  },
+  {
+   "resource": "qbx_customs",
+   "path": "client/zones.lua",
+   "requires": "pxd_garage",
+   "requiresVersion": "0.1.0",
+   "find": "CreateThread(function()\n    for _, v in ipairs(sharedConfig.zones) do",
+   "replace": "CreateThread(function()\n    if GetResourceState('pxd_garage') ~= 'missing' then return end -- Próxima: el taller es pxd_garage (docs/44)\n    for _, v in ipairs(sharedConfig.zones) do",
+   "why": "un solo taller: las zonas y el menú de qbx_customs no se crean si está pxd_garage"
+  },
+  {
+   "resource": "qbx_customs",
+   "path": "server/main.lua",
+   "requires": "pxd_garage",
+   "requiresVersion": "0.1.0",
+   "find": "RegisterNetEvent('qbx_customs:server:saveVehicleProps', function()\n    local src = source --[[@as number]]",
+   "replace": "RegisterNetEvent('qbx_customs:server:saveVehicleProps', function()\n    if GetResourceState('pxd_garage') == 'started' then return end -- Próxima: solo guarda pxd_garage, tras validar y cobrar\n    local src = source --[[@as number]]",
+   "why": "nadie guarda mods sin pasar por el cobro de pxd_garage"
+  },
+  {
+   "resource": "qbx_mechanicjob",
+   "path": "server/main.lua",
+   "requires": "pxd_garage",
+   "find": "RegisterNetEvent('qb-vehicletuning:server:SaveVehicleProps', function(vehicleProps)\n    if not isVehicleOwned(vehicleProps.plate) then return end",
+   "replace": "RegisterNetEvent('qb-vehicletuning:server:SaveVehicleProps', function(vehicleProps)\n    if GetResourceState('pxd_garage') == 'started' then return end -- Próxima: evita guardar mods sin validar ni cobrar\n    if not isVehicleOwned(vehicleProps.plate) then return end",
+   "why": "ese evento aceptaba mods de cualquier cliente para cualquier matrícula (su propio cliente ya no lo usa)"
   }
  ],
  "_comment_overlays": "Archivos de pxd_* que se copian a recursos de terceros (solo con la versión indicada). Requieren add_filesystem_permission pxd_updater write <recurso> y reiniciar el servidor.",

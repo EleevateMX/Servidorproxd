@@ -435,6 +435,61 @@
    "sha256": "5714951f38c6d24ee4b569d55b9571d4c31cc9d44508ef4c58f2ea92edca716b"
   },
   {
+   "resource": "pxd_garage",
+   "path": "client/main.lua",
+   "size": 16683,
+   "sha256": "5bfc6de2385308c21874124af868690fd500217f0510211754cbcff78a47282f"
+  },
+  {
+   "resource": "pxd_garage",
+   "path": "config.lua",
+   "size": 6857,
+   "sha256": "aab711999e8f8686d02469467a4cec15bb54d8e1e117d7511e59f4cf4b5b798c",
+   "config": true
+  },
+  {
+   "resource": "pxd_garage",
+   "path": "fxmanifest.lua",
+   "size": 909,
+   "sha256": "d4221046a8356cf494008d9b4723002e545ddd5b46c83b33dc7335ebaddd43ef"
+  },
+  {
+   "resource": "pxd_garage",
+   "path": "html/index.html",
+   "size": 336,
+   "sha256": "ac19094b1c9985fcaf525461ba24b2f5d25bec20f9f0593b8577a3286cbd032a"
+  },
+  {
+   "resource": "pxd_garage",
+   "path": "html/ui/proxima-fonts.css",
+   "size": 125038,
+   "sha256": "14caa1b8012bd67f6695272004c3d4761de7dfb1411c69a5b7ab97d31617461a"
+  },
+  {
+   "resource": "pxd_garage",
+   "path": "html/ui/proxima-ui.css",
+   "size": 12208,
+   "sha256": "db87d90642c53f0d5ae8df9c69f0488bd51fa6cd152c7856c4d6a3a1412d3206"
+  },
+  {
+   "resource": "pxd_garage",
+   "path": "server/main.lua",
+   "size": 18026,
+   "sha256": "d0d3ebd8a0771bd9628c14641eda3f313076b7ebc6d5f2d70d102d103bfc0bf6"
+  },
+  {
+   "resource": "pxd_garage",
+   "path": "server/store.lua",
+   "size": 2710,
+   "sha256": "5baf3be866da23f8f5362e672e57cd14f4e4aa6d3e7b7894ffece20b23052f10"
+  },
+  {
+   "resource": "pxd_garage",
+   "path": "shared/garage.lua",
+   "size": 20913,
+   "sha256": "495e1e2fefdb1fb49518c9565355ef86cce6ed7c7aed1cd11e4adfa9cdb0d78b"
+  },
+  {
    "resource": "pxd_hud",
    "path": "client/main.lua",
    "size": 10084,
@@ -1376,6 +1431,7 @@
    "pxd_audit",
    "pxd_justice",
    "pxd_economy",
+   "pxd_garage",
    "pxd_panel",
    "pxd_multichar",
    "pxd_hud",
@@ -1639,6 +1695,32 @@
     "requires": "pxd_economy",
     "requiresVersion": "1.24.1",
     "why": "la nómina la paga pxd_economy cada 30 minutos (qbx_core deja de pagar cada 10)"
+   },
+   {
+    "resource": "qbx_customs",
+    "path": "client/zones.lua",
+    "requires": "pxd_garage",
+    "requiresVersion": "0.1.0",
+    "find": "CreateThread(function()\n    for _, v in ipairs(sharedConfig.zones) do",
+    "replace": "CreateThread(function()\n    if GetResourceState('pxd_garage') ~= 'missing' then return end -- Próxima: el taller es pxd_garage (docs/44)\n    for _, v in ipairs(sharedConfig.zones) do",
+    "why": "un solo taller: las zonas y el menú de qbx_customs no se crean si está pxd_garage"
+   },
+   {
+    "resource": "qbx_customs",
+    "path": "server/main.lua",
+    "requires": "pxd_garage",
+    "requiresVersion": "0.1.0",
+    "find": "RegisterNetEvent('qbx_customs:server:saveVehicleProps', function()\n    local src = source --[[@as number]]",
+    "replace": "RegisterNetEvent('qbx_customs:server:saveVehicleProps', function()\n    if GetResourceState('pxd_garage') == 'started' then return end -- Próxima: solo guarda pxd_garage, tras validar y cobrar\n    local src = source --[[@as number]]",
+    "why": "nadie guarda mods sin pasar por el cobro de pxd_garage"
+   },
+   {
+    "resource": "qbx_mechanicjob",
+    "path": "server/main.lua",
+    "requires": "pxd_garage",
+    "find": "RegisterNetEvent('qb-vehicletuning:server:SaveVehicleProps', function(vehicleProps)\n    if not isVehicleOwned(vehicleProps.plate) then return end",
+    "replace": "RegisterNetEvent('qb-vehicletuning:server:SaveVehicleProps', function(vehicleProps)\n    if GetResourceState('pxd_garage') == 'started' then return end -- Próxima: evita guardar mods sin validar ni cobrar\n    if not isVehicleOwned(vehicleProps.plate) then return end",
+    "why": "ese evento aceptaba mods de cualquier cliente para cualquier matrícula (su propio cliente ya no lo usa)"
    }
   ],
   "external": []
