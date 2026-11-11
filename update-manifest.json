@@ -224,39 +224,54 @@
   {
    "resource": "pxd_economy",
    "path": "client/main.lua",
-   "size": 6939,
-   "sha256": "23e768b728dcb0169b3e7c3ce7c8bf8eab274417694f9860324f26e2b53bb9b5"
+   "size": 12011,
+   "sha256": "2461c6323709bfeb59cf0a9ad592a90fb5f8d3886682c095859292a7a71aa178"
   },
   {
    "resource": "pxd_economy",
    "path": "config.lua",
-   "size": 3030,
-   "sha256": "b5ce1646201f7d4555cc13289d7d27123367e46b87e02fa31a04e406d762a9a4",
-   "config": true
+   "size": 13073,
+   "sha256": "39a4a80345c5ef5e76c92413c01ddcd13cae9110ba46482fb202e794d6c26ed6",
+   "config": true,
+   "known": [
+    "b5ce1646201f7d4555cc13289d7d27123367e46b87e02fa31a04e406d762a9a4"
+   ]
   },
   {
    "resource": "pxd_economy",
    "path": "fxmanifest.lua",
-   "size": 523,
-   "sha256": "c7be325ea81167f6bcee8eab3c1a354e768998241178ac7bd2ccb2d3e78692c8"
+   "size": 704,
+   "sha256": "380f15ea5b87ab8aab9f8fb1354dc57cd5a02f4a3a3e335eb78e024e5f487dbe"
   },
   {
    "resource": "pxd_economy",
    "path": "server/ledger.lua",
-   "size": 5919,
-   "sha256": "801818141b726ce0b45c749f1e80a2e7c1e78ab7a762a29fe45726f31f98231e"
+   "size": 6308,
+   "sha256": "a1a93b930f548e9815ca0c8384ec8d3b80c525ab199ca476e29c7ab46079ca3e"
   },
   {
    "resource": "pxd_economy",
    "path": "server/main.lua",
-   "size": 13816,
-   "sha256": "0569adbd753c6bfd74fc54b4f8f261817b13085f5c1e56d691d8c64b41246233"
+   "size": 14123,
+   "sha256": "53d7018823546306a545970f353146bec4035d8ef51784825f75f3d102396655"
+  },
+  {
+   "resource": "pxd_economy",
+   "path": "server/market.lua",
+   "size": 11123,
+   "sha256": "c7c12d94d870cfc7fc5245b5c9f857390936b827088fe8ce9b43000d7feb969a"
   },
   {
    "resource": "pxd_economy",
    "path": "server/money.lua",
-   "size": 2764,
-   "sha256": "fb631d1cbbfb12f4878becc516adf9da6b911e97b72e767c47c8a8d8b5f53c8b"
+   "size": 3021,
+   "sha256": "28b483e24b6878dd16cc46a92b3cc9b3e3dacc44e9403b677ec83020c7638e7e"
+  },
+  {
+   "resource": "pxd_economy",
+   "path": "server/payroll.lua",
+   "size": 10325,
+   "sha256": "d682d0130759178c017bd601e94b7a3cd8d080823284d153e6e17acf8445e011"
   },
   {
    "resource": "pxd_economy",
@@ -266,9 +281,33 @@
   },
   {
    "resource": "pxd_economy",
+   "path": "server/store_live.lua",
+   "size": 6595,
+   "sha256": "a47ef0d6b163eec24b63cab6919ee0fa123bbe1854fe59e48602988393cc9264"
+  },
+  {
+   "resource": "pxd_economy",
+   "path": "server/taxes.lua",
+   "size": 3885,
+   "sha256": "b87f4e2a9e4c13f5702bd68ad3c18bc148ac16a706db045e70214d8337b20ac4"
+  },
+  {
+   "resource": "pxd_economy",
    "path": "shared/economy.lua",
    "size": 9605,
    "sha256": "de1d0b4196bef3a2597db4b3e6ac9ec27625dac32a26c76c6534f071cf0c5998"
+  },
+  {
+   "resource": "pxd_economy",
+   "path": "shared/market.lua",
+   "size": 9813,
+   "sha256": "f0dde43ec1173f7b851cb5eedd9089a3380b43714e1d41f3be64814d8faacd7f"
+  },
+  {
+   "resource": "pxd_economy",
+   "path": "shared/payroll.lua",
+   "size": 3969,
+   "sha256": "c1361834ed880551719d2b3fc99d8cd63d5f0e537d6ccc550502512bf1668ef1"
   },
   {
    "resource": "pxd_gamemodes",
@@ -1591,6 +1630,15 @@
     "replace": "    if GetResourceState('pxd_multichar') ~= 'started' then TriggerClientEvent('qb-clothes:client:CreateFirstCharacter', playerSource) end -- Próxima: la apariencia ya la creó pxd_multichar",
     "requires": "pxd_multichar",
     "why": "tras elegir apartamento no se abre el editor de illenium (la apariencia ya la creó pxd_multichar)"
+   },
+   {
+    "resource": "qbx_core",
+    "path": "config/server.lua",
+    "find": "    sendPaycheck = function (player, payment)\n        player.Functions.AddMoney('bank', payment)",
+    "replace": "    sendPaycheck = function (player, payment)\n        if GlobalState.pxdPayroll then return end -- Próxima: la nómina la paga pxd_economy cada 30 min\n        player.Functions.AddMoney('bank', payment)",
+    "requires": "pxd_economy",
+    "requiresVersion": "1.24.1",
+    "why": "la nómina la paga pxd_economy cada 30 minutos (qbx_core deja de pagar cada 10)"
    }
   ],
   "external": []

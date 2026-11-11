@@ -707,6 +707,12 @@ tasks:  #  Download Base Files
     search: "    TriggerClientEvent\\('qb-clothes:client:CreateFirstCharacter', playerSource\\)"
     replace: "    if GetResourceState('pxd_multichar') ~= 'started' then TriggerClientEvent('qb-clothes:client:CreateFirstCharacter', playerSource) end -- Próxima: la apariencia ya la creó pxd_multichar"
 
+  - action: replace_string # la nómina la paga pxd_economy cada 30 min
+    file: ./resources/[qbx]/qbx_core/config/server.lua
+    mode: literal
+    search: "    sendPaycheck = function \\(player, payment\\)\\n        player\\.Functions\\.AddMoney\\('bank', payment\\)"
+    replace: "    sendPaycheck = function (player, payment)\n        if GlobalState.pxdPayroll then return end -- Próxima: la nómina la paga pxd_economy cada 30 min\n        player.Functions.AddMoney('bank', payment)"
+
   # Clean up
   - action: remove_path
     path: ./tmp

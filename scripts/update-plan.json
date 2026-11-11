@@ -262,6 +262,15 @@
    "replace": "    if GetResourceState('pxd_multichar') ~= 'started' then TriggerClientEvent('qb-clothes:client:CreateFirstCharacter', playerSource) end -- Próxima: la apariencia ya la creó pxd_multichar",
    "requires": "pxd_multichar",
    "why": "tras elegir apartamento no se abre el editor de illenium (la apariencia ya la creó pxd_multichar)"
+  },
+  {
+   "resource": "qbx_core",
+   "path": "config/server.lua",
+   "find": "    sendPaycheck = function (player, payment)\n        player.Functions.AddMoney('bank', payment)",
+   "replace": "    sendPaycheck = function (player, payment)\n        if GlobalState.pxdPayroll then return end -- Próxima: la nómina la paga pxd_economy cada 30 min\n        player.Functions.AddMoney('bank', payment)",
+   "requires": "pxd_economy",
+   "requiresVersion": "1.24.1",
+   "why": "la nómina la paga pxd_economy cada 30 minutos (qbx_core deja de pagar cada 10)"
   }
  ],
  "_comment_overlays": "Archivos de pxd_* que se copian a recursos de terceros (solo con la versión indicada). Requieren add_filesystem_permission pxd_updater write <recurso> y reiniciar el servidor.",

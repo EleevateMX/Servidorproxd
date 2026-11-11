@@ -68,6 +68,7 @@ Antes rellena `deploy/.env` (ver [docs/06-servidor-en-la-nube.md](docs/06-servid
 38. [Personajes: selección, creador y editor de apariencia](docs/38-personajes.md)
 39. [Entrega: inventario, administración y personajes](docs/39-entrega-inventario-admin-personajes.md)
 40. [Hoja de ruta por oleadas](docs/40-hoja-de-ruta-oleadas.md)
+41. [Economía viva: paga, mercado e impuestos](docs/41-economia-viva.md)
 
 ## Pruebas
 

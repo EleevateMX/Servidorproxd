@@ -116,8 +116,11 @@ local function payInvoice(src, id, amount, method)
         local pay, err = E.validatePayment(row, player.PlayerData.citizenid, amount, method, Config)
         if not pay then return false, MSG[err] or err end
         local reason = ('pxd-factura-%d'):format(id)
+        -- Impuesto sobre el cobro (0 por defecto): lo paga el negocio, que recibe el resto.
+        local tax = PXDTax and PXDTax.amount('invoices', pay) or 0
         local done, code = Money.chargeToAccount(player, method, pay, row.account, {
             reason = reason, title = ('Factura #%d'):format(id), message = row.concept, payer = fullName(player),
+            depositAmount = pay - tax,
             record = function() return Store.pay(id, pay, now()) end,
             undo = function() Store.unpay(id, pay, now()) end,
         })
@@ -126,6 +129,7 @@ local function payInvoice(src, id, amount, method)
             return false, MSG[code] or MSG.sin_servicio
         end
         audit(id, 'pay', player, pay, method, row.citizenid)
+        if tax > 0 then PXDTax.collect('invoices', row.citizenid, pay, tax, ('Factura #%d'):format(id)) end
         local left = math.max(0, E.outstanding(row) - pay)
         refresh(row.citizenid, id, 'pay')
         local issuer = row.issuer_citizenid and playerByCitizen(row.issuer_citizenid)
