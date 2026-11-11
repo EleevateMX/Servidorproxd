@@ -4,20 +4,43 @@
 --                eventos QBCore:Player:SetPlayerData y hud:client:OnMoneyChange
 --   pma-voice  → state bag proximity {index, distance, mode} y radioChannel
 --   pxd_voice  → state bag pxdVoice (misma forma; tiene prioridad sobre proximity)
+--   pxd_interact → state bag pxdId (ID público PROX-XXXX)
+--   pxd_justice / pxd_economy → state bags pxdFines, pxdInvoices y pxdPayday (segundos)
 --   qbx_seatbelt → state bags seatbelt y harness
 --   qbx_cruise (qbx_smallresources) → evento seatbelt:client:ToggleCruise
---   ox_fuel    → nivel de combustible del vehículo (GetVehicleFuelLevel)
+--   ox_fuel    → state bag `fuel` del vehículo (y GetVehicleFuelLevel)
 --   ox_inventory → evento ox_inventory:currentWeapon (estrés al disparar)
+-- Natives comprobados en natives.json (docs/43-interfaz-y-hud.md).
 local H = PXDHud
 local state = LocalPlayer.state
 
 local playerData = {}
 local visible = true          -- lo apaga el inventario u otro recurso (export SetVisible)
 local cruiseOn = false
-local last = {}               -- último estado enviado a la NUI
+local last = {}               -- último estado enviado a la NUI (bucle normal)
+local lastFast = {}           -- último estado enviado (bucle rápido)
 local lastAnchorKey = nil
+local shown = false           -- el HUD se está dibujando
+local currentVeh = 0          -- vehículo actual (0 = a pie); lo usa el bucle rápido
+local settingsOpen = false
 
 local function nui(msg) SendNUIMessage(msg) end
+
+-- ── Ajustes del jugador (KVP) ─────────────────────────────
+local function loadSettings()
+    local raw = GetResourceKvpString(Config.settingsKey)
+    local ok, data = pcall(json.decode, raw or '')
+    return H.sanitizeSettings(ok and data or nil)
+end
+local settings = loadSettings()
+
+local function saveSettings(raw)
+    settings = H.sanitizeSettings(raw)
+    SetResourceKvp(Config.settingsKey, json.encode(settings))
+    last, lastFast = {}, {}
+    nui({ action = 'settings', settings = settings })
+    return settings
+end
 
 local function refreshPlayerData()
     if GetResourceState('qbx_core') ~= 'started' then return end
@@ -54,7 +77,7 @@ end
 -- ── Eventos ───────────────────────────────────────────────
 RegisterNetEvent('QBCore:Client:OnPlayerLoaded', function()
     refreshPlayerData()
-    last = {}
+    last, lastFast = {}, {}
 end)
 
 RegisterNetEvent('QBCore:Client:OnPlayerUnload', function()
@@ -76,35 +99,86 @@ RegisterNetEvent('seatbelt:client:ToggleCruise', function()
     cruiseOn = not cruiseOn
 end)
 
-RegisterNetEvent('pxd_hud:client:visible', function(show)
+local function setVisible(show)
     visible = show == true
-    last = {}
-end)
+    last, lastFast = {}, {}
+end
 
-exports('SetVisible', function(show)
-    visible = show == true
-    last = {}
+RegisterNetEvent('pxd_hud:client:visible', setVisible)
+
+-- Exports (los usan pxd_multichar, el inventario y otros recursos). SetVisible se conserva.
+exports('SetVisible', setVisible)
+exports('IsVisible', function() return shown end)
+exports('GetSettings', function() return settings end)
+exports('SetCinema', function(on)
+    local s = H.sanitizeSettings(settings)
+    s.cinema = on == true
+    saveSettings(s)
 end)
 
 -- La NUI avisa cuando está lista; entonces recibe la configuración y el estado completo.
 RegisterNUICallback('ready', function(_, cb)
     refreshPlayerData()
-    last, lastAnchorKey = {}, nil
-    nui({ action = 'config', speedUnit = Config.speedUnit, warn = Config.warn, lowFuel = Config.lowFuel, minimapOnFoot = Config.minimapOnFoot })
+    last, lastFast, lastAnchorKey = {}, {}, nil
+    nui({ action = 'config', speedUnit = Config.speedUnit, warn = Config.warn, lowFuel = Config.lowFuel,
+        minimapOnFoot = Config.minimapOnFoot, settings = settings })
     cb({})
 end)
 
+-- ── Panel de ajustes (/hud) ───────────────────────────────
+local function openSettings(open)
+    settingsOpen = open == true
+    SetNuiFocus(settingsOpen, settingsOpen)
+    nui({ action = 'settingsPanel', open = settingsOpen, settings = settings })
+end
+
+RegisterNUICallback('saveSettings', function(body, cb)
+    cb({ settings = saveSettings(type(body) == 'table' and body or nil) })
+end)
+
+RegisterNUICallback('closeSettings', function(_, cb)
+    openSettings(false)
+    cb({})
+end)
+
+RegisterCommand('hud', function() openSettings(not settingsOpen) end, false)
+RegisterCommand('hudcine', function()
+    local s = H.sanitizeSettings(settings)
+    s.cinema = not s.cinema
+    saveSettings(s)
+end, false)
+TriggerEvent('chat:addSuggestion', '/hud', 'Ajustes del HUD: qué se muestra y a qué tamaño')
+TriggerEvent('chat:addSuggestion', '/hudcine', 'Modo cine: ocultar o mostrar todo el HUD')
+
+AddEventHandler('onResourceStop', function(res)
+    if res == GetCurrentResourceName() and settingsOpen then SetNuiFocus(false, false) end
+end)
+
 -- ── Bucle principal ───────────────────────────────────────
-local street, streetTick = '', 0
+local streetLine, zoneName, streetTick = '', '', 0
+
+local function readLocation(ped)
+    if GetGameTimer() - streetTick < 1500 and streetTick ~= 0 then return end
+    streetTick = GetGameTimer()
+    local c = GetEntityCoords(ped)
+    local s1, s2 = GetStreetNameAtCoord(c.x, c.y, c.z)
+    local a = GetStreetNameFromHashKey(s1)
+    local b = s2 ~= 0 and GetStreetNameFromHashKey(s2) or ''
+    local zone = GetLabelText(GetNameOfZone(c.x, c.y, c.z))
+    streetLine, zoneName = H.location(a, b, zone)
+end
 
 CreateThread(function()
     local wasInVehicle = false
     while true do
         Wait(Config.tickMs)
-        local show = visible and isLoggedIn() and not IsPauseMenuActive() and not IsHudHidden()
+        local show = H.shouldShow({ visible = visible, cinema = settings.cinema, loggedIn = isLoggedIn(),
+            paused = IsPauseMenuActive(), hudHidden = IsHudHidden() })
+        shown = show
         if not show then
-            if last.show ~= false then nui({ action = 'hide' }); last = { show = false } end
+            if last.show ~= false then nui({ action = 'hide' }); last = { show = false }; lastFast = {} end
             DisplayRadar(false)
+            currentVeh = 0
             goto continue
         end
 
@@ -112,8 +186,10 @@ CreateThread(function()
             local ped, pid = PlayerPedId(), PlayerId()
             local veh = GetVehiclePedIsIn(ped, false)
             local inVehicle = veh ~= 0 and not IsThisModelABicycle(GetEntityModel(veh))
-            DisplayRadar(inVehicle or Config.minimapOnFoot)
+            currentVeh = inVehicle and veh or 0
+            DisplayRadar(settings.show.minimap and (inVehicle or Config.minimapOnFoot))
             sendAnchor()
+            readLocation(ped)
 
             local cash, bank = money()
             -- pxd_voice publica su modo (susurro/normal/grito) con la misma forma; si no está, pma-voice.
@@ -134,26 +210,29 @@ CreateThread(function()
                 voice = H.voiceLabel(proximity),
                 voiceIndex = type(proximity) == 'table' and proximity.index or 2,
                 radio = tonumber(state.radioChannel) or 0,
-                -- Deuda de multas pendientes (state bag replicado por pxd_justice; 0 si no está).
+                -- Deudas pendientes (state bags replicados por pxd_justice y pxd_economy; 0 si no están).
                 fines = math.max(0, math.floor(tonumber(state.pxdFines) or 0)),
+                invoices = math.max(0, math.floor(tonumber(state.pxdInvoices) or 0)),
+                -- Cuenta atrás de la paga (pxd_economy). -1 = sin dato: no se dibuja.
+                payday = H.payday(state.pxdPayday) or -1,
+                publicId = type(state.pxdId) == 'string' and state.pxdId or '',
                 clock = H.clock(GetClockHours(), GetClockMinutes()),
+                street = streetLine,
+                zone = zoneName,
                 vehicle = inVehicle,
             }
             if inVehicle then
-                now.speed = H.speed(GetEntitySpeed(veh), Config.speedUnit)
-                now.fuel = math.floor(H.clamp(GetVehicleFuelLevel(veh), 0, 100))
-                now.engine = math.floor(H.clamp(GetVehicleEngineHealth(veh) / 10, 0, 100))
+                local engineOn = GetIsVehicleEngineRunning(veh)
+                local _, lightsOn, highbeamsOn = GetVehicleLightsState(veh)
+                now.fuel = H.fuel(Entity(veh).state.fuel, GetVehicleFuelLevel(veh))
+                now.engine = H.partPercent(GetVehicleEngineHealth(veh))
+                now.body = H.partPercent(GetVehicleBodyHealth(veh))
+                now.engineOn = engineOn
+                now.lights = H.lights(lightsOn, highbeamsOn)
+                now.locked = GetVehicleDoorLockStatus(veh) >= 2
                 now.seatbelt = state.seatbelt == true
                 now.harness = state.harness == true
                 now.cruise = cruiseOn
-                if GetGameTimer() - streetTick > 1500 then
-                    streetTick = GetGameTimer()
-                    local c = GetEntityCoords(ped)
-                    local s1, s2 = GetStreetNameAtCoord(c.x, c.y, c.z)
-                    local a, b = GetStreetNameFromHashKey(s1), s2 ~= 0 and GetStreetNameFromHashKey(s2) or ''
-                    street = (b ~= '' and (a .. ' · ' .. b)) or a
-                end
-                now.street = street
             elseif wasInVehicle then
                 cruiseOn = false
             end
@@ -167,6 +246,30 @@ CreateThread(function()
             end
         end
         ::continue::
+    end
+end)
+
+-- Bucle rápido: brújula siempre; velocidad, RPM y marcha en vehículo. Solo manda cambios.
+CreateThread(function()
+    while true do
+        if not shown then
+            Wait(500)
+        else
+            local veh = currentVeh
+            local now = { compass = H.step(H.compass(GetGameplayCamRot(2).z), 2) % 360 }
+            if veh ~= 0 and DoesEntityExist(veh) then
+                now.speed = H.speed(GetEntitySpeed(veh), Config.speedUnit)
+                now.rpm = H.step(H.clamp(GetVehicleCurrentRpm(veh) * 100, 0, 100), 2)
+                now.gear = H.gear(GetVehicleCurrentGear(veh), GetIsVehicleEngineRunning(veh))
+            end
+            local changes = H.diff(lastFast, now)
+            if changes then
+                for k, v in pairs(changes) do lastFast[k] = v end
+                changes.action = 'fast'
+                nui(changes)
+            end
+            Wait(veh ~= 0 and Config.fastMsVehicle or Config.fastMsFoot)
+        end
     end
 end)
 

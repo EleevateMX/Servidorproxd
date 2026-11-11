@@ -12,7 +12,9 @@
     "pxd": "node scripts/pxd.mjs",
     "assets": "node scripts/fetch-brand-assets.mjs",
     "build:multichar": "npm --prefix web/multichar run build",
-    "test:multichar": "npm --prefix web/multichar test"
+    "test:multichar": "npm --prefix web/multichar test",
+    "build:ui": "npm --prefix web/pxd-ui run build",
+    "test:ui": "npm --prefix web/pxd-ui test"
   },
   "engines": {
     "node": ">=20"

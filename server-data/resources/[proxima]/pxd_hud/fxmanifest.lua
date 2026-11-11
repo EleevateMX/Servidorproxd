@@ -3,8 +3,8 @@ game 'gta5'
 lua54 'yes'
 
 name 'pxd_hud'
-description 'Próxima RP — interfaz en pantalla (dinero, necesidades, voz, hora y vehículo). Sustituye a qbx_hud'
-version '0.1.0'
+description 'Próxima RP — HUD 2.0 (constantes, dinero, voz, brújula, lugar y vehículo). Sustituye a qbx_hud'
+version '0.2.0'
 
 nui_callback_strict_mode 'true'
 
@@ -19,6 +19,6 @@ ui_page 'html/index.html'
 files {
     'html/ui/*.css',
     'html/index.html',
-    'html/style.css',
-    'html/app.js',
+    'html/assets/app.js',
+    'html/assets/app.css',
 }
