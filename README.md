@@ -72,6 +72,7 @@ Antes rellena `deploy/.env` (ver [docs/06-servidor-en-la-nube.md](docs/06-servid
 42. [Organizaciones y bandas (pxd_orgs)](docs/42-organizaciones.md)
 43. [Interfaz común (pxd_ui) y HUD 2.0](docs/43-interfaz-y-hud.md)
 44. [Vehículos: taller, tuning y mecánicos](docs/44-vehiculos.md)
+45. [Entrega de la oleada 1](docs/45-entrega-oleada-1.md)
 
 ## Pruebas
 
