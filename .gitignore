@@ -29,3 +29,6 @@ server-data/resources/[[]proxima]/pxd_audit/data/*.json
 
 # Interfaz del inventario: capturas locales
 web/pxd-inventory/shots/
+
+# Interfaz del taller: capturas locales
+web/garage/shots/
