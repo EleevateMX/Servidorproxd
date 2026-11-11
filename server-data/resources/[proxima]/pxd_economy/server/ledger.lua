@@ -115,6 +115,14 @@ local function summary(hours)
     s.large = Store.largeSince(now() - hours * 3600, 10)
     local ok, c = pcall(Store.circulation)
     if ok and c then s.circulation = { cash = tonumber(c.cash) or 0, bank = tonumber(c.bank) or 0 } end
+    -- Indicadores de la economía viva (docs/41): impuestos recaudados e índice del mercado.
+    if PXDTax and PXDTax.isReady() then
+        local okTax, taxes = pcall(PXDTax.summary, hours)
+        if okTax then s.taxes = taxes end
+    end
+    if PXDMarketServer and PXDMarketServer.isReady() then
+        s.marketIndex = PXDMarket.index(PXDMarketServer.state(), Config.market)
+    end
     return s
 end
 

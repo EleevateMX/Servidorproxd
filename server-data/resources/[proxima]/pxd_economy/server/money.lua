@@ -34,7 +34,10 @@ function M.chargeToAccount(player, method, amount, account, opts)
             return false, 'cambio'
         end
         step = 'recorded'
-        if not M.deposit(account, amount, opts.title or reason, opts.message, opts.payer) then
+        -- depositAmount: parte que recibe la cuenta (el resto es impuesto retenido por quien llama).
+        local credit = math.floor(tonumber(opts.depositAmount) or amount)
+        if credit < 0 or credit > amount then credit = amount end
+        if credit > 0 and not M.deposit(account, credit, opts.title or reason, opts.message, opts.payer) then
             if opts.undo then opts.undo() end
             step = 'none'
             player.Functions.AddMoney(method, amount, reason .. '-reembolso')
